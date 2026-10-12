@@ -121,10 +121,38 @@ aside                flex h-full flex-col overflow-hidden（背景由外壳给 b
 - 关键映射：新建任务 `MessageCirclePlus`、搜索 `Search`、折叠 `PanelLeft`/`PanelLeftOpen`、
   定时 `CalendarClock`、插件商店 `Store`。
 
+### 6.1 图标唯一来源
+
+`src/client/zcode-icons.tsx` 是**插件界面图标的唯一入口**：侧栏外壳、会话树、列表行、
+行内操作、悬停卡一律经它取图标。混入宿主图标（`host-icons.ts` 的 `IconXxxMedium`）会让
+同一屏出现两套图标语言——stroke 几何与视觉重量都不同；`session-tree.tsx` 曾同时使用两套。
+
+**已收归**：会话树、列表行、行内操作（`CodexWorkspaceBrowser.tsx` 24 处、
+`session-tree.tsx` 22 处、`workspace-hover-card.tsx` 8 处），共 54 处。
+
+**长尾未收归**（评审报告建议可分批；这些本身已是 Lucide，仅来源未统一到单一入口）：
+
+| 文件 | 现状 |
+| --- | --- |
+| `AboutSection.tsx`、`ScheduleBrowser.tsx`、`ConnectorsSection.tsx` | 仍取宿主图标 |
+| `CodexSettingsPage.tsx`、`NewConversationSuggestions.tsx`、`settings-page-registration.ts` | 直接从 `lucide-react` 引入 |
+
 ## 7. 动效与层级（DESIGN.md Motion / Elevation）
 
 - 过渡 150–200ms ease-out；菜单/弹层 `shadow-md`；dialog `shadow-lg` 级仅toast/重要浮卡。
 - 层级优先靠背景对比（background < surface < card < popover/menu），不靠大阴影。
+
+### 7.1 本插件的落实
+
+ZCode 明确要求「Keep transitions fast and low-drama. Avoid long, springy, or playful
+animations in the main workspace」。本插件曾沿用上游 Codex 的 `cubic-bezier(.16,1,.3,1)`
+（典型长尾缓出）配合 220–500ms 时长，即 ZCode 要求避免的弹簧感。
+
+现已统一：**全部过渡收敛为 180ms ease-out**，共改 25 处（23 处 CSS 过渡、
+1 处 JS Web Animations `easing`、1 处 CSS 变量定义）；低于下限的 140ms 提到 150ms。
+
+**未纳入的例外**（不属过渡规范适用范围）：加载旋转、标题跑马灯、进度条波浪等
+**循环装饰动画**，以及 `var(--ds-transition-duration-slow)` 这类宿主变量兜底。
 
 ## 8. 本插件的落点
 
@@ -133,7 +161,10 @@ aside                flex h-full flex-col overflow-hidden（背景由外壳给 b
 | Zai 色板 | `src/client/zcode-theme.ts` → `--dcu-*` 变量重定义（明/暗两套） |
 | 主题机制 | `syncZCodeTheme()` 镜像 `body[data-ds-dark-theme]` → `.theme-zai-*` class |
 | 侧栏几何 | `CodexSidebar.tsx` stylesheet：8px 圆角、32px 行高、px-2/py-3/gap-1 间距 |
-| 图标 | `zcode-icons.tsx`：lucide-react（tsdown 已配置 ESM 别名 + 摇树） |
+| **字号刻度** | `zcode-tokens.ts` 的 `ZCODE_STRUCTURAL` → `--dsw-font-size-*` 七档（见 §3.1） |
+| **动效节奏** | 全站过渡统一 180ms ease-out（见 §7.1） |
+| 图标 | `zcode-icons.tsx` 为唯一入口（见 §6.1） |
 | 会话行 | `CodexWorkspaceBrowser.tsx`：rounded-lg、hover bg-surface-hover、active bg-selected |
 | 输入壳 | 侧栏 stylesheet 的 composer 段：rounded-2xl(16px)、bg-input、primary 黑白键 |
 | 设置页 | `settings-page-styles.ts` tokens 换 Zai；焦点色 #0b7fff/#4099ff |
+| **侧栏结构** | 部分对齐；不可对齐项见 `docs/SIDEBAR-STRUCTURE-DIFF.md` |
