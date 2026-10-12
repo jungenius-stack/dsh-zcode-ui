@@ -1,0 +1,567 @@
+import { createRequire } from 'node:module'
+import { act, createElement, type ReactNode } from 'react'
+import { afterEach, expect, test, vi } from 'vitest'
+import { apply, startWorkspaceSession } from '../src/client/index.ts'
+import { CodexSidebar } from '../src/client/CodexSidebar.tsx'
+import { ConnectorsSection } from '../src/client/ConnectorsSection.tsx'
+import { HostActionError } from '../src/client/user-error.ts'
+
+const createRoot = (createRequire(import.meta.url)('react-dom/client') as {
+  createRoot: (container: Element) => { render: (node: ReactNode) => void; unmount: () => void }
+}).createRoot
+
+type SlotEntry = { readonly name: string; readonly [key: string]: unknown }
+
+class ClientApplyHarness {
+  private readonly slotEntries = new Map<string, SlotEntry[]>()
+  private readonly disposers: Array<() => void> = []
+
+  readonly slots = {
+    snapshot: () => [],
+    inject: (_name: string, mount: () => (() => void) | void): void => {
+      const dispose = mount()
+      if (typeof dispose === 'function') this.disposers.push(dispose)
+    },
+    register: (spec: SlotEntry, _component?: unknown): (() => void) => {
+      const entries = this.slotEntries.get(spec.name) ?? []
+      entries.push(spec)
+      this.slotEntries.set(spec.name, entries)
+      return () => {
+        const current = this.slotEntries.get(spec.name) ?? []
+        this.slotEntries.set(spec.name, current.filter(entry => entry !== spec))
+      }
+    },
+    entries: (name: string): readonly SlotEntry[] => this.slotEntries.get(name) ?? [],
+    entriesOfSlot: (name: string): readonly SlotEntry[] => this.slotEntries.get(name) ?? [],
+    subscribe: (): (() => void) => () => {},
+  }
+
+  readonly ctx = {
+    // 此夹具不提供可选的配置文件服务。
+    inject: () => () => {},
+    slots: this.slots,
+    locale: {
+      register: () => () => {},
+      bind: () => (key: string) => key,
+      subscribe: () => () => {},
+    },
+    layout: { toggleSidebar: () => {} },
+    sessions: {
+      open: () => {},
+      fork: async () => 'forked-session',
+      binding: () => undefined,
+      list: { getSnapshot: () => ({ current: undefined, byId: {} }), subscribe: () => () => {} },
+    },
+    workspaces: {
+      archiveSession: async () => {},
+      delete: async () => {},
+      rename: async () => {},
+      insertBefore: async () => {},
+      insertSessionBefore: async () => {},
+      list: { getSnapshot: () => ({ items: [] }) },
+    },
+    get: (name: string): unknown => name === 'connection'
+      ? { api: { host: { openPath: async () => ({ result: { ok: true, value: undefined } }) } } }
+      : name === 'conversation' ? {} : undefined,
+    effect: (mount: () => (() => void) | void): void => {
+      const dispose = mount()
+      if (typeof dispose === 'function') this.disposers.push(dispose)
+    },
+  }
+
+  mount(): void {
+    apply(this.ctx as never)
+  }
+
+  dispose(): void {
+    for (const dispose of this.disposers.reverse()) dispose()
+  }
+}
+
+let runtime: ClientApplyHarness | undefined
+
+afterEach(() => { runtime?.dispose(); runtime = undefined })
+
+test('新建任务有 reflect 时不硬读未注入的 uiWorkspace', () => {
+  const archiveStart = vi.fn()
+  startWorkspaceSession({
+    reflect: { get: (name: string) => name === 'uiWorkspace' ? { startSession: archiveStart } : undefined },
+    get uiWorkspace(): never { throw new Error('cannot get property "uiWorkspace" without inject') },
+    get() { throw new Error('get should wait for reflect') },
+    workspaces: { startSession: vi.fn() },
+  } as never, 'workspace-reflect' as never)
+  expect(archiveStart).toHaveBeenCalledWith('workspace-reflect')
+})
+
+test('新建任务优先使用 Archive Manager 提供的 uiWorkspace，并保留官方回退', () => {
+  const archiveStart = vi.fn()
+  const coreStart = vi.fn()
+  const workspaceId = 'workspace-1'
+  startWorkspaceSession({
+    get: (name: string) => name === 'uiWorkspace' ? { startSession: archiveStart } : undefined,
+    workspaces: { startSession: coreStart },
+  } as never, workspaceId as never)
+  expect(archiveStart).toHaveBeenCalledWith(workspaceId)
+  expect(coreStart).not.toHaveBeenCalled()
+
+  startWorkspaceSession({
+    get: () => undefined,
+    workspaces: { startSession: coreStart },
+  } as never, workspaceId as never)
+  expect(coreStart).toHaveBeenCalledWith(workspaceId)
+})
+
+test('新建任务缺少两路工作区服务时记录诊断', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  try {
+    startWorkspaceSession({
+      get: () => undefined,
+      workspaces: {},
+    } as never)
+    expect(warn).toHaveBeenCalledWith('DSH 工作空间服务尚未就绪，无法新建会话。')
+  } finally {
+    warn.mockRestore()
+  }
+})
+
+test('会话操作适配层保留 Host 结构化错误', async () => {
+  runtime = new ClientApplyHarness()
+  const renameFailure = {
+    code: 'session/title-invalid',
+    details: { sessionId: 'session-1' },
+    isDSHRemoteError: true,
+    message: 'invalid title',
+  }
+  const deleteFailure = {
+    code: 'session/not-found',
+    details: { sessionId: 'session-1' },
+    isDSHRemoteError: true,
+    message: 'missing session',
+  }
+  Object.assign(runtime.ctx.sessions, {
+    binding: () => ({ session: { rename: async () => ({ ok: false, error: renameFailure }) } }),
+  })
+  Object.assign(runtime.ctx, {
+    get: (name: string): unknown => name === 'connection'
+      ? { api: { host: { openPath: async () => ({ result: { ok: true, value: undefined } }) } } }
+      : name === 'remote.workspaceRegistry'
+        ? { deleteSession: async () => ({ ok: false, error: deleteFailure }) }
+        : name === 'conversation' ? {} : undefined,
+  })
+  runtime.mount()
+  const workspace = runtime.slots.entries('sidebar.workspaces')[0]
+  const actions = (workspace.inject as (() => {
+    renameSession: (sessionId: string, title: string) => Promise<void>
+    deleteSession: (sessionId: string) => Promise<void>
+  }))()
+
+  await expect(actions.renameSession('session-1', '新名称')).rejects.toMatchObject({
+    action: 'rename',
+    reason: renameFailure,
+  } satisfies Partial<HostActionError>)
+  await expect(actions.deleteSession('session-1')).rejects.toMatchObject({
+    action: 'delete',
+    reason: deleteFailure,
+  } satisfies Partial<HostActionError>)
+})
+
+test('连接器 Prompt 必须用 using 传入的 binding，并在释放前打开会话', async () => {
+  runtime = new ClientApplyHarness()
+  const usingBinding = { ctx: 'using-ctx' }
+  const drafts: Array<{ ctx: unknown; released: boolean; text: string }> = []
+  const opened: Array<{ id: string; released: boolean }> = []
+  let released = false
+  Object.assign(runtime.ctx.workspaces.list, {
+    getSnapshot: () => ({
+      items: [{ workspaceId: 'temporary-workspace', sessionIds: [], createdAt: '2026-09-03T00:00:00.000Z' }],
+      phase: 'ready',
+    }),
+  })
+  Object.assign(runtime.ctx.sessions.list, {
+    getSnapshot: () => ({ ids: [], byId: {}, phase: 'ready' }),
+  })
+  Object.assign(runtime.ctx.sessions, {
+    using: async (_id: string, _options: { source: string }, operation: (reference: { ready?: Promise<unknown>; binding?: { ctx?: unknown } }) => unknown) => {
+      try {
+        return await operation({ ready: Promise.resolve(), binding: usingBinding })
+      } finally {
+        released = true
+      }
+    },
+    binding() { throw new Error('must use using binding') },
+    retain() { return {} },
+  })
+  Object.assign(runtime.ctx, {
+    layout: { selectPanel() {} },
+    get: (name: string): unknown => name === 'connection'
+      ? { api: { host: { openPath: async () => ({ result: { ok: true, value: undefined } }) } } }
+      : name === 'uiWorkspace'
+        ? {
+            connectWorkspace: async () => 'temporary-session',
+            openSession: (id: string) => { opened.push({ id, released }) },
+          }
+        : name === 'conversation'
+          ? { input: { for(ctx: unknown) { return { setDraft(text: string) { drafts.push({ ctx, released, text }) } } } } }
+          : undefined,
+  })
+  runtime.mount()
+  const connector = runtime.slots.entries('settings.section').find(entry => entry.id === 'connectors')
+  const injected = (connector?.inject as (() => { startPromptSession: (prompt: string) => Promise<void> }))()
+  await injected.startPromptSession('检查项目')
+  expect(drafts).toEqual([{ ctx: 'using-ctx', released: false, text: '检查项目' }])
+  expect(opened).toEqual([{ id: 'temporary-session', released: false }])
+  expect(released).toBe(true)
+})
+
+test('连接器 Prompt 优先在官方 openWorkspace 的 beforeOpen 里写草稿', async () => {
+  runtime = new ClientApplyHarness()
+  const drafts: Array<{ ctx: unknown; held: boolean; text: string; id: string }> = []
+  const created: string[] = []
+  let held = false
+  Object.assign(runtime.ctx.workspaces.list, {
+    getSnapshot: () => ({
+      items: [{ workspaceId: 'temporary-workspace', sessionIds: [], createdAt: '2026-09-03T00:00:00.000Z' }],
+      phase: 'ready',
+    }),
+  })
+  Object.assign(runtime.ctx.sessions.list, {
+    getSnapshot: () => ({ ids: [], byId: {}, phase: 'ready' }),
+  })
+  Object.assign(runtime.ctx.sessions, {
+    binding: (id: string) => id === 'opened-session' && held ? { ctx: 'main-view' } : undefined,
+  })
+  const connectWorkspace = vi.fn(async () => {
+    created.push('leftover-blank')
+    return 'leftover-blank'
+  })
+  Object.assign(runtime.ctx, {
+    layout: { selectPanel() {} },
+    get: (name: string): unknown => name === 'connection'
+      ? { api: { host: { openPath: async () => ({ result: { ok: true, value: undefined } }) } } }
+      : name === 'uiWorkspace'
+        ? {
+            connectWorkspace,
+            openWorkspace: (_workspaceId: string, beforeOpen?: (sessionId: string) => void) => {
+              created.push('opened-session')
+              held = true
+              beforeOpen?.('opened-session')
+              held = false
+            },
+          }
+        : name === 'conversation'
+          ? { input: { for(ctx: unknown) { return { setDraft(text: string) { drafts.push({ ctx, held, text, id: created.at(-1) ?? '' }) } } } } }
+          : undefined,
+  })
+  runtime.mount()
+  const connector = runtime.slots.entries('settings.section').find(entry => entry.id === 'connectors')
+  const injected = (connector?.inject as (() => { startPromptSession: (prompt: string) => Promise<void> }))()
+  await injected.startPromptSession('检查项目')
+  expect(connectWorkspace).not.toHaveBeenCalled()
+  expect(created).toEqual(['opened-session'])
+  expect(drafts).toEqual([{ ctx: 'main-view', held: true, text: '检查项目', id: 'opened-session' }])
+})
+
+test('连接器示例 Prompt 在双基线就绪前不选择临时工作区', async () => {
+  runtime = new ClientApplyHarness()
+  const connectWorkspace = vi.fn(async () => 'temporary-session')
+  Object.assign(runtime.ctx.workspaces.list, {
+    getSnapshot: () => ({
+      items: [{ workspaceId: 'temporary-workspace', sessionIds: [], createdAt: '2026-09-03T00:00:00.000Z' }],
+      phase: 'pending',
+    }),
+  })
+  Object.assign(runtime.ctx.sessions.list, {
+    getSnapshot: () => ({ current: undefined, byId: {}, phase: 'pending' }),
+  })
+  Object.assign(runtime.ctx, {
+    get: (name: string): unknown => name === 'connection'
+      ? { api: { host: { openPath: async () => ({ result: { ok: true, value: undefined } }) } } }
+      : name === 'uiWorkspace' ? { connectWorkspace } : name === 'conversation' ? {} : undefined,
+  })
+  runtime.mount()
+  const connector = runtime.slots.entries('settings.section').find(entry => entry.id === 'connectors')
+  expect(connector).toBeDefined()
+  const injected = (connector?.inject as (() => { startPromptSession: (prompt: string) => Promise<void> }))()
+
+  await expect(injected.startPromptSession('检查项目')).rejects.toThrow('connectors.workspacesLoading')
+  expect(connectWorkspace).not.toHaveBeenCalled()
+})
+
+test('侧栏替换以更低优先级接管工作区树，并保留 footer action 子插槽', async () => {
+  runtime = new ClientApplyHarness()
+  runtime.mount()
+  expect(runtime.slots.entries('sidebar')).toHaveLength(1)
+  expect(runtime.slots.entries('sidebar.workspaces')).toHaveLength(1)
+  expect(runtime.slots.entries('sidebar.footer.action')).toHaveLength(0)
+
+  const disposeFooter = runtime.slots.register({
+    name: 'sidebar.footer.action', id: 'compatibility-probe', order: 0,
+  }, () => null)
+  expect(runtime.slots.entries('sidebar.footer.action')).toHaveLength(1)
+  disposeFooter()
+})
+
+test('未安装 IM 和定时插件时配套插槽没有注册项', async () => {
+  runtime = new ClientApplyHarness()
+  runtime.mount()
+  expect(runtime.slots.entries('sidebar.channels')).toHaveLength(0)
+  expect(runtime.slots.entries('sidebar.schedule')).toHaveLength(0)
+})
+
+test('折叠入口保留在侧栏，不再占用宿主标题栏插槽', () => {
+  runtime = new ClientApplyHarness()
+  runtime.mount()
+  for (const name of ['shell.leading', 'shell.overlay']) {
+    expect(runtime.slots.entries(name)).toHaveLength(0)
+  }
+  runtime.dispose()
+  runtime = undefined
+})
+
+test('搜索和窄轨切换不会重渲染或重新挂载工作区树', async () => {
+  vi.useFakeTimers()
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  let workspaceRenders = 0
+  const WorkspaceProbe = (): null => { workspaceRenders += 1; return null }
+  const renderSlot = (name: string) => name === 'sidebar.workspaces'
+    ? createElement(WorkspaceProbe)
+    : name === 'sidebar.settings'
+      ? createElement('button', { 'aria-haspopup': 'dialog' })
+      : null
+  const sessions = { ids: [], byId: {} }
+  const workspaces = { archivedSessionIds: [], items: [] }
+  const useSessions = (selector: (state: typeof sessions) => unknown): unknown => selector(sessions)
+  const useWorkspaces = (selector: (state: typeof workspaces) => unknown): unknown => selector(workspaces)
+  const base = {
+    width: 240,
+    collapsed: false,
+    renderSlot,
+    t: (key: string) => key,
+    useSessions,
+    useWorkspaces,
+    openSession: () => {},
+    startSession: () => {},
+    toggleSidebar: () => {},
+    archiveSession: async () => {},
+    deleteSession: async () => {},
+    forkSession: async () => {},
+    renameSession: async () => {},
+    openPath: () => {},
+  }
+
+  try {
+    await act(async () => { root.render(createElement(CodexSidebar, base as never)) })
+    expect(workspaceRenders).toBe(1)
+    const searchButton = container.querySelector<HTMLButtonElement>('[aria-label="sidebar.search"]')
+    await act(async () => { searchButton?.click() })
+    expect(container.querySelector('.dcu-search-scrim')).not.toBeNull()
+    expect(workspaceRenders).toBe(1)
+
+    await act(async () => { root.render(createElement(CodexSidebar, { ...base, collapsed: true, width: 56 } as never)) })
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-collapsing')).toBe(true)
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-compact')).toBe(false)
+    await act(async () => { vi.advanceTimersByTime(250) })
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-collapsing')).toBe(true)
+    await act(async () => { vi.advanceTimersByTime(250) })
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-compact')).toBe(true)
+    expect(workspaceRenders).toBe(1)
+
+    await act(async () => { root.render(createElement(CodexSidebar, base as never)) })
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-compact')).toBe(false)
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-collapsing')).toBe(false)
+    expect(workspaceRenders).toBe(1)
+    await act(async () => { root.render(createElement(CodexSidebar, { ...base, collapsed: true, width: 56 } as never)) })
+    await act(async () => { vi.advanceTimersByTime(100) })
+    await act(async () => { root.render(createElement(CodexSidebar, base as never)) })
+    await act(async () => { vi.advanceTimersByTime(500) })
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-compact')).toBe(false)
+    expect(workspaceRenders).toBe(1)
+  } finally {
+    vi.useRealTimers()
+    await act(async () => { root.unmount() })
+    container.remove()
+  }
+})
+
+test('扩展分组默认收起，展开偏好会持久化且悬停不改变展开状态', async () => {
+  const storage = window.localStorage ?? new Map<string, string>()
+  if (window.localStorage === undefined) {
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value) }, removeItem: (key: string) => { storage.delete(key) } },
+    })
+  }
+  window.localStorage.removeItem('dsh-codex-ui.sidebar-expansion.v1')
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  let root = createRoot(container)
+  const sessions = { ids: [], byId: {} }
+  const workspaces = { archivedSessionIds: [], items: [] }
+  const base = {
+    width: 240,
+    collapsed: false,
+    renderSlot: () => null,
+    t: (key: string) => key,
+    useSessions: (selector: (state: typeof sessions) => unknown): unknown => selector(sessions),
+    useWorkspaces: (selector: (state: typeof workspaces) => unknown): unknown => selector(workspaces),
+    openSession: () => {},
+    startSession: () => {},
+    toggleSidebar: () => {},
+    archiveSession: async () => {},
+    deleteSession: async () => {},
+    forkSession: async () => {},
+    renameSession: async () => {},
+    openPath: () => {},
+  }
+
+  try {
+    await act(async () => { root.render(createElement(CodexSidebar, base as never)) })
+    const extensions = container.querySelector<HTMLButtonElement>('.dcu-extensions-toggle')
+    const extensionsGroup = container.querySelector<HTMLElement>('.dcu-extensions-group')
+    expect(extensions?.getAttribute('aria-expanded')).toBe('false')
+
+    await act(async () => { extensions?.click() })
+    expect(extensions?.getAttribute('aria-expanded')).toBe('true')
+    expect(window.localStorage.getItem('dsh-codex-ui.sidebar-expansion.v1')).toBe('{"extensions":true}')
+    expect(container.querySelector<HTMLElement>('.dcu-extension-panel')?.getAttribute('data-open')).toBe('true')
+    expect([...container.querySelectorAll<HTMLButtonElement>('.dcu-extension-items button')].every(item => item.tabIndex === 0)).toBe(true)
+
+    await act(async () => { extensionsGroup?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })) })
+    expect(extensions?.getAttribute('aria-expanded')).toBe('true')
+    await act(async () => { extensionsGroup?.dispatchEvent(new MouseEvent('mouseout', { bubbles: true })) })
+    expect(extensions?.getAttribute('aria-expanded')).toBe('true')
+
+    await act(async () => { root.unmount() })
+    root = createRoot(container)
+    await act(async () => { root.render(createElement(CodexSidebar, base as never)) })
+    const remountedExtensions = container.querySelector<HTMLButtonElement>('.dcu-extensions-toggle')
+    const remountedItems = container.querySelectorAll<HTMLButtonElement>('.dcu-extension-items button')
+    expect(remountedExtensions?.getAttribute('aria-expanded')).toBe('true')
+    expect([...remountedItems].every(item => item.tabIndex === 0)).toBe(true)
+
+    await act(async () => { remountedExtensions?.click() })
+    expect(remountedExtensions?.getAttribute('aria-expanded')).toBe('false')
+    expect(window.localStorage.getItem('dsh-codex-ui.sidebar-expansion.v1')).toBe('{"extensions":false}')
+    remountedExtensions?.focus()
+    expect(document.activeElement).toBe(remountedExtensions)
+    expect([...remountedItems].every(item => item.tabIndex === -1)).toBe(true)
+  } finally {
+    await act(async () => { root.unmount() })
+    container.remove()
+    window.localStorage.removeItem('dsh-codex-ui.sidebar-expansion.v1')
+  }
+})
+
+test('自动化任务、定时任务和 IM 收进扩展，不再额外画出任务入口', async () => {
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  const sessions = { ids: [], byId: {} }
+  const workspaces = { archivedSessionIds: [], items: [] }
+  const panels = [
+    { id: 'schedules', label: '自动化任务', order: 10 },
+    { id: 'board', label: '任务看板', order: 20 },
+  ]
+  try {
+    await act(async () => {
+      root.render(createElement(CodexSidebar, {
+        width: 240,
+        collapsed: false,
+        renderSlot: () => null,
+        t: (key: string) => key,
+        useSessions: (selector: (state: typeof sessions) => unknown) => selector(sessions),
+        useWorkspaces: (selector: (state: typeof workspaces) => unknown) => selector(workspaces),
+        openSession: () => {},
+        startSession: () => {},
+        toggleSidebar: () => {},
+        archiveSession: async () => {},
+        deleteSession: async () => {},
+        forkSession: async () => {},
+        renameSession: async () => {},
+        openPath: () => {},
+        selectPanel: () => {},
+        globalPanels: { getSnapshot: () => panels, subscribe: () => () => {} },
+      } as never))
+    })
+    const extensionItems = container.querySelector('.dcu-extension-items')
+    const extensionText = extensionItems?.textContent ?? ''
+    expect(extensionText).toContain('自动化任务')
+    expect(extensionText).toContain('sidebar.schedule')
+    expect(extensionText).toContain('sidebar.assistant')
+    expect(container.querySelector('.dcu-menu [aria-label="sidebar.tasksTab"]')).toBeNull()
+    expect(extensionText).not.toContain('任务看板')
+    const board = [...container.querySelectorAll('.dcu-menu button')].find(button => button.textContent === '任务看板')
+    expect(board?.closest('.dcu-extension-items')).toBeNull()
+  } finally {
+    await act(async () => { root.unmount() })
+    container.remove()
+  }
+})
+
+test('连接器设置页嵌入可用的市场并只接受该 iframe 的 Prompt 消息', async () => {
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  const startPromptSession = vi.fn(async () => {})
+  const fetchMock = vi.fn(async () => new Response(null, { status: 200 }))
+  vi.stubGlobal('fetch', fetchMock)
+  const sessionStore = {
+    getSnapshot: () => ({ current: undefined }),
+    subscribe: () => () => {},
+  }
+  try {
+    await act(async () => {
+      root.render(createElement(ConnectorsSection, {
+        sessionStore,
+        startPromptSession,
+        t: ((key: string) => key) as never,
+      } as never))
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    const frame = container.querySelector<HTMLIFrameElement>('.dcu-connector-frame')
+    expect(frame).not.toBeNull()
+    expect(fetchMock).toHaveBeenCalledWith('/mcp-connector/ui/', expect.objectContaining({ method: 'GET', cache: 'no-store' }))
+
+    window.dispatchEvent(new MessageEvent('message', {
+      origin: 'https://untrusted.example',
+      source: frame?.contentWindow,
+      data: { type: 'mcp-connector:start-session', requestId: 'bad', prompt: 'ignore me' },
+    }))
+    await act(async () => {
+      window.dispatchEvent(new MessageEvent('message', {
+        origin: window.location.origin,
+        source: frame?.contentWindow,
+        data: { type: 'mcp-connector:start-session', requestId: 'good', prompt: 'Hello MCP' },
+      }))
+      await Promise.resolve()
+    })
+    expect(startPromptSession).toHaveBeenCalledTimes(1)
+    expect(startPromptSession).toHaveBeenCalledWith('Hello MCP')
+  } finally {
+    vi.unstubAllGlobals()
+    await act(async () => { root.unmount() })
+    container.remove()
+  }
+})
+
+
+test('全局搜索设置根条目可以打开新的设置触发器', async () => {
+ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true })
+ const container=document.createElement('div');document.body.append(container);const root=createRoot(container)
+ const opened=vi.fn();const sessions={ids:[],byId:{}};const workspaces={archivedSessionIds:[],items:[]}
+ try{
+ await act(async()=>{root.render(createElement(CodexSidebar,{
+ width:240,collapsed:false,t:(key:string)=>key,
+ useSessions:(f:(s:typeof sessions)=>unknown)=>f(sessions),useWorkspaces:(f:(s:typeof workspaces)=>unknown)=>f(workspaces),
+ renderSlot:(name:string)=>name==='sidebar.settings'?createElement('button',{'data-dcu-settings-trigger':true,onClick:opened}):null,
+ openSession:()=>{},startSession:()=>{},toggleSidebar:()=>{},archiveSession:async()=>{},deleteSession:async()=>{},forkSession:async()=>{},renameSession:async()=>{},openPath:()=>{},
+ } as never))})
+ await act(async()=>{container.querySelector<HTMLButtonElement>('[aria-label="sidebar.search"]')!.click()})
+ const entry=[...container.querySelectorAll<HTMLButtonElement>('.dcu-search-row')].find(button=>button.textContent?.includes('search.settings'))!
+ expect(entry).toBeDefined();await act(async()=>{entry.click()})
+ expect(opened).toHaveBeenCalledTimes(1)
+ }finally{await act(async()=>{root.unmount()});container.remove()}
+})

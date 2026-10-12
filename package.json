@@ -1,0 +1,141 @@
+{
+  "name": "dsh-zcode-ui",
+  "version": "1.0.0",
+  "description": "DSH ZCode UI — 把 DeepSeek Harness Web 的界面换成 ZCode 风格：侧栏、工作区会话树、全局搜索与轮次导航 · A ZCode-styled sidebar, workspace session tree, global search, and turn navigation skin for DSH Web",
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BatchTTS/dsh-zcode-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BatchTTS/dsh-zcode-ui/issues"
+  },
+  "homepage": "https://github.com/BatchTTS/dsh-zcode-ui#readme",
+  "type": "module",
+  "packageManager": "pnpm@11.28.5",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "main": "lib/index.mjs",
+  "types": "lib/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.mts",
+      "default": "./lib/index.mjs"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./session-title": {
+      "types": "./lib/session-title-plugin.d.mts",
+      "default": "./lib/session-title-plugin.mjs"
+    },
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./session-title/locale/*.json": "./locale/session-title/*.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "locale",
+    "cordis.patch.yml",
+    "CHANGELOG.md",
+    "CHANGELOG.zh-CN.md",
+    "LICENSE",
+    "README.md",
+    "README.zh-CN.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-input-trigger",
+        "@deepseek-ai/dsh-client-ui-workspace",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-connection"
+      ],
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "build": "tsc --noEmit && tsdown",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm run typecheck && vitest run && tsdown && node tests/run-assertions.mjs && pnpm run test:layout",
+    "test:host": "node scripts/verify-settings-exit.mjs",
+    "test:settings-backdrop": "node scripts/verify-settings-backdrop.mjs",
+    "test:layout": "node scripts/verify-workspace-drop-layout.mjs --run && node scripts/verify-sidebar-transition.mjs && node scripts/verify-sidebar-expand-control.mjs && node scripts/verify-sidebar-titlebar.mjs && node scripts/verify-composer-style.mjs && node scripts/verify-new-conversation.mjs && node scripts/verify-composer-tools.mjs && node scripts/verify-hero-width.mjs && node scripts/verify-settings-backdrop.mjs && node scripts/verify-settings-geometry.mjs && node scripts/verify-upstream-style-regressions.mjs",
+    "test:compat": "node scripts/run-compat-host.mjs"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.2 <5.0.0",
+    "@deepseek-ai/dsh-client-connection": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-locale": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-conversation": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-input-trigger": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-layout": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-primitives": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-settings": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-settings-general": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-sidebar": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-slots": ">=0.1.6-alpha.2 <0.3.0-0",
+    "@deepseek-ai/dsh-client-ui-workspace": ">=0.1.6-alpha.2 <0.3.0-0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/dsh-api-session-controller": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-api-workspace-controller": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-attachment": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-connection": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-locale": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-store": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-test-runtime": "0.2.0-rc.1",
+    "@deepseek-ai/dsh-client-ui-chat": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-conversation": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-input-trigger": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-layout": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-session": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-settings-general": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-sidebar": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-workspace": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-session": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-scope": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-subagent": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-util-workspace-path": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-workspace": "0.2.0-rc.2",
+    "diff": "^9.0.0",
+    "shiki": "^4.3.1",
+    "simple-icons": "16.31.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.0.0",
+    "@types/react": "~18.3.1",
+    "@types/react-dom": "^18.3.7",
+    "jsdom": "^29.1.1",
+    "playwright": "1.63.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8",
+    "workflow-yaml": "npm:yaml@2.9.0"
+  },
+  "dependencies": {
+    "lucide-react": "^1.39.0"
+  }
+}

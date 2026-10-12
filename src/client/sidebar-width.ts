@@ -1,0 +1,209 @@
+/** OpenAI Codex desktop sidebar geometry, measured from the installed client bundle. */
+export const CODEX_SIDEBAR_MIN_PX = 240
+export const CODEX_SIDEBAR_RAIL_PX = 56
+
+/** Backward-compatible name for the width used while a collapsed rail expands. */
+export const SLIM_SIDEBAR_PX = CODEX_SIDEBAR_MIN_PX
+
+export type SidebarGridTracks = {
+  sidebar: number
+  middle: string
+  /** 第三列原文。0.1.5 是 `0px`，0.1.7 是 `minmax(0px, Npx)`，写回时不能改格式。 */
+  details: string
+}
+
+const visibleSidebarWidths = new WeakMap<HTMLElement, number>()
+
+type HostSidebarSnapshot = {
+  grid: string
+  handleLeft: string
+  windowsWidth: string
+}
+
+const hostSidebarSnapshots = new WeakMap<HTMLElement, HostSidebarSnapshot>()
+
+/** 记下插件改写前的宿主列宽。已经带初始化标记的列宽是本插件留下的，不能当成宿主原值。 */
+export function rememberHostSidebar(frame: HTMLElement): void {
+  if (hostSidebarSnapshots.has(frame) || frame.hasAttribute('data-dcu-codex-sidebar-initialized')) return
+  const handle = frame.querySelector<HTMLElement>('[data-side="sidebar"]')
+  hostSidebarSnapshots.set(frame, {
+    grid: frame.style.gridTemplateColumns,
+    handleLeft: handle?.style.left ?? '',
+    windowsWidth: frame.style.getPropertyValue('--dsh-windows-sidebar-width'),
+  })
+}
+
+/** 停用或卸载时撤回列宽、拖拽柄和初始化标记，让官方侧栏按宿主宽度重排。 */
+export function restoreHostSidebar(frame: HTMLElement): void {
+  frame.removeAttribute('data-dcu-codex-sidebar-initialized')
+  frame.style.removeProperty('--dcu-sidebar-expanded-width')
+  const html = frame.ownerDocument.documentElement
+  const tracks = parseSidebarGrid(frame.style.gridTemplateColumns)
+  if (frame.hasAttribute('data-sidebar-collapsed')) {
+    const collapsedDesktop = html.hasAttribute('data-windows-titlebar') || html.dataset.platform === 'darwin'
+    if (collapsedDesktop && tracks?.sidebar === CODEX_SIDEBAR_RAIL_PX) {
+      frame.style.gridTemplateColumns = `0px ${tracks.middle} ${tracks.details}`
+      if (html.hasAttribute('data-windows-titlebar')) frame.style.setProperty('--dsh-windows-sidebar-width', '0px')
+    }
+    return
+  }
+  const snapshot = hostSidebarSnapshots.get(frame)
+  const handle = frame.querySelector<HTMLElement>('[data-side="sidebar"]')
+  if (snapshot !== undefined) {
+    frame.style.gridTemplateColumns = snapshot.grid
+    if (handle !== null) {
+      if (snapshot.handleLeft === '') handle.style.removeProperty('left')
+      else handle.style.left = snapshot.handleLeft
+    }
+    if (snapshot.windowsWidth === '') frame.style.removeProperty('--dsh-windows-sidebar-width')
+    else frame.style.setProperty('--dsh-windows-sidebar-width', snapshot.windowsWidth)
+    return
+  }
+  // 本会话已经把宿主列宽覆盖成 240，且没有快照时退回官方默认 280。
+  if (tracks?.sidebar === CODEX_SIDEBAR_MIN_PX) {
+    frame.style.gridTemplateColumns = `280px ${tracks.middle} ${tracks.details}`
+    if (handle !== null) handle.style.left = '280px'
+  }
+}
+
+/** 解析宿主 AppFrame 的 grid-template-columns。 */
+export function parseSidebarGrid(value: string): SidebarGridTracks | undefined {
+  const match = /^(\d+(?:\.\d+)?)px\s+(minmax\(\d+(?:px)?,\s*1fr\))\s+(minmax\(0(?:px)?,\s*\d+(?:\.\d+)?px\)|\d+(?:\.\d+)?px)$/.exec(value.trim())
+  if (match === null) return undefined
+  return { sidebar: Number(match[1]), middle: match[2], details: match[3] }
+}
+
+export function findSidebarFrame(root: ParentNode): HTMLElement | undefined {
+  const marked = root.querySelector<HTMLElement>('[data-sidebar-collapsed]')
+  if (marked !== null) return marked
+  for (const node of root.querySelectorAll<HTMLElement>('div')) {
+    if (parseSidebarGrid(node.style.gridTemplateColumns) !== undefined) return node
+  }
+  return undefined
+}
+
+/** Settings is portaled to body, so explicitly carry over the expanded width. */
+export function settingsSidebarWidth(root: ParentNode): number {
+  const frame = findSidebarFrame(root)
+  const expanded = Number.parseFloat(frame?.style.getPropertyValue('--dcu-sidebar-expanded-width') ?? '')
+  if (Number.isFinite(expanded) && expanded >= CODEX_SIDEBAR_MIN_PX) return expanded
+  const width = frame === undefined ? undefined : parseSidebarGrid(frame.style.gridTemplateColumns)?.sidebar
+  return width !== undefined && width >= CODEX_SIDEBAR_MIN_PX ? width : CODEX_SIDEBAR_MIN_PX
+}
+
+/** 同步侧栏网格和拖拽柄，保证两者始终使用同一个可见宽度。 */
+export function applySidebarWidth(frame: HTMLElement, width: number): boolean {
+  const tracks = parseSidebarGrid(frame.style.gridTemplateColumns)
+  if (tracks === undefined || frame.hasAttribute('data-sidebar-collapsed')) return false
+  visibleSidebarWidths.set(frame, width)
+  const next = `${width}px ${tracks.middle} ${tracks.details}`
+  const changed = frame.style.gridTemplateColumns !== next
+  if (changed) frame.style.gridTemplateColumns = next
+  // 保存展开宽度，让内容在宿主网格动画中只被裁切，不逐帧重排。
+  const contentWidth = `${width}px`
+  if (frame.style.getPropertyValue('--dcu-sidebar-expanded-width') !== contentWidth) {
+    frame.style.setProperty('--dcu-sidebar-expanded-width', contentWidth)
+  }
+  const handle = frame.querySelector<HTMLElement>('[data-side="sidebar"]')
+  if (handle !== null && handle.style.left !== contentWidth) handle.style.left = contentWidth
+  return changed
+}
+
+/** 自动宽度调整与初始化过渡共用前置条件；手动拖拽不受此限制。 */
+function canApplySlimSidebar(frame: HTMLElement): boolean {
+  return !frame.hasAttribute('data-dragging')
+    && parseSidebarGrid(frame.style.gridTemplateColumns) !== undefined
+}
+
+export function applySlimSidebar(frame: HTMLElement): boolean {
+  if (!canApplySlimSidebar(frame)) return false
+  if (frame.hasAttribute('data-sidebar-collapsed')) {
+    const tracks = parseSidebarGrid(frame.style.gridTemplateColumns)!
+    const next = `${CODEX_SIDEBAR_RAIL_PX}px ${tracks.middle} ${tracks.details}`
+    const changed = frame.style.gridTemplateColumns !== next
+    if (changed) frame.style.gridTemplateColumns = next
+    // Windows caption material follows the visible column; keep the saved expanded width intact.
+    if (frame.ownerDocument.documentElement.hasAttribute('data-windows-titlebar')
+      && frame.style.getPropertyValue('--dsh-windows-sidebar-width') !== `${CODEX_SIDEBAR_RAIL_PX}px`) {
+      frame.style.setProperty('--dsh-windows-sidebar-width', `${CODEX_SIDEBAR_RAIL_PX}px`)
+    }
+    return changed
+  }
+  const initialized = frame.hasAttribute('data-dcu-codex-sidebar-initialized')
+  const width = initialized ? visibleSidebarWidths.get(frame) ?? CODEX_SIDEBAR_MIN_PX : CODEX_SIDEBAR_MIN_PX
+  const changed = applySidebarWidth(frame, width)
+  // 相同值的 setAttribute 也会触发 MutationObserver，必须保持写入幂等。
+  if (!initialized) frame.setAttribute('data-dcu-codex-sidebar-initialized', '')
+  return changed
+}
+
+/** 仅在首帧覆盖宿主默认宽度时关闭过渡，避免刷新出现收缩动画。 */
+function pauseInitialSidebarTransition(frame: HTMLElement): () => void {
+  const handle = frame.querySelector<HTMLElement>('[data-side="sidebar"]')
+  const frameTransition = frame.style.transition
+  const handleTransition = handle?.style.transition
+  frame.style.transition = 'none'
+  if (handle !== null) handle.style.transition = 'none'
+  return () => {
+    frame.style.transition = frameTransition
+    if (handle !== null && handleTransition !== undefined) handle.style.transition = handleTransition
+  }
+}
+
+export function observeSlimSidebar(): () => void {
+  if (typeof document === 'undefined' || document.body === null) return () => {}
+  let applying = false
+  let frame: HTMLElement | undefined
+  let pending: number | undefined
+  let frameObserver: MutationObserver | undefined
+  const watchFrame = (next: HTMLElement | undefined): void => {
+    if (frame === next) return
+    frameObserver?.disconnect()
+    frame = next
+    if (frame === undefined) return
+    // 在下一次绘制前修正宿主宽度，避免先向宿主默认值展开一帧再重启动画。
+    frameObserver = new MutationObserver(apply)
+    frameObserver.observe(frame, { attributes: true, attributeFilter: ['style', 'data-sidebar-collapsed', 'data-dragging', 'data-dcu-codex-sidebar-initialized'] })
+  }
+  const apply = (): void => {
+    if (applying) return
+    applying = true
+    try {
+      if (frame === undefined || !frame.isConnected) watchFrame(findSidebarFrame(document))
+      if (frame !== undefined) {
+        rememberHostSidebar(frame)
+        // 尚不能应用宽度时不要写入过渡样式，否则初始化标记缺失会让监听反复触发自身。
+        if (!canApplySlimSidebar(frame)) return
+        if (frame.hasAttribute('data-sidebar-collapsed')) {
+          applySlimSidebar(frame)
+          return
+        }
+        const restoreTransition = frame.hasAttribute('data-dcu-codex-sidebar-initialized')
+          ? undefined
+          : pauseInitialSidebarTransition(frame)
+        const changed = applySlimSidebar(frame)
+        if (restoreTransition !== undefined) {
+          if (!changed) restoreTransition()
+          else window.requestAnimationFrame(() => window.requestAnimationFrame(restoreTransition))
+        }
+      }
+    } finally {
+      applying = false
+    }
+  }
+  const schedule = (): void => {
+    if (pending !== undefined) return
+    pending = window.requestAnimationFrame(() => { pending = undefined; apply() })
+  }
+  apply()
+  const observer = new MutationObserver(() => {
+    if (frame === undefined || !frame.isConnected) schedule()
+  })
+  observer.observe(document.body, { childList: true, subtree: true })
+  return () => {
+    observer.disconnect()
+    frameObserver?.disconnect()
+    if (pending !== undefined) window.cancelAnimationFrame(pending)
+    if (frame !== undefined) restoreHostSidebar(frame)
+  }
+}

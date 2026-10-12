@@ -1,0 +1,86 @@
+import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { MEMBER_PACKAGES } from '../packages/dsh-codex-suite-installer/installer.mjs'
+import { bilingualReleaseNotes, installerReleaseBodies } from './release-changelog.mjs'
+
+const installerPath = new URL('../packages/dsh-codex-suite-installer/package.json', import.meta.url)
+const compatibilitySuitePath = new URL('../packages/dsh-codex-suite/package.json', import.meta.url)
+const SEMVER = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/
+const UI_PACKAGE = '@michengai/dsh-codex-ui'
+
+function parseArgs(argv) {
+  const options = { version: undefined, dryRun: false, releaseNotes: undefined }
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    if (argument === '--version') options.version = argv[++index]
+    else if (argument.startsWith('--version=')) options.version = argument.slice('--version='.length)
+    else if (argument === '--dry-run') options.dryRun = true
+    else if (argument === '--release-notes') options.releaseNotes = argv[++index]
+    else if (argument.startsWith('--release-notes=')) options.releaseNotes = argument.slice('--release-notes='.length)
+    else throw new Error(`Unknown argument: ${argument}`)
+  }
+  if (options.version !== undefined && !SEMVER.test(options.version)) {
+    throw new Error(`Invalid installer version: ${JSON.stringify(options.version)}`)
+  }
+  if (options.releaseNotes !== undefined && options.releaseNotes === '') throw new Error('Release notes path cannot be empty.')
+  return options
+}
+
+function compareVersions(left, right) {
+  const parse = (value) => value.split(/[+-]/, 1)[0].split('.').map(Number)
+  const [leftMajor, leftMinor, leftPatch] = parse(left)
+  const [rightMajor, rightMinor, rightPatch] = parse(right)
+  return leftMajor - rightMajor || leftMinor - rightMinor || leftPatch - rightPatch
+}
+
+function nextPatch(version) {
+  const [major, minor, patch] = version.split(/[+-]/, 1)[0].split('.').map(Number)
+  return `${major}.${minor}.${patch + 1}`
+}
+
+async function resolveLatest(packageName) {
+  const response = await fetch(`https://registry.npmjs.org/${encodeURIComponent(packageName)}`)
+  if (!response.ok) throw new Error(`Unable to read npm metadata for ${packageName}: ${response.status} ${response.statusText}`)
+  const metadata = await response.json()
+  const version = metadata?.['dist-tags']?.latest
+  if (typeof version !== 'string' || !SEMVER.test(version)) {
+    throw new Error(`npm latest is not a published semver version for ${packageName}.`)
+  }
+  return version
+}
+
+const options = parseArgs(process.argv.slice(2))
+const manifest = JSON.parse(readFileSync(installerPath, 'utf8'))
+const compatibilitySuite = JSON.parse(readFileSync(compatibilitySuitePath, 'utf8'))
+const currentVersion = manifest.version
+if (typeof currentVersion !== 'string' || !SEMVER.test(currentVersion)) throw new Error('Installer manifest has no valid version.')
+if (typeof compatibilitySuite.dependencies !== 'object' || compatibilitySuite.dependencies === null) {
+  throw new Error('Compatibility suite manifest has no dependency map.')
+}
+
+const version = options.version ?? nextPatch(currentVersion)
+if (compareVersions(version, currentVersion) < 0) throw new Error(`Installer version ${version} cannot be lower than current ${currentVersion}.`)
+
+const members = Object.fromEntries(await Promise.all(MEMBER_PACKAGES.map(async (packageName) => [packageName, await resolveLatest(packageName)])))
+manifest.version = version
+manifest.dshCodexSuite = { ...manifest.dshCodexSuite, members }
+// 旧聚合包只保留历史成员；新安装器扩员不能扩大旧包的声明权。
+for (const packageName of Object.keys(compatibilitySuite.dependencies)) {
+  if (packageName === UI_PACKAGE) continue
+  if (!(packageName in members)) {
+    throw new Error(`Installer members are missing compatibility package ${packageName}.`)
+  }
+  compatibilitySuite.dependencies[packageName] = members[packageName]
+}
+
+const { chinese, english } = installerReleaseBodies(members)
+const releaseNotes = bilingualReleaseNotes(chinese, english)
+// 组合包只升成员版本号，不写入 UI 更新日志。精确版本保留在安装器清单。
+if (options.releaseNotes !== undefined) writeFileSync(resolve(options.releaseNotes), releaseNotes, 'utf8')
+if (!options.dryRun) {
+  writeFileSync(installerPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  writeFileSync(compatibilitySuitePath, `${JSON.stringify(compatibilitySuite, null, 2)}\n`, 'utf8')
+}
+
+console.log(`${options.dryRun ? 'Prepared' : 'Updated'} @michengai/dsh-codex-suite-installer@${version}`)
+for (const packageName of MEMBER_PACKAGES) console.log(`- ${packageName}@${members[packageName]}`)

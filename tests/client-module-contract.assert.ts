@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
+  main?: string
+  types?: string
+  packageManager?: string
+  engines?: { node?: string }
+  exports?: Record<string, unknown>
+  files?: string[]
+  dsh?: { client?: { inject?: string[] } }
+  peerDependencies?: Record<string, string>
+  peerDependenciesMeta?: Record<string, unknown>
+  devDependencies?: Record<string, string>
+}
+const bundle = readFileSync(new URL('../lib/client.js', import.meta.url), 'utf8')
+const hostBundle = readFileSync(new URL('../lib/index.mjs', import.meta.url), 'utf8')
+const runtimeRequires = [...new Set([...bundle.matchAll(/\brequire\("([^"]+)"\)/g)].map(match => match[1]))].sort()
+const staticWebModules = [
+  '@deepseek-ai/dsh-client-ui-primitives',
+  'react',
+  // DSH Web 启动器静态表包含 react-dom；新建页 portal 复用同一宿主渲染器。
+  'react-dom',
+  'react/jsx-runtime',
+].sort()
+
+assert.deepEqual(runtimeRequires, staticWebModules, '客户端 bundle 只能要求 DSH Web 启动器稳定提供的静态模块')
+assert.doesNotMatch(hostBundle, /from ["']@deepseek-ai\/dsh-client-ui-settings-general["']/, '宿主入口不得再按包名导入 settings-general，否则会向上解析到旧副本')
+assert.equal(manifest.packageManager, 'pnpm@11.28.5', '仓库固定使用统一 pnpm 版本')
+assert.equal(manifest.engines?.node, '^22.19.0 || >=24.0.0', '仓库使用统一 Node LTS 基线')
+assert.doesNotMatch(bundle, /createLucideIcon\("alarm-clock"/, '客户端 bundle 不得包含未使用的 Lucide 图标')
+assert.equal(manifest.main, 'lib/index.mjs', '服务端入口必须从 lib 发布目录加载')
+assert.equal(manifest.types, 'lib/index.d.mts', '类型声明必须从 lib 发布目录加载')
+assert.deepEqual(manifest.exports?.['.'], {
+  types: './lib/index.d.mts',
+  default: './lib/index.mjs',
+}, '包根导出必须从 lib 发布目录加载')
+assert.deepEqual(manifest.exports?.['./client'], {
+  default: './lib/client.js',
+}, '客户端导出必须从 lib 发布目录加载')
+assert.deepEqual(manifest.exports?.['./session-title'], {
+  types: './lib/session-title-plugin.d.mts',
+  default: './lib/session-title-plugin.mjs',
+}, '会话标题提供方必须作为独立宿主入口发布')
+assert.equal(manifest.exports?.['./locale/*.json'], './locale/*.json', '已安装列表必须能解析 locale/en.json 与 locale/zh.json')
+assert.equal(manifest.exports?.['./session-title/locale/*.json'], './locale/session-title/*.json', '会话标题子入口必须有自己的显示名')
+assert.equal(manifest.files?.includes('locale'), true, '发布文件必须包含插件显示名语言包')
+assert.equal(manifest.files?.includes('lib'), true, '发布文件必须包含 lib 目录')
+assert.equal(manifest.files?.includes('dist'), false, '发布文件不得继续包含旧 dist 目录')
+assert.equal(manifest.dsh?.client?.inject?.includes('@deepseek-ai/dsh-client-ui-primitives'), false, '静态模块不应误写成信息性的 dsh.client.inject 边')
+assert.equal(manifest.dsh?.client?.inject?.includes('@deepseek-ai/dsh-client-ui-slots'), false, '仅类型导入不得产生运行时模块声明')
+
+// fork 改用区间而非上游的显式 rc 枚举：DSH 版本门禁会静默 disable 不在 peer 范围内的插件。
+const supportedDshRange = '>=0.1.6-alpha.2 <0.3.0-0'
+const hostDevDshVersion = '0.2.0-rc.2'
+const versionedClientPackages = [
+  '@deepseek-ai/dsh-client-locale',
+  '@deepseek-ai/dsh-client-ui-conversation',
+  '@deepseek-ai/dsh-client-ui-input-trigger',
+  '@deepseek-ai/dsh-client-ui-layout',
+  '@deepseek-ai/dsh-client-ui-primitives',
+  '@deepseek-ai/dsh-client-ui-settings',
+  '@deepseek-ai/dsh-client-ui-settings-general',
+  '@deepseek-ai/dsh-client-ui-sidebar',
+  '@deepseek-ai/dsh-client-ui-slots',
+  '@deepseek-ai/dsh-client-ui-workspace',
+]
+
+for (const packageName of versionedClientPackages) {
+  assert.equal(manifest.peerDependencies?.[packageName], supportedDshRange, `${packageName} 必须使用统一的 DSH Peer 范围`)
+  assert.equal(manifest.devDependencies?.[packageName], hostDevDshVersion, `${packageName} 必须钉在当前宿主开发版本`)
+}
+assert.equal(manifest.peerDependencies?.['@deepseek-ai/dsh-client-runtime'], undefined, '客户端不再导入运行时包，不得写成 peer，否则桌面安装门会拿宿主版本去对这条范围')
+assert.equal(manifest.dsh?.client?.inject?.includes('@deepseek-ai/dsh-client-runtime'), false, '客户端不再 require 运行时包，不得写成 inject')
+assert.equal(manifest.devDependencies?.['@deepseek-ai/dsh-client-runtime'], undefined, '上游已停更该包，测试改用 0.2.0 生产的 SlotRegistry，不得再声明这条依赖')
+for (const [packageName, version] of Object.entries(manifest.devDependencies ?? {})) {
+  if (!packageName.startsWith('@deepseek-ai/dsh-')) continue
+  // 0.2.0-rc.2 没有再发布这个仅测试用的包，next 仍停在 0.2.0-rc.1。
+  const expected = packageName === '@deepseek-ai/dsh-client-test-runtime' ? '0.2.0-rc.1' : hostDevDshVersion
+  assert.equal(version, expected, `${packageName} 必须钉在当前宿主开发版本`)
+}
+assert.equal(manifest.peerDependencies?.['@deepseek-ai/cordis'], '>=4.0.2 <5.0.0', 'Cordis 必须覆盖宿主认证服务的兼容范围')
+assert.equal(manifest.peerDependencies?.['@deepseek-ai/dsh-client-connection'], supportedDshRange, '业务 REST 与其他客户端包使用同一 DSH peer 区间')
+assert.equal(manifest.devDependencies?.['@deepseek-ai/cordis'], '4.0.4', 'Cordis 编译版本必须对齐当前 DSH 开发依赖')
+assert.equal(manifest.peerDependencies?.['@michengai/dsh-agency-agents'], undefined, '不得把专家插件写成 Codex UI 的 peer')
+assert.equal(manifest.peerDependencies?.['@michengai/dsh-skills-manager'], undefined, '不得把技能插件写成 Codex UI 的 peer')
+assert.equal(manifest.peerDependenciesMeta, undefined, '自研配套插件不再需要 optional peer 元数据')

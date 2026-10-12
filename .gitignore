@@ -1,0 +1,12 @@
+# 依赖：体积过大，可由 pnpm-lock.yaml 重建
+node_modules
+/.pnpm-store/
+.codegraph/
+*.tgz
+
+# 注意：不忽略 docs/ —— docs/ZCODE-DESIGN.md 与 UPSTREAM-CHANGELOG 是设计溯源文档，
+# 必须纳入版本控制（上游 dsh-codex-ui 曾把 docs/ 当产物忽略，本 fork 已修正）。
+#
+# 也不忽略 lib/ —— 本插件以 link: 协议安装进 DSH profile，宿主实际加载的是
+# lib/index.mjs 与 lib/client.js；纳入 lib/ 才能保证回滚后立即可用，无需重新构建。
+
