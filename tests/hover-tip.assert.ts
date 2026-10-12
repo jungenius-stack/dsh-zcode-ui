@@ -107,8 +107,8 @@ const hoverCard = readFileSync(new URL('../src/client/workspace-hover-card.tsx',
 assert.doesNotMatch(hoverCard, /title=\{hoverTip\.path\}/, '悬停卡片路径不得再套原生 title，避免叠出浏览器 tips')
 assert.match(hoverCard, /dcu-wb-tip-workspace/, '项目悬浮卡片必须使用独立的 Codex 尺寸样式')
 assert.match(hoverCard, /dcu-wb-tip-pin/, '项目悬浮卡片右上角必须提供置顶操作')
-assert.match(hoverCard, /MessageCircle/, '项目任务摘要必须使用 Codex 对话图标')
-assert.match(hoverCard, /IconSettingsOutlineMedium/, '重命名项目必须使用 Codex 设置图标')
+assert.match(hoverCard, /ZIconChannels/, '项目任务摘要必须使用对话图标（图标语言已统一为 Lucide，见 docs/ZCODE-DESIGN.md §6.1）')
+assert.match(hoverCard, /ZIconSettings/, '重命名项目必须使用设置图标（同上）')
 assert.doesNotMatch(hoverCard, /<svg/, '项目悬浮卡片不得保留手绘图标')
 
 const workspaceBrowser = readFileSync(new URL('../src/client/CodexWorkspaceBrowser.tsx', import.meta.url), 'utf8')
