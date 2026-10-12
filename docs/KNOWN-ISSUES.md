@@ -416,3 +416,35 @@ tokens: --dsh-chat-content-width:640px   --dsh-composer-card-max-width:calc(640p
 **已顺带修掉的覆盖缺口**：`scripts/verify-composer-tools.mjs` 的宽度矩阵由 `[390, 1280]`
 扩为 `[390, 900, 1024, 1280]`（3 处循环）并跑通；这也证实该越界**无法**在合成夹具里复现
 （合成卡片不消费那个令牌），真机 harness 才是能抓到它的地方。
+
+### 10.3 compat harness 已端到端跑通（2026-10-12）
+
+三个活宿主脚本全部通过、`pageErrors` 为空：
+
+- `verify-compat-host`：输入历史调回、空草稿建议、兼容面板与选中反馈、**返回会话且草稿保留**、紧凑轨导航与动态注销/重注册，以及建议菜单几何（三视口 × 两种触发符 × 明暗）。
+- `verify-settings-exit`：返回、Escape、进入中退出、减少动态效果四条交互。
+- `verify-session-features-host`：工作区树接管侧栏、隔离宿主可移动会话与目标项目、会话菜单移动入口、移动接口归位。
+
+**过程中定性掉的一处"假缺陷"（重要，别再当 bug 修）**：`verify-compat-host` 曾在 `width=900 / dark / 触发符 "/"` 处报
+「建议菜单越出视口」（`left=-52.9`）。逐层探针查明：页面自身没有滚动（`scrollX=0`、文档 900=900），而是
+**宿主 app frame 被横滚了 264px** —— 宿主的 `rightbarCol` 宽度为 `0` 却带 **640px 隐藏内容**
+（来自 `compat-panel` 夹具面板），使 frame 的 `scrollWidth=1540 > 视口`；浏览器为保持焦点元素可见横滚了 frame，
+于是所有 `getBoundingClientRect()` 一起左移，而菜单与卡片 `left/right` **完全一致**（插件行为正确）。
+
+→ 结论：**不是插件缺陷，也不要为此改插件的 `--dsh-composer-card-max-width` 公式**（宿主自己用的是同一公式，
+且卡片是 `width:100%; max-width:该令牌`，只会封顶不会撑宽）。修法是在测量前把 frame 的横向滚动归零（已加注释说明成因）。
+
+**跑通命令**（约 1–2 分钟；`npm run test:compat` 需要以下三个环境变量）：
+
+```bash
+export PATH="$HOME/.workbuddy/binaries/node/versions/22.22.2-6/bin:$PATH"
+npm pack --pack-destination /tmp
+DCU_DSH_BIN="/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
+DCU_E2E_TARBALL=/tmp/dsh-zcode-ui-1.0.0.tgz DCU_E2E_VERSION=0.2.0-rc.2 \
+node scripts/run-compat-host.mjs
+```
+
+**仍不纳入 `scripts/gate.mjs`**：它需要 tarball + 隔离宿主、耗时 1–2 分钟，属于独立的重型档（只在改动宿主交互时手动跑）。
+
+**已知操作细节**：`verify-compat-host` 会往 `DCU_E2E_WORKSPACE` 写 `compat-reference.txt`，
+**同一个工作区重复跑会 `EEXIST`** → 复用工作区前先删该文件，或让 harness 每次新建隔离目录（默认行为即是）。

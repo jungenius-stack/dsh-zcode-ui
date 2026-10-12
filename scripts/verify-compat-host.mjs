@@ -72,14 +72,19 @@ try {
   assert.equal(await page.evaluate(() => window.__dcuCurrentSessionId(window.__dcuE2E.ctx.sessions.list.getSnapshot())), id)
   checks.push('全局面板切换、选中反馈、返回原会话并保留草稿')
   await page.getByRole('button', { name: '收缩侧边栏', exact: true }).click()
-  await page.waitForTimeout(350)
+  // 必须等过渡真正结束再操作/测量：本 fork 的收缩沉降是 500ms（SIDEBAR_COLLAPSE_SETTLE_MS），
+  // 上游脚本只等 350ms，会量到动画中间态——实测此时宿主 frame 会被横向滚走 264px（scrollWidth 1527），
+  // 于是后续所有元素整体左移，最后误报"建议菜单越出视口"。
+  await page.locator('.dcu-root:not(.dcu-collapsing)').waitFor()
+  await page.waitForTimeout(150)
   await page.locator('.dcu-compact-nav').getByRole('button', { name: '兼容测试面板', exact: true }).click()
   await page.locator('[data-e2e-panel]').waitFor()
   // 紧凑轨同样没有上游的「任务」入口，改点产品侧补上的「返回会话」图标按钮（aria-label 同名）。
   await page.locator('.dcu-compact-nav').getByRole('button', { name: '返回会话', exact: true }).click()
   await editor.waitFor()
   await page.getByRole('button', { name: '展开侧边栏', exact: true }).click()
-  await page.waitForTimeout(350)
+  await page.locator('.dcu-root:not(.dcu-collapsing)').waitFor()
+  await page.waitForTimeout(150)
   await page.evaluate(() => window.__dcuE2E.remove())
   assert.equal(await page.locator('[aria-label="兼容测试面板"]').count(), 0)
   await page.evaluate(() => window.__dcuE2E.add())
@@ -93,6 +98,11 @@ try {
     await page.waitForFunction(dark => document.body.hasAttribute('data-ds-dark-theme') === dark, colorScheme === 'dark')
     for (const width of [1440, 900, 390]) {
       await page.setViewportSize({ width, height: 960 })
+      // 2026-10-12：量几何前先把宿主 frame 的横向滚动归零。实测宿主的 rightbarCol 宽度为 0 却带 640px
+      // 隐藏内容（来自 compat-panel 夹具面板），把 frame 的 scrollWidth 顶到 1540 > 视口；浏览器于是把 frame
+      // 横滚 264px，所有 getBoundingClientRect 一起左移，最终误报「建议菜单越出视口」。归零后断言才在检查真实几何
+      //（本插件侧的比例关系是对的：菜单与卡片 left/right 完全一致）。
+      await page.evaluate(() => { for (const node of document.querySelectorAll('*')) if (node.scrollLeft > 0) node.scrollLeft = 0 })
       for (const trigger of ['/', '@']) {
         await editor.click()
         await editor.pressSequentially(trigger)
