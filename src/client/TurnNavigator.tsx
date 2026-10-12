@@ -19,8 +19,8 @@ const stylesheet = `
 .dcu-turn-scroll{width:16px;max-height:inherit;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;pointer-events:none}
 .dcu-turn-scroll::-webkit-scrollbar{display:none}
 .dcu-turn-list{display:grid;gap:2px;margin:0;padding:4px 0;list-style:none;width:16px;pointer-events:none}
-.dcu-turn-link{pointer-events:auto;position:relative;display:flex;align-items:center;width:16px;height:8px;overflow:visible;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary);font:13px/18px var(--dsw-font-family);text-align:left;cursor:pointer;transition:color 320ms cubic-bezier(.16,1,.3,1)}
-.dcu-turn-link::before{width:var(--dcu-tick-w,5px);height:var(--dcu-tick-h,1px);flex:0 0 var(--dcu-tick-w,5px);border-radius:1px;background:currentcolor;content:'';transition:width 360ms cubic-bezier(.16,1,.3,1),height 360ms cubic-bezier(.16,1,.3,1),flex-basis 360ms cubic-bezier(.16,1,.3,1),background-color 320ms cubic-bezier(.16,1,.3,1)}
+.dcu-turn-link{pointer-events:auto;position:relative;display:flex;align-items:center;width:16px;height:8px;overflow:visible;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-tertiary);font:13px/18px var(--dsw-font-family);text-align:left;cursor:pointer;transition:color 180ms ease-out}
+.dcu-turn-link::before{width:var(--dcu-tick-w,5px);height:var(--dcu-tick-h,1px);flex:0 0 var(--dcu-tick-w,5px);border-radius:1px;background:currentcolor;content:'';transition:width 180ms ease-out,height 180ms ease-out,flex-basis 180ms ease-out,background-color 180ms ease-out}
 .dcu-turn-summary{position:absolute;left:16px;top:var(--dcu-summary-top,50%);transform:translateY(-50%);box-sizing:border-box;width:max-content;max-width:240px;height:32px;padding:0 12px;border-radius:16px;background:#3a3d3c;color:#e8ebe9;box-shadow:0 8px 24px rgba(0,0,0,.28);pointer-events:none;z-index:2;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:32px}
 .dcu-turn-link[data-active=true]{color:var(--dsw-alias-label-primary)}
 .dcu-turn-link[aria-current=true]{color:var(--dsw-alias-label-primary)}

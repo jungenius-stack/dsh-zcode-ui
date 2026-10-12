@@ -16,7 +16,7 @@ export function InputHistoryHint({ t }: PropsLocale<typeof NS>) {
     [data-composer-card] [data-composer-placeholder]{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
     [data-composer-card] [data-composer-placeholder]::after{
       content:${JSON.stringify(t('input.historyHint'))};
-      color:var(--dsw-alias-label-caption);font-size:12px;line-height:18px;
+      color:var(--dsw-alias-label-caption);font-size:var(--dsw-font-size-sm);line-height:18px;
       white-space:nowrap;flex:0 0 auto;margin-right:8px;
     }
     @container dcu-composer-input (max-width:560px){

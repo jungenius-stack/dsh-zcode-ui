@@ -488,6 +488,21 @@ export const ZCODE_STRUCTURAL: TokenMap = {
   '--dsw-font-family':
     'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif',
 
+  // ── 字号刻度 ──────────────────────────────────────────────────────────────
+  // ZCode DESIGN.md 把 text-ui-* 七档刻度列为「Highest-priority UI constraint」，
+  // 并明确「Treat violations of this section as design-system defects, not stylistic
+  // preferences」。基准 --ui-font-size = 14px，其余各档相对基准计算；界面缩放只改
+  // 基准，不动根字号，且图标/间距/圆角不随字号缩放。
+  // 这里用 calc 相对 --dsw-font-size-base 表达，保留「改一处即可整体缩放」的性质。
+  // 2xs(9px) 一并纳入以保持刻度完整，但 ZCode 限定其仅用于图表坐标轴，界面不消费。
+  '--dsw-font-size-base': '14px',
+  '--dsw-font-size-xl': 'calc(var(--dsw-font-size-base) + 4px)',
+  '--dsw-font-size-lg': 'calc(var(--dsw-font-size-base) + 2px)',
+  '--dsw-font-size-caption': 'calc(var(--dsw-font-size-base) - 1px)',
+  '--dsw-font-size-sm': 'calc(var(--dsw-font-size-base) - 2px)',
+  '--dsw-font-size-xs': 'calc(var(--dsw-font-size-base) - 4px)',
+  '--dsw-font-size-2xs': 'calc(var(--dsw-font-size-base) - 5px)',
+
   // ZCode 滚动条：细窄、透明轨道
   '--dsh-scrollbar-width': '8px',
   '--dsh-scrollbar-thumb-border': '2px',

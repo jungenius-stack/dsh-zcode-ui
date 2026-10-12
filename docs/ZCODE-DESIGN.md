@@ -61,6 +61,40 @@
 - 标签与标题 `font-medium`；正文 `font-normal`；路径/命令/哈希用 mono。
 - 界面缩放只改 `--ui-font-size`，不动根字号；图标/间距/圆角不随字号缩放。
 
+### 3.1 刻度落点
+
+ZCode 把 `text-ui-*` 刻度列为「Highest-priority UI constraint」，并注明
+「Treat violations of this section as design-system defects, not stylistic preferences」。
+本插件的落点如下（定义于 `src/client/zcode-tokens.ts` 的 `ZCODE_STRUCTURAL`）：
+
+| ZCode 令牌 | 公式 | 默认值 | dsh-zcode-ui 落点 |
+| --- | --- | --- | --- |
+| `text-ui-xl` | 基准 +4px | 18px | `--dsw-font-size-xl` |
+| `text-ui-lg` | 基准 +2px | 16px | `--dsw-font-size-lg` |
+| `text-ui-base` | 基准 | 14px | `--dsw-font-size-base` |
+| `text-ui-caption` | 基准 −1px | 13px | `--dsw-font-size-caption` |
+| `text-ui-sm` | 基准 −2px | 12px | `--dsw-font-size-sm` |
+| `text-ui-xs` | 基准 −4px | 10px | `--dsw-font-size-xs` |
+| `text-ui-2xs` | 基准 −5px | 9px | `--dsw-font-size-2xs`（仅为刻度完整性，ZCode 限定只用于图表坐标轴，界面未消费） |
+
+各档以 `calc()` 相对 `--dsw-font-size-base` 表达，因此**改基准一处即可整体缩放**，
+与 ZCode「只改 `--ui-font-size`」的规定等价。
+
+`src/` 下落在刻度内的 `font-size` 硬编码已全部替换为上述令牌（共 55 处）；
+`font:` 简写内的字号未替换——CSS 简写中嵌入 `var()` 会让整个简写进入待替换状态，
+一旦变量缺失则字号、字重、字体一并失效，风险高于收益。
+
+### 3.2 刻度外例外（有意保留）
+
+以下字号不落在七档刻度内，出于「不做未经确认的视觉变更」原则保留原值，此处登记备查：
+
+| 值 | 位置 | 说明 |
+| --- | --- | --- |
+| `11px` ×4 | `ConnectorsSection.tsx:25`（2 处）、`AboutSection.tsx:39`、`CodexWorkspaceBrowser.tsx:206` | 介于 `xs`(10px) 与 `sm`(12px) 之间，归并任一侧都会改变现有视觉 |
+| `20px` | `AboutSection.tsx:35`（`.dcu-about h2`） | 关于页主标题，超出刻度上限 `xl`(18px) |
+| `22px` | `settings-page-styles.ts:98` | 设置页标题，同上 |
+| `34px` | `new-conversation-style.ts:10` | 新建会话页 hero 标题，展示型大字，非界面排版层级 |
+
 ## 4. 圆角与高度（DESIGN.md Radius / Sizing）
 
 - 控件默认 `rounded-lg`（8px）；菜单/下拉壳 `rounded-lg`、菜单项 `rounded-md`（6px）；
