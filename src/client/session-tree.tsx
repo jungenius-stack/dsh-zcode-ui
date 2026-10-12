@@ -37,9 +37,11 @@ export type SessionHoverTip = {
 }
 
 export function SessionHoverCard({ tip, onEnter, onLeave }: { tip: SessionHoverTip; onEnter: () => void; onLeave: () => void }) {
+  // 只展示侧栏里看不到的信息：完整标题 + 分支。
+  // 时长已在行内右侧常驻、所属项目已由树形层级表达，重复展示只会把卡片撑大并遮挡正文
+  // （DSH 内实测反馈：卡片显示「标题 + 19小时 + 测试1」，后两项与侧栏重复）。
   return <div className="dcu-wb-tip" style={{ left: tip.left, top: tip.top }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
-    <div className="dcu-wb-tip-title"><span className="dcu-wb-tip-title-main">{tip.title}</span>{tip.time !== undefined && <span className="dcu-wb-tip-time">{tip.time}</span>}</div>
-    {tip.project !== undefined && <div className="dcu-wb-tip-row"><span className="dcu-wb-folder"><ZIconFolder size={16} /></span><span>{tip.project}</span></div>}
+    <div className="dcu-wb-tip-title"><span className="dcu-wb-tip-title-main">{tip.title}</span></div>
     {tip.branch !== undefined && tip.branch !== '' && <div className="dcu-wb-tip-row"><span className="dcu-wb-folder"><ZIconBranch size={16} /></span><span>{tip.branch}</span></div>}
   </div>
 }

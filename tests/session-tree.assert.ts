@@ -62,7 +62,10 @@ assert.doesNotMatch(schedule, /showTip\(\{ title: group/, '定时项目行不得
 assert.match(workspace, /showTip\(\{ kind: 'workspace'/, '任务项目文件夹悬停必须显示卡片')
 assert.match(tree, /dcu-wb-tip-title/, '悬停卡片必须有标题行')
 assert.doesNotMatch(tree, /dcu-wb-tip-title"><span className="dcu-wb-folder"><ZIconFolder/, '会话卡片标题不得放文件夹图标：会话不是文件夹，且项目行已有同款图标')
-assert.match(tree, /dcu-wb-tip-row"><span className="dcu-wb-folder"><ZIconFolder/, '悬停卡片项目行必须带 Codex 官方收起文件夹图标')
+// 项目行与时长行已从悬停卡片移除：侧栏左侧已有项目分组、行内右侧已有时长，
+// 重复展示只会把卡片撑大并遮挡正文（DSH 内实测反馈）。改为防复发。
+assert.doesNotMatch(tree, /dcu-wb-tip-row"><span className="dcu-wb-folder"><ZIconFolder/, '悬停卡片不得再渲染项目行（所属项目已由侧栏树形层级表达）')
+assert.doesNotMatch(tree, /dcu-wb-tip-time/, '悬停卡片不得再渲染时长行（时长已由会话行内右侧常驻）')
 assert.doesNotMatch(tree, /title=\{t\('sessions\.pinned'\)\}/, '会话行钉选标记不得写原生 title，避免浏览器 tips')
 assert.doesNotMatch(tree, /title=\{t\(pinned \? 'sessions\.unpin' : 'sessions\.pin'\)\}/, '会话行钉选按钮不得写原生 title，避免浏览器 tips')
 assert.doesNotMatch(tree, /title=\{t\('sessions\.archive'\)\}/, '会话行归档按钮不得写原生 title，避免浏览器 tips')
