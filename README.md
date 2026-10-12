@@ -12,8 +12,6 @@
 [简体中文](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [Apache-2.0](LICENSE)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![npm package](https://img.shields.io/npm/v/dsh-zcode-ui.svg?label=npm%20package)](https://www.npmjs.com/package/dsh-zcode-ui)
-[![npm downloads](https://img.shields.io/npm/dt/dsh-zcode-ui.svg?label=npm%20downloads&v=2)](https://www.npmjs.com/package/dsh-zcode-ui)
 [![DSH Web Plugin](https://img.shields.io/badge/DSH%20Web-Plugin-0f766e.svg)](https://github.com/jungenius-stack/dsh-zcode-ui)
 [![Node.js 22 or later](https://img.shields.io/badge/Node.js-22%20or%20later-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 
@@ -57,13 +55,22 @@ This fork keeps upstream's interaction scaffolding and data layer, and adds:
 
 ## Install
 
+The package is **not published to the npm registry**. Install it straight from GitHub instead —
+`dsh plugin` forwards its arguments to `pnpm`, which resolves `github:<owner>/<repo>` natively:
+
+```text
+dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui
+```
+
+`lib/` is committed and the package defines no `prepare` script, so nothing is compiled during install.
+
 ### Ask an agent to install it (recommended)
 
 Paste this into any agent that can run terminal commands on your computer:
 
 ```text
 Install the DSH plugin dsh-zcode-ui into my local web profile by running:
-dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npmjs.org/
+dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui
 Then run dsh --profile web --dump-config, confirm the configuration includes zcode-ui, and explain how to reload DSH and start using the skin.
 ```
 
@@ -72,13 +79,13 @@ Then run dsh --profile web --dump-config, confirm the configuration includes zco
 ```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
-dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npmjs.org/
+dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui
 dsh --profile web --dump-config
 ```
 
 Restart DSH Web and hard-refresh the browser (usually `Ctrl+Shift+R`). The new sidebar is the sign that the skin is live. Disabling or uninstalling the plugin restores the official interface.
 
-### Install from source (unpublished changes)
+### Install from a local clone (unreleased changes)
 
 ```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

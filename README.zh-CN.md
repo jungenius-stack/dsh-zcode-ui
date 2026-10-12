@@ -12,8 +12,6 @@
 [English](README.md) · [更新日志](CHANGELOG.zh-CN.md) · [Apache-2.0](LICENSE)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![npm package](https://img.shields.io/npm/v/dsh-zcode-ui.svg?label=npm%20package)](https://www.npmjs.com/package/dsh-zcode-ui)
-[![npm downloads](https://img.shields.io/npm/dt/dsh-zcode-ui.svg?label=npm%20downloads&v=2)](https://www.npmjs.com/package/dsh-zcode-ui)
 [![DSH Web Plugin](https://img.shields.io/badge/DSH%20Web-Plugin-0f766e.svg)](https://github.com/jungenius-stack/dsh-zcode-ui)
 [![Node.js 22 or later](https://img.shields.io/badge/Node.js-22%20or%20later-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 
@@ -57,13 +55,22 @@ DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉
 
 ## 安装
 
+本包**未发布到 npm 仓库**，直接从 GitHub 安装即可——`dsh plugin` 会把参数原样转发给 `pnpm`，
+而 pnpm 原生支持 `github:<owner>/<repo>` 这种写法：
+
+```text
+dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui
+```
+
+`lib/` 已随仓库提交，且本包没有 `prepare` 脚本，所以安装过程不会触发任何编译。
+
 ### 让智能体帮你装（推荐）
 
 把下面这段发给任何能执行终端命令的智能体：
 
 ```text
 请把 DSH 插件 dsh-zcode-ui 装进我本地的 web profile，执行：
-dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npmjs.org/
+dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui
 然后运行 dsh --profile web --dump-config，确认配置里出现 zcode-ui，并告诉我怎么重载 DSH、怎么开始使用这套皮肤。
 ```
 
@@ -72,13 +79,13 @@ dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npm
 ```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
-dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npmjs.org/
+dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui
 dsh --profile web --dump-config
 ```
 
 重启 DSH Web 并硬刷新浏览器（一般是 `Ctrl+Shift+R`）。看到新侧栏就说明皮肤生效了。停用或卸载插件即可恢复官方界面。
 
-### 从源码安装（用于未发布的改动）
+### 从本地克隆安装（用于未发布的改动）
 
 ```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

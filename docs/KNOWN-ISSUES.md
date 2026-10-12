@@ -164,6 +164,18 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
       返回 404，裸包名未被占用。
 - [x] **确认 `publishConfig`** —— 已完成：当前为 `access: public` + 官方 registry
       （`https://registry.npmjs.org/`），与本条记录一致；若改为私有需另行调整。
+- [x] **发布渠道定为 GitHub 直装（2026-10-13 决定）** —— 不发布到 npm，README 的安装方式改为
+      `dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui`。依据：`dsh plugin`
+      把参数原样转发给 `pnpm`，pnpm 原生支持 `github:<owner>/<repo>`；本包没有 `prepare` 脚本，
+      且 `lib/` 已随仓库提交，所以安装过程不触发编译。上面两条 npm 相关的核对结果保留作历史记录，
+      `publishConfig` 也仍然保留，日后若要改发 npm 可直接沿用。
+- [x] **公开前的隐私清理（2026-10-13）** —— 仓库由私有转为公开前完成：
+      (a) README 顶部两张展示图用演示数据重截（原图会暴露本机真实项目名、会话标题与账户余额）；
+      (b) 删除 `debug/` 整目录（含 10 张同类截图、内含绝对路径的本地调试补丁、`lib/` 的派生副本），
+      并把 `debug/` 加入 `.gitignore`；
+      (c) 删除未被任何文档引用的 `assets/screenshots/conversation.png` 与上游营销图
+      `assets/branding/dsh-banner.png`（后者宣传的是上游自己的 5 个配套插件，不属于本项目）；
+      (d) 清除 `docs/` 中残留的本机绝对路径。
 - [x] **存量失败断言的处理** —— 已清零：本条原文针对"第 3 节的 3 个失败"，这些断言已于
       2026-10-12 全部重定基转绿（见 §3）。当前断言套件 34 通过 / 3 有意跳过（上游 monorepo
       专属脚本，见 §2）/ 0 失败，发布前不存在"套件为红误导使用者"的问题。
@@ -177,7 +189,7 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
   **下一次正规 `pnpm install` 会覆盖这些修补**，届时需确认 `unrun` 能被正常解析。
 - **`packageManager` 与实际环境不一致**：`package.json` 声明 `pnpm@11.28.5`，
   该版本要求 Node >= 22.13；而 ZCode 内置 Node 为 22.12，无法直接运行它。
-  本机可用 `/Users/m1/.workbuddy-ai/binaries/node/versions/22.22.2-6/bin/node`（已验证可用）。
+  本机可改用任意 Node 22.22.x（如 22.22.2-6，已验证可用），具体路径随各人环境而定。
 - **本仓库无 CI**：`npm test` 包含 `pnpm run typecheck && vitest run && tsdown && node tests/run-assertions.mjs`，
   其中 `pnpm` 在当前环境不可直接调用，需改用 `npm run` 对应脚本。
 - **构建与测试必须用正确的 Node（2026-10-12 更正：此前"缺原生绑定"是误判）**：
