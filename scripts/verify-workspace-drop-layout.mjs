@@ -153,23 +153,32 @@ const verify = async () => {
     const host = document.createElement('div')
     host.className = 'dark'
     host.style.cssText = 'width:275px'
-    host.innerHTML = '<div class="dcu-wb"><div class="dcu-wb-session" id="scroll-session"><span class="dcu-wb-session-title" data-overflow style="--dcu-title-shift:80px;--dcu-title-duration:2000ms"><span class="dcu-wb-session-title-text">很长的会话标题用来检查悬停时能否滚出省略号后面的文字</span></span></div></div>'
+    host.innerHTML = '<div class="dcu-wb"><div class="dcu-wb-session" id="scroll-session"><span class="dcu-wb-session-title"><span class="dcu-wb-session-title-text">很长的会话标题用来检查悬停时能否滚出省略号后面的文字</span></span></div></div>'
     document.body.append(host)
+    // 2026-10-12 更新：跑马灯已按实测反馈移除（滚动中标题两端同时被裁），改为纯 ellipsis。
+    // 双向断言：① 悬停等价态下不得再出现滚动动画；② 标题必须真的按 ellipsis 截断（声明了省略样式且有溢出）。
     const row = host.querySelector('#scroll-session')
     const text = host.querySelector('#scroll-session .dcu-wb-session-title-text')
-    row.classList.add('dcu-wb-menu-open')
-    const style = getComputedStyle(text)
-    if (!style.animationName.includes('dcu-wb-title-scroll')) throw new Error(`截断标题在悬停等价态必须滚动: ${style.animationName}`)
     const wrap = host.querySelector('#scroll-session .dcu-wb-session-title')
-    wrap.removeAttribute('data-overflow')
-    row.classList.remove('dcu-wb-menu-open')
+    row.classList.add('dcu-wb-menu-open')
+    for (const node of [wrap, text]) {
+      const style = getComputedStyle(node)
+      if (style.animationName !== 'none') throw new Error(`标题不得再滚动: animationName=${style.animationName}`)
+      if (style.overflow !== 'hidden' || style.textOverflow !== 'ellipsis') throw new Error(`标题必须以 ellipsis 截断: overflow=${style.overflow} textOverflow=${style.textOverflow}`)
+    }
     const overflow = text.scrollWidth - wrap.clientWidth
     if (overflow <= 1) throw new Error(`长标题必须测得出溢出: scroll=${text.scrollWidth} client=${wrap.clientWidth}`)
-    results.push({ name: '会话标题悬停滚动', error: 0, scrollError: 0 })
+    results.push({ name: '会话标题 ellipsis 截断', error: 0, scrollError: 0 })
   }
   return results
 }
-const bootStyles = JSON.stringify(styles.join('\n') + '\nbody{margin:0;font-family:Arial;background:#ddd}h3{font-size:13px}.dark{--dcu-sidebar-primary:#b9bab9;--dcu-sidebar-secondary:#909191;--dcu-sidebar-tertiary:#707874;--dcu-sidebar-hover:#303432;background:#1d2120;color:#b9bab9}.light{--dcu-sidebar-primary:#303432;--dcu-sidebar-secondary:#606563;--dcu-sidebar-tertiary:#767e7a;--dcu-sidebar-hover:#dfe8e5;background:#eef7f5;color:#303432}.dcu-wb{--dsw-alias-state-business-primary:#69a7ff}')
+// zcode-tokens.ts 的字号令牌必须一并注入：P1-1 起工作区样式改用 var(--dsw-font-size-*)，
+// 合成页面若缺这些令牌，font-size 会解析失败并回退成继承值——曾据此误报「空状态字体不统一」。
+const tokenSource = readFileSync('src/client/zcode-tokens.ts', 'utf8')
+const tokens = [...tokenSource.matchAll(/'(--dsw-[a-z0-9-]+)':\s*'([^']*)'/g)].map(([, name, value]) => `${name}:${value}`)
+if (tokens.length === 0) throw new Error('未从 zcode-tokens.ts 提取到任何 --dsw-* 令牌')
+const tokenStyles = `:root{${tokens.join(';')}}`
+const bootStyles = JSON.stringify(tokenStyles + styles.join('\n') + '\nbody{margin:0;font-family:Arial;background:#ddd}h3{font-size:13px}.dark{--dcu-sidebar-primary:#b9bab9;--dcu-sidebar-secondary:#909191;--dcu-sidebar-tertiary:#707874;--dcu-sidebar-hover:#303432;background:#1d2120;color:#b9bab9}.light{--dcu-sidebar-primary:#303432;--dcu-sidebar-secondary:#606563;--dcu-sidebar-tertiary:#767e7a;--dcu-sidebar-hover:#dfe8e5;background:#eef7f5;color:#303432}.dcu-wb{--dsw-alias-state-business-primary:#69a7ff}')
 const script = `(async()=>{document.head.innerHTML='<meta charset="utf-8">';const style=document.createElement('style');style.textContent=${bootStyles} ;document.head.append(style);${implementation};return (${verify.toString()})();})()`
 const verifyReducedTitle = () => {
   document.body.innerHTML = '<div class="dark" style="width:275px"><div class="dcu-wb"><div class="dcu-wb-session dcu-wb-menu-open" id="scroll-session"><span class="dcu-wb-session-title" data-overflow style="--dcu-title-shift:80px;--dcu-title-duration:2000ms"><span class="dcu-wb-session-title-text">很长的会话标题用来检查悬停时能否滚出省略号后面的文字</span></span></div></div></div>'

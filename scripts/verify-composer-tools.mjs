@@ -6,14 +6,20 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 const source = readFileSync('src/client/composer-tool-menus.ts', 'utf8').replaceAll('export ', '')
 const script = ts.transpileModule(source + '\nwindow.menuStyle = COMPOSER_TOOL_MENU_STYLE; window.observeMenus = observeComposerToolMenus;', { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText
+// 菜单字号用 var(--dsw-font-size-caption)，合成页面必须注入 zcode-tokens 的令牌，
+// 否则解析失败会回退成继承的 16px（曾据此误报「建议菜单未恢复外观」）。
+const tokenSource = readFileSync('src/client/zcode-tokens.ts', 'utf8')
+const tokens = [...tokenSource.matchAll(/'(--dsw-[a-z0-9-]+)':\s*'([^']*)'/g)].map(([, name, value]) => `${name}:${value}`)
+if (tokens.length === 0) throw new Error('未从 zcode-tokens.ts 提取到任何 --dsw-* 令牌')
+const tokenStyles = `:root{${tokens.join(';')}}`
 const browser = await chromium.launch({ headless: true })
 try {
   const page = await browser.newPage()
   // 使用原版宽度约束，验证换肤不再把不同菜单统一锁为 262/320px。
-  for (const width of [390, 1280]) for (const kind of ['model', 'project', 'permission']) {
+  for (const width of [390, 900, 1024, 1280]) for (const kind of ['model', 'project', 'permission']) {
     await page.setViewportSize({ width, height: 800 })
     const model = kind === 'model'
-    await page.setContent(`<style>*{box-sizing:border-box}.native-menu{position:fixed;left:12px;top:100px;display:flex;flex-direction:column;padding:4px;${model ? 'width:max-content;min-width:min(240px,calc(100vw - 32px));max-width:min(420px,calc(100vw - 32px))' : 'min-width:218px;max-width:360px'}}.native-menu button{display:flex;min-width:0}.native-menu span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style><div role="menu" class="native-menu" data-dcu-tool-menu="portal"><button role="menuitem"><span>短名称</span></button></div>`)
+    await page.setContent(`<style>${tokenStyles}*{box-sizing:border-box}.native-menu{position:fixed;left:12px;top:100px;display:flex;flex-direction:column;padding:4px;${model ? 'width:max-content;min-width:min(240px,calc(100vw - 32px));max-width:min(420px,calc(100vw - 32px))' : 'min-width:218px;max-width:360px'}}.native-menu button{display:flex;min-width:0}.native-menu span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}</style><div role="menu" class="native-menu" data-dcu-tool-menu="portal"><button role="menuitem"><span>短名称</span></button></div>`)
     await page.addScriptTag({ content: script })
     await page.addStyleTag({ content: await page.evaluate(() => window.menuStyle) })
     const menu = page.locator('[role=menu]')
@@ -25,9 +31,9 @@ try {
     if (long <= short || long > cap) throw new Error(`${kind}: 长名称未按原版约束扩展，${short} -> ${long}`)
   }
   // 官方建议外框与输入卡片等宽，listbox 只是内部滚动区；同时覆盖点击与直接键入路径。
-  for (const width of [390, 1280]) for (const dark of [false, true]) for (const mode of ['button', '@', '/']) {
+  for (const width of [390, 900, 1024, 1280]) for (const dark of [false, true]) for (const mode of ['button', '@', '/']) {
     await page.setViewportSize({ width, height: 800 })
-    await page.setContent(`<style>*{box-sizing:border-box}[data-composer-card]{position:relative;width:min(640px,calc(100vw - 48px));margin:400px auto 0}[data-trigger-menu]{position:absolute;left:0;right:0;bottom:100%;padding:4px;display:flex;flex-direction:column;border-radius:20px}[role=listbox]{display:flex;flex-direction:column;min-height:0;overflow-y:auto}[role=option]{width:100%}</style><section data-conversation-scroll><div data-composer-card><button aria-haspopup="listbox">指令</button><div contenteditable="true" role="textbox"></div></div></section>`)
+    await page.setContent(`<style>${tokenStyles}*{box-sizing:border-box}[data-composer-card]{position:relative;width:min(640px,calc(100vw - 48px));margin:400px auto 0}[data-trigger-menu]{position:absolute;left:0;right:0;bottom:100%;padding:4px;display:flex;flex-direction:column;border-radius:20px}[role=listbox]{display:flex;flex-direction:column;min-height:0;overflow-y:auto}[role=option]{width:100%}</style><section data-conversation-scroll><div data-composer-card><button aria-haspopup="listbox">指令</button><div contenteditable="true" role="textbox"></div></div></section>`)
     await page.addScriptTag({ content: script })
     await page.addStyleTag({ content: await page.evaluate(() => window.menuStyle) })
     await page.evaluate(() => {
@@ -64,9 +70,9 @@ try {
     if (await page.evaluate(() => window.chosen) !== '文件.ts') throw new Error('建议菜单的原回调失效')
     await page.evaluate(() => window.disposeMenus())
   }
-  for (const width of [390, 1280]) for (const dark of [false, true]) {
+  for (const width of [390, 900, 1024, 1280]) for (const dark of [false, true]) {
     await page.setViewportSize({ width, height: 800 })
-    await page.setContent(`<style>body{margin:0;--dsw-alias-label-primary:${dark ? '#ddd' : '#222'};--dsw-alias-label-secondary:#888}#bar{position:fixed;bottom:100px;left:24px}#inline{position:relative;display:inline-block}.host_menu{position:fixed;left:24px;top:600px;min-width:218px;background:#333;padding:4px;border-radius:20px}.host_menu [role=menuitem]{min-height:40px;border:0;color:inherit;background:transparent;display:flex;width:100%}.host_viewport{display:flex;flex-direction:column}.host_inline{position:absolute;top:auto;left:auto;bottom:calc(100% + 8px);right:0}</style><div data-conversation-scroll><div id="bar"><div class="host_heroWorkspaceRow"><button id="project">项目</button><button id="mode">模式</button><button id="branch">分支</button></div><div data-composer-card><button id="permission" aria-haspopup="menu">权限</button><span id="inline"><button id="model" aria-haspopup="menu">模型</button></span></div></div></div><button id="unrelated">其他区域</button>`)
+    await page.setContent(`<style>${tokenStyles}body{margin:0;--dsw-alias-label-primary:${dark ? '#ddd' : '#222'};--dsw-alias-label-secondary:#888}#bar{position:fixed;bottom:100px;left:24px}#inline{position:relative;display:inline-block}.host_menu{position:fixed;left:24px;top:600px;min-width:218px;background:#333;padding:4px;border-radius:20px}.host_menu [role=menuitem]{min-height:40px;border:0;color:inherit;background:transparent;display:flex;width:100%}.host_viewport{display:flex;flex-direction:column}.host_inline{position:absolute;top:auto;left:auto;bottom:calc(100% + 8px);right:0}</style><div data-conversation-scroll><div id="bar"><div class="host_heroWorkspaceRow"><button id="project">项目</button><button id="mode">模式</button><button id="branch">分支</button></div><div data-composer-card><button id="permission" aria-haspopup="menu">权限</button><span id="inline"><button id="model" aria-haspopup="menu">模型</button></span></div></div></div><button id="unrelated">其他区域</button>`)
     await page.addScriptTag({ content: script })
     await page.addStyleTag({ content: await page.evaluate(() => window.menuStyle) })
     await page.evaluate(dark => {
@@ -143,5 +149,5 @@ try {
   const initialAppearance = await appearance()
   await page.locator('[data-gitgraph-popover]').evaluate(el => el.setAttribute('data-dcu-tool-menu', 'inline'))
   if (JSON.stringify(initialAppearance) !== JSON.stringify(await appearance())) throw new Error('Git 菜单在观察器标记后改变尺寸或外观，存在首帧闪烁')
-  console.log('工具菜单：项目/模式/分支/权限/模型 × 深浅主题 × 两视口，定位、搜索、原回调及隔离清理检查通过。')
+  console.log('工具菜单：项目/模式/分支/权限/模型 × 深浅主题 × 四视口（390/900/1024/1280），定位、搜索、原回调及隔离清理检查通过。')
 } finally { await browser.close() }

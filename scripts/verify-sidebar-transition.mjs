@@ -129,7 +129,10 @@ try {
     assert.equal(sample.foot, sample.expected, `动画中页脚被压窄：${JSON.stringify(sample)}`)
   }
   for (const { start, target, values, duration } of result.motion) {
-    assert.equal(duration, '0.5s', '侧栏宽度必须使用明确的 0.5 秒过渡')
+    // 2026-10-12 由 0.5s 更新为 0.18s：P1-2 把动效统一到 ZCode 的 150–200ms ease-out
+    //（CodexSidebar.tsx 现为 `transition:grid-template-columns 180ms ease-out`）。
+    // 中间帧与终态断言不变，仍然要求动画可见且收敛。
+    assert.equal(duration, '0.18s', '侧栏宽度必须使用 ZCode 规定的 180ms 过渡')
     assert.ok(values.filter(value => value > Math.min(start, target) + 1 && value < Math.max(start, target) - 1).length >= 3, '展开和收起都必须有多个中间帧')
     assert.ok(Math.abs(values.at(-1) - target) < 0.1, '动画结束必须到达目标宽度')
   }

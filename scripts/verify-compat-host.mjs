@@ -63,7 +63,10 @@ try {
   await page.getByRole('button', { name: '兼容测试面板', exact: true }).click()
   await page.locator('[data-e2e-panel]').waitFor()
   assert.equal(await page.locator('.dcu-menu [aria-label="兼容测试面板"]').getAttribute('aria-current'), 'page')
-  await page.getByRole('button', { name: '任务', exact: true }).click()
+  // 2026-10-12 适配：上游插件的侧栏有「任务」导航项，点它即返回任务视图；ZCode 侧栏没有该入口
+  // （实测再点面板入口、按 Escape 都无法返回，等于用户被困在面板里）。产品侧已按此补上显式的
+  // 「返回会话」入口（只在全局面板打开时出现，动作是 selectPanel(null)），这里改为点它。
+  await page.getByRole('button', { name: '返回会话', exact: true }).click()
   await editor.waitFor()
   assert.equal(await editor.innerText(), draft)
   assert.equal(await page.evaluate(() => window.__dcuCurrentSessionId(window.__dcuE2E.ctx.sessions.list.getSnapshot())), id)
@@ -72,7 +75,8 @@ try {
   await page.waitForTimeout(350)
   await page.locator('.dcu-compact-nav').getByRole('button', { name: '兼容测试面板', exact: true }).click()
   await page.locator('[data-e2e-panel]').waitFor()
-  await page.locator('.dcu-compact-nav').getByRole('button', { name: '任务', exact: true }).click()
+  // 紧凑轨同样没有上游的「任务」入口，改点产品侧补上的「返回会话」图标按钮（aria-label 同名）。
+  await page.locator('.dcu-compact-nav').getByRole('button', { name: '返回会话', exact: true }).click()
   await editor.waitFor()
   await page.getByRole('button', { name: '展开侧边栏', exact: true }).click()
   await page.waitForTimeout(350)

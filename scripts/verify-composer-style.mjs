@@ -9,7 +9,10 @@ const host = readFileSync(require.resolve('@deepseek-ai/dsh-client-ui-conversati
 const css = host.match(/const css\$1 = ("(?:[^"\\]|\\.)*");\s*const tagId\$1 = "@deepseek-ai\/dsh-client-ui-conversation\/InputBar.module.css"/)?.[1]
 const classes = host.match(/var InputBar_module_css_default = (\{[\s\S]*?\});/)?.[1]
 const skin = readFileSync('src/client/CodexSidebar.tsx', 'utf8').match(/const stylesheet = `([\s\S]*?)`/)?.[1]
-assert.ok(css && classes && skin, '宿主输入框锚点变化，需要重新核对适配')
+// 主题层必须一并注入：发送键底色用 var(--dcu-primary)，真实应用里由 zcode-theme 全局注入，
+// 只注入皮肤样式会让该 var() 解析失败（正是 docs/KNOWN-ISSUES.md §8 那个真问题的成因）。
+const theme = readFileSync('src/client/zcode-theme.ts', 'utf8').match(/export const ZCODE_THEME_STYLE = `([\s\S]*?)`/)?.[1]
+assert.ok(css && classes && skin && theme, '宿主输入框锚点或主题样式变化，需要重新核对适配')
 const c = JSON.parse(classes)
 const browser = await chromium.launch({ headless: true })
 try {
@@ -19,6 +22,7 @@ try {
     await page.setContent(`<style>*{box-sizing:border-box}body{margin:0;--dsh-chat-content-width:720px;--dsh-composer-text-max-height:240px;--dsw-specific-input-major:#fff;--dsw-alias-bg-base:${dark ? '#181818' : '#fff'};--dsw-alias-bg-layer-2:#242424;--dsw-alias-label-primary:${dark ? '#ddd' : '#262626'};--dsw-alias-label-secondary:#777}</style><main data-conversation-scroll><div class="${c.root}"><div data-composer-card class="${c.card}"><div data-input-scroll class="${c.scroll}"><div class="${c.grow}"><div data-lexical-editor="true" contenteditable="true" class="${c.input}" aria-label="消息"><p><br></p></div><div data-composer-placeholder class="${c.placeholder}">输入消息</div></div></div><div class="${c.row}"><div class="${c.tools}"><button class="${c.add}">+</button><div class="${c.modes}"><button>权限</button></div></div><div class="${c.trailing}"><button class="${c.primary}" aria-label="发送">↑</button></div></div></div></div></main>`)
     await page.addStyleTag({ content: JSON.parse(css) })
     await page.addStyleTag({ content: skin })
+    await page.addStyleTag({ content: theme })
     await page.evaluate(dark => document.body.toggleAttribute('data-ds-dark-theme', dark), dark)
     const measure = () => page.locator('[data-composer-card]').evaluate(el => {
       const s = getComputedStyle(el), b = el.getBoundingClientRect()
@@ -27,7 +31,8 @@ try {
     })
     const before = await measure()
     assert.equal(before.height, 92, '空态由 8px 顶部、44px 编辑区、4px 间距、28px 工具栏和 8px 底部自然撑高')
-    assert.equal(before.radius, await page.evaluate(() => CSS.supports('corner-shape', 'superellipse(1.5)')) ? '25px' : '20px')
+    // 2026-10-12 由 Codex 口径（superellipse 25px / 20px）更新为 ZCode 的 16px 圆角（实测）。
+    assert.equal(before.radius, '16px', 'ZCode 输入壳圆角为 16px')
     assert.equal(before.button, 28)
     assert.equal(before.transform, 'none')
     assert.equal(before.overflow, false)
@@ -65,8 +70,10 @@ try {
       return { background: s.backgroundColor, color: s.color }
     })
     const paintHost = await buttonPaint()
-    assert.equal(paintHost.background, dark ? 'rgb(255, 255, 255)' : 'rgb(15, 17, 21)', '发送键保持 Codex 深浅主题底色')
-    assert.equal(paintHost.color, dark ? 'rgb(15, 17, 21)' : 'rgb(255, 255, 255)', '箭头保持 Codex 深浅主题前景色')
+    // 2026-10-12：主色令牌提升到根作用域后，发送键真正取到 ZCode 主色（浅 #000 / 暗 #fff）；
+    // 旧期望 rgb(15,17,21) 是 P1 之前的硬编码色，那时这条规则其实取不到令牌（见 KNOWN-ISSUES §8）。
+    assert.equal(paintHost.background, dark ? 'rgb(255, 255, 255)' : 'rgb(0, 0, 0)', '发送键必须取到 ZCode 主色底色')
+    assert.equal(paintHost.color, dark ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)', '箭头必须取到 ZCode 主色前景')
     assert.notEqual(paintHost.background, 'rgba(0, 0, 0, 0)', '发送键底色必须是不透明实色')
     assert.notEqual(paintHost.color, 'rgba(0, 0, 0, 0)', '发送键前景（箭头 currentColor）必须是不透明实色')
     await page.addStyleTag({ content: 'body{--dsw-alias-label-primary:rgb(0, 0, 0);--dsw-alias-bg-base:transparent}' })

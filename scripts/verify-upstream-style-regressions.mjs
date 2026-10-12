@@ -1,6 +1,6 @@
 /** 按 0.1.5 新增的附件与顶栏 DOM/CSS 合约验证覆盖后的计算布局。 */
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 import ts from 'typescript'
 
@@ -9,24 +9,37 @@ const header = readFileSync('src/client/conversation-header.ts', 'utf8').match(/
 const bubbleScript = ts.transpileModule(readFileSync('src/client/conversation-bubbles.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText
-const nativeNavigatorCss = readFileSync('scripts/fixtures/upstream-rc2/TurnNavigator.module.css', 'utf8')
+const upstreamFixtures = readdirSync('scripts/fixtures')
+  .filter(name => name.startsWith('upstream-'))
+  .sort()
+assert.ok(upstreamFixtures.length > 0, 'scripts/fixtures 下必须至少有一份上游宿主样式夹具')
 const browser = await chromium.launch()
 try {
   const page = await browser.newPage()
   // 官方预览默认向左展开；导航移到左侧后应朝内容区展开，动画仍由宿主提供。
+  // 每份夹具都要过同一套契约：夹具只换宿主 CSS，最小 DOM 按 0.2.0-rc.2 的官方结构还原
+  // （0.2.0-rc.2 起轨道被包进 .slot，预览改由 --turn-preview-center / --turn-preview-height 定位；
+  // 这份 DOM 对 0.1.5-rc.2 同样成立，多出的 .slot 无规则即普通容器）。
   await page.setViewportSize({ width: 1280, height: 900 })
-  await page.setContent(`<style>
+  for (const fixture of upstreamFixtures) {
+    const nativeNavigatorCss = readFileSync(`scripts/fixtures/${fixture}/TurnNavigator.module.css`, 'utf8')
+    const { tag } = JSON.parse(readFileSync(`scripts/fixtures/${fixture}/source.json`, 'utf8'))
+    await page.setContent(`<style>
     ${nativeNavigatorCss}
     ${skin}
-    </style><nav class="frame" data-dcu-official-turn-navigator style="--dsh-composer-side-clearance:-84px;--turn-natural-height:100px"><div class="preview" role="tooltip">预览</div></nav>`)
-  const preview = await page.locator('[role=tooltip]').evaluate(node => ({
-    left: parseFloat(getComputedStyle(node).left),
-    animation: getComputedStyle(node).animationName,
-    duration: getComputedStyle(node).animationDuration,
-  }))
-  assert.equal(preview.left, 38, '预览必须位于导航右侧并保留 10px 间距')
-  assert.equal(preview.animation, 'dsh-turn-preview-enter', '保留官方预览动画')
-  assert.equal(preview.duration, '0.12s', '保留官方动画时长')
+    </style><div class="slot" style="--dsh-composer-side-clearance:-84px"><nav class="frame" data-dcu-official-turn-navigator style="--turn-natural-height:100px;--turn-preview-center:40px;--turn-preview-height:100px"><div class="scroller"><div class="marks"></div></div><div role="tooltip" class="preview"><div class="previewPrompt">预览</div></div></nav></div>`)
+    const preview = await page.locator('[role=tooltip]').evaluate(node => ({
+      left: parseFloat(getComputedStyle(node).left),
+      animation: getComputedStyle(node).animationName,
+      duration: getComputedStyle(node).animationDuration,
+    }))
+    assert.equal(preview.left, 38, `${tag}：预览必须位于导航右侧并保留 10px 间距`)
+    assert.equal(preview.animation, 'dsh-turn-preview-enter', `${tag}：保留官方预览动画`)
+    assert.equal(preview.duration, '0.12s', `${tag}：保留官方动画时长`)
+    // 打印一份可自证夹具真被换过：.slot 的 container-type 只有 0.2.0-rc.2 起才存在。
+    const containerType = await page.locator('.slot').evaluate(node => getComputedStyle(node).containerType)
+    console.log(`· ${tag}：.slot container-type=${containerType}，预览 left=${preview.left}px，动画 ${preview.animation} ${preview.duration}`)
+  }
   for (const width of [390, 900, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     await page.setContent(`<style>
