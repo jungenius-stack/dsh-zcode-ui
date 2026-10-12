@@ -160,9 +160,13 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
       核实存在（id 322767483）。
       历史备注：早期版本曾填 `BatchTTS`，但该账号在 GitHub 上**不存在**（API 返回 404），
       它只是本机 git 的 local 身份（`BatchTTS <agent@local>`，邮箱为占位），不可用作发布账号。
-- [ ] **核对 npm 包名是否可用**：`dsh-zcode-ui` 为裸包名，发布前确认未被占用。
-- [ ] **确认 `publishConfig`**：当前为 `access: public` + 官方 registry，若改为私有需调整。
-- [ ] **决定是否处理第 3 节的 3 个失败**（均为上游样式漂移；发布前套件为红会误导使用者）。
+- [x] **核对 npm 包名是否可用** —— 已完成：2026-10-12 查询 `registry.npmjs.org/dsh-zcode-ui`
+      返回 404，裸包名未被占用。
+- [x] **确认 `publishConfig`** —— 已完成：当前为 `access: public` + 官方 registry
+      （`https://registry.npmjs.org/`），与本条记录一致；若改为私有需另行调整。
+- [x] **存量失败断言的处理** —— 已清零：本条原文针对"第 3 节的 3 个失败"，这些断言已于
+      2026-10-12 全部重定基转绿（见 §3）。当前断言套件 34 通过 / 3 有意跳过（上游 monorepo
+      专属脚本，见 §2）/ 0 失败，发布前不存在"套件为红误导使用者"的问题。
 
 ---
 
@@ -460,7 +464,8 @@ node scripts/run-compat-host.mjs
 - 已修断言：`settings-integration.assert.ts` 里那条「会话时间必须出现在悬停卡片右上角」——它把**旧设计写成了契约**，
   正是它让"改错组件"没被发现。现改为反向断言（不得渲染时长 / 项目行，必须保留分支行）。
 - 复验：隔离宿主（真机浏览器）实拍，悬停卡现在只显示完整标题；同图另见发送键为 ZCode 主色实心圆。
-- 遗留：`CodexWorkspaceBrowser.tsx` 的 `.dcu-wb-tip-time{...}` 规则已成死代码，可随手删除。
+- 遗留 → **已处理（`1bc3f11`，2026-10-12）**：`CodexWorkspaceBrowser.tsx` 的 `.dcu-wb-tip-time{...}` 死规则已删除
+  （渲染方自 `3b27644` 起不存在，`session-tree` / `settings-integration` 两条断言反向守护）。
 
 ## 11. 侧栏"意义不明的直线"（2026-10-12 实测反馈）
 
