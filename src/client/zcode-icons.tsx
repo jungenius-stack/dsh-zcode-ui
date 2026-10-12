@@ -7,7 +7,7 @@
  * 出现两套图标语言（stroke 几何与视觉重量都不同），故不保留宿主图标路径。
  */
 import {
-  Archive, Bot, CalendarClock, Check, ChevronDown, ChevronRight, Copy, Download,
+  Archive, Bot, CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Download,
   Eye, EyeOff, Folder, FolderOpen, FolderPlus, GitBranch, Link2, LoaderCircle,
   MessageCircle, MessageCirclePlus, MoreHorizontal, PanelLeft, PanelLeftOpen, Pencil,
   Pin, Puzzle, Search, Settings, SlidersHorizontal, Sparkles, SquarePen, Store,
@@ -27,6 +27,8 @@ export const ZIconExpand = PanelLeftOpen
 /** 扩展分组：Puzzle。 */
 export const ZIconExtensions = Puzzle
 export const ZIconChevronRight = ChevronRight
+/** 全局面板打开时的「返回会话」入口（ZCode 侧栏没有上游那个「任务」导航项，需要显式返回）。 */
+export const ZIconBack = ChevronLeft
 /** 设置分区导航。 */
 export const ZIconExperts = Users
 export const ZIconSkills = Sparkles

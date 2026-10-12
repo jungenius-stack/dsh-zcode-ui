@@ -12,6 +12,11 @@
 export const ZCODE_THEME_STYLE = `
 :root{color-scheme:light}
 body[data-ds-dark-theme],.theme-zai-dark{color-scheme:dark}
+/* 主色属**全局语义色**，不能只挂在下述侧栏作用域里：输入区的发送键也用它填充
+   （[data-composer-card] 下的 button[class$=_primary]），而输入区不在 .dcu-root 内，
+   挂在侧栏作用域会让该 var() 解析失败并静默失效——详见 docs/KNOWN-ISSUES.md §8。 */
+:root{--dcu-primary:#000000;--dcu-primary-foreground:#ffffff}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-foreground:#000000}
 /* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。 */
 .dcu-root,.dcu-settings-page,.dcu-home{
   --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#777777;
@@ -19,7 +24,7 @@ body[data-ds-dark-theme],.theme-zai-dark{color-scheme:dark}
   --dcu-sidebar-hover:rgba(13,13,13,.05);--dcu-sidebar-selected:rgba(13,13,13,.05);
   --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-tip-bg:#ffffff;--dcu-tip-border:rgba(13,13,13,.1);
   --dcu-tip-shadow:0 8px 24px rgba(13,13,13,.12);--dcu-focus:#0b7fff;
-  --dcu-primary:#000000;--dcu-primary-foreground:#ffffff;--dcu-surface:rgba(13,13,13,.03);
+  --dcu-surface:rgba(13,13,13,.03);
 }
 /* Zai Dark —— 宿主暗色属性或 ZCode 暗色 class 命中任一即切换。 */
 body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,body[data-ds-dark-theme] .dcu-home,
@@ -29,7 +34,7 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
   --dcu-sidebar-hover:rgba(255,255,255,.05);--dcu-sidebar-selected:rgba(255,255,255,.1);
   --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);
   --dcu-tip-shadow:0 8px 24px rgba(0,0,0,.4);--dcu-focus:#4099ff;
-  --dcu-primary:#ffffff;--dcu-primary-foreground:#000000;--dcu-surface:rgba(255,255,255,.05);
+  --dcu-surface:rgba(255,255,255,.05);
 }
 `
 
