@@ -130,12 +130,19 @@ aside                flex h-full flex-col overflow-hidden（背景由外壳给 b
 **已收归**：会话树、列表行、行内操作（`CodexWorkspaceBrowser.tsx` 24 处、
 `session-tree.tsx` 22 处、`workspace-hover-card.tsx` 8 处），共 54 处。
 
-**长尾未收归**（评审报告建议可分批；这些本身已是 Lucide，仅来源未统一到单一入口）：
+**2026-10-13 补齐**：`CodexSettingsPage.tsx`、`NewConversationSuggestions.tsx`、
+`settings-page-registration.ts` 三处原先直接从 `lucide-react` 引入，现已改从本入口取
+（新增 `ZIconArrowLeft` / `ZIconBox` / `ZIconHelp` / `ZIconClock` / `ZIconCpu` /
+`ZIconMessageSquare` / `ZIconPanelRight` / `ZIconTelescope` / `ZIconHammer` /
+`ZIconScanLine` / `ZIconBug` 等导出；连接器图标复用既有的 `ZIconLink`，与侧栏入口同一图标）。
+**现在全仓只有 `zcode-icons.tsx` 一个文件直引 `lucide-react`**——这条规则从此可由
+「grep 一次」验证，不再靠人工记忆。
 
-| 文件 | 现状 |
-| --- | --- |
-| `AboutSection.tsx`、`ScheduleBrowser.tsx`、`ConnectorsSection.tsx` | 仍取宿主图标 |
-| `CodexSettingsPage.tsx`、`NewConversationSuggestions.tsx`、`settings-page-registration.ts` | 直接从 `lucide-react` 引入 |
+**长尾未收归**（有意保留）：`AboutSection.tsx`、`ScheduleBrowser.tsx`、`ConnectorsSection.tsx`
+仍取宿主图标（`IconXxxMedium`）。复核结论：这三个文件**内部各自一致**（同页没有混用两套），
+且它们只出现在设置页「关于」「定时」「连接器」等独立页面，不与侧栏同屏。把宿主图标换成
+Lucide 等价图标属于**视觉变更**（描边几何与视觉重量都会变），需要设计确认与实拍比对，
+不属于"统一来源"这类纯卫生改动，故保留在此登记。
 
 ## 7. 动效与层级（DESIGN.md Motion / Elevation）
 

@@ -78,7 +78,7 @@ export function mountWorkspaceDropIndicator(root: HTMLElement): () => void {
     const rect = measureWorkspaceDropIndicator(root, targets => {
       const conflict = targets.length > 1 ? targets : []
       if (conflict.length > 1 && (conflict.length !== previousConflict.length || conflict.some((target, index) => target !== previousConflict[index]))) {
-        console.warn('Codex UI 拖拽存在多个有效落点，请检查跨区状态清理。', { count: conflict.length })
+        console.warn('[dsh-zcode-ui] 拖拽存在多个有效落点，请检查跨区状态清理。', { count: conflict.length })
       }
       previousConflict = conflict
     })

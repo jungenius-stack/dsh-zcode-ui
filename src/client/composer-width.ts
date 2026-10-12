@@ -8,7 +8,7 @@ export function initializeComposerWidth(storage: Pick<Storage, 'getItem' | 'setI
     if (Number.isFinite(saved) && saved > 0) return
     storage.setItem(key, String(COMPOSER_MIN_WIDTH))
   } catch (error) {
-    console.warn('[codex-ui] 无法初始化输入区宽度，将使用宿主默认值。', error)
+    console.warn('[dsh-zcode-ui] 无法初始化输入区宽度，将使用宿主默认值。', error)
   }
 }
 /** 新建页没有宿主 WidthHandle，补充同一宽度偏好的拖拽入口。 */
@@ -33,7 +33,7 @@ export function observeHeroWidthHandles(label: string): () => void {
         root.style.setProperty('--dsh-chat-user-width', `${value}px`)
         if (save) {
           try { localStorage.setItem('dsh.conversation.contentWidth', String(value)) }
-          catch (error) { console.warn('[codex-ui] 无法保存输入区宽度。', error) }
+          catch (error) { console.warn('[dsh-zcode-ui] 无法保存输入区宽度。', error) }
         }
       }
       const handles = ['left', 'right'].map(side => {

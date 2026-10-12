@@ -1,16 +1,16 @@
 import { useEffect, useState, useSyncExternalStore, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { Telescope, Hammer, ScanLine, Bug } from 'lucide-react'
+import { ZIconTelescope, ZIconHammer, ZIconScanLine, ZIconBug } from './zcode-icons.tsx'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import { NS } from './locales.ts'
 import type { PrefillResult, DraftPresenceSource } from './new-conversation-draft.ts'
 export type { PrefillResult } from './new-conversation-draft.ts'
 
 const categories = [
-  { id: 'explore', label: 'home.explore', tasks: [{ label: 'home.explore.task1', prompt: 'home.explore.prompt1' }, { label: 'home.explore.task2', prompt: 'home.explore.prompt2' }], Icon: Telescope, color: '#27aaff' },
-  { id: 'build', label: 'home.build', tasks: [{ label: 'home.build.task1', prompt: 'home.build.prompt1' }, { label: 'home.build.task2', prompt: 'home.build.prompt2' }], Icon: Hammer, color: '#a478e8' },
-  { id: 'review', label: 'home.review', tasks: [{ label: 'home.review.task1', prompt: 'home.review.prompt1' }, { label: 'home.review.task2', prompt: 'home.review.prompt2' }], Icon: ScanLine, color: '#44bd83' },
-  { id: 'fix', label: 'home.fix', tasks: [{ label: 'home.fix.task1', prompt: 'home.fix.prompt1' }, { label: 'home.fix.task2', prompt: 'home.fix.prompt2' }], Icon: Bug, color: '#f48235' },
+  { id: 'explore', label: 'home.explore', tasks: [{ label: 'home.explore.task1', prompt: 'home.explore.prompt1' }, { label: 'home.explore.task2', prompt: 'home.explore.prompt2' }], Icon: ZIconTelescope, color: '#27aaff' },
+  { id: 'build', label: 'home.build', tasks: [{ label: 'home.build.task1', prompt: 'home.build.prompt1' }, { label: 'home.build.task2', prompt: 'home.build.prompt2' }], Icon: ZIconHammer, color: '#a478e8' },
+  { id: 'review', label: 'home.review', tasks: [{ label: 'home.review.task1', prompt: 'home.review.prompt1' }, { label: 'home.review.task2', prompt: 'home.review.prompt2' }], Icon: ZIconScanLine, color: '#44bd83' },
+  { id: 'fix', label: 'home.fix', tasks: [{ label: 'home.fix.task1', prompt: 'home.fix.prompt1' }, { label: 'home.fix.task2', prompt: 'home.fix.prompt2' }], Icon: ZIconBug, color: '#f48235' },
 ] as const
 const hints = { workspace: 'home.workspace', draft: 'home.draft', busy: 'home.busy' } as const
 type Category = typeof categories[number]['id']

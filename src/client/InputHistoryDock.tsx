@@ -99,7 +99,7 @@ export function InputHistoryDock({ ctx, sessionId, history, seen }: HistoryDockP
 
 export function registerInputHistory(ctx: Context): void {
   let storage: Storage | undefined
-  try { storage = window.localStorage } catch { console.warn('[zcode-ui-for-dsh] 浏览器存储不可用，使用内存输入历史。') }
+  try { storage = window.localStorage } catch { console.warn('[dsh-zcode-ui] 浏览器存储不可用，使用内存输入历史。') }
   const history = new InputHistory(storage)
   const seen = new WeakMap<object, number>()
   function Dock(props: PropsRuntime<'conversation.input.dock'>) {

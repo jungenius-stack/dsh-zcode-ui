@@ -7,11 +7,11 @@
  * 出现两套图标语言（stroke 几何与视觉重量都不同），故不保留宿主图标路径。
  */
 import {
-  Archive, Bot, CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Download,
-  Eye, EyeOff, Folder, FolderOpen, FolderPlus, GitBranch, Link2, LoaderCircle,
-  MessageCircle, MessageCirclePlus, MoreHorizontal, PanelLeft, PanelLeftOpen, Pencil,
-  Pin, Puzzle, Search, Settings, SlidersHorizontal, Sparkles, SquarePen, Store,
-  Trash2, User, Users,
+  Archive, ArrowLeft, Bot, Box, Bug, CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight,
+  CircleHelp, Clock, Copy, Cpu, Download, Eye, EyeOff, Folder, FolderOpen, FolderPlus, GitBranch,
+  Hammer, Link2, LoaderCircle, MessageCircle, MessageCirclePlus, MessageSquare, MoreHorizontal,
+  PanelLeft, PanelLeftOpen, PanelRight, Pencil, Pin, Puzzle, ScanLine, Search, Settings,
+  SlidersHorizontal, Sparkles, SquarePen, Store, Telescope, Trash2, User, Users,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -85,3 +85,21 @@ export const ZIconPin = Pin
 /** 已隐藏 / 显示切换。 */
 export const ZIconEye = Eye
 export const ZIconEyeOff = EyeOff
+
+/**
+ * 设置页与面板页使用的补充图标。
+ * 这些页面此前直接从 `lucide-react` 取图标，绕过了本入口——同一份图标语言却有两个来源，
+ * 改名或换库时要改多处。现统一从这里导出，仍是 Lucide，视觉不变。
+ */
+export const ZIconArrowLeft = ArrowLeft
+export const ZIconBox = Box
+export const ZIconHelp = CircleHelp
+export const ZIconClock = Clock
+export const ZIconCpu = Cpu
+export const ZIconMessageSquare = MessageSquare
+// 连接器：复用上方既有的 ZIconLink（=Link2），与侧栏连接器入口保持同一图标，不再单独导出 Link。
+export const ZIconPanelRight = PanelRight
+export const ZIconTelescope = Telescope
+export const ZIconHammer = Hammer
+export const ZIconScanLine = ScanLine
+export const ZIconBug = Bug

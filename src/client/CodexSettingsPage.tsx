@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowLeft, Archive, Box, CircleHelp, Clock, Cpu, Link, MessageSquare, PanelRight, Search, Settings, SlidersHorizontal, Sparkles, Store, User } from 'lucide-react'
+import { ZIconArrowLeft, ZIconArchive, ZIconBox, ZIconHelp, ZIconClock, ZIconCpu, ZIconLink, ZIconMessageSquare, ZIconPanelRight, ZIconSearch, ZIconSettings, ZIconPersonalization, ZIconSkills, ZIconPlugins, ZIconUser } from './zcode-icons.tsx'
 import type { PropsLocale, PropsRenderSlots, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { ConnectionIndicator } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { ConnectionState } from '@deepseek-ai/dsh-client-connection/client'
@@ -29,19 +29,19 @@ export type CodexSettingsPageProps = PropsRuntime<'sidebar.settings'>
   & PropsLocale<typeof NS> & SettingsPageInjected
 
 function sectionIcon(id: string) {
-  if (id === 'market' || id === 'plugin-marketplace') return Store
-  if (id === 'better-sidebar' || id === 'sidebar-cards') return PanelRight
-  if (/model/.test(id)) return Cpu
-  if (/archive/.test(id)) return Archive
-  if (/about/.test(id)) return CircleHelp
-  if (/expert|agency/.test(id)) return User
-  if (/skill/.test(id)) return Sparkles
-  if (/connector|mcp/.test(id)) return Link
-  if (/schedule|automation/.test(id)) return Clock
-  if (/im|assistant/.test(id)) return MessageSquare
-  if (id === 'general') return Settings
-  if (/plugin/.test(id)) return SlidersHorizontal
-  return Box
+  if (id === 'market' || id === 'plugin-marketplace') return ZIconPlugins
+  if (id === 'better-sidebar' || id === 'sidebar-cards') return ZIconPanelRight
+  if (/model/.test(id)) return ZIconCpu
+  if (/archive/.test(id)) return ZIconArchive
+  if (/about/.test(id)) return ZIconHelp
+  if (/expert|agency/.test(id)) return ZIconUser
+  if (/skill/.test(id)) return ZIconSkills
+  if (/connector|mcp/.test(id)) return ZIconLink
+  if (/schedule|automation/.test(id)) return ZIconClock
+  if (/im|assistant/.test(id)) return ZIconMessageSquare
+  if (id === 'general') return ZIconSettings
+  if (/plugin/.test(id)) return ZIconPersonalization
+  return ZIconBox
 }
 
 /** 独立设置视图复用原始 section/close 合约，退出时保留底层会话与输入状态。 */
@@ -224,9 +224,9 @@ export function CodexSettingsPage({ wide, sections, onboarding, connectionState,
     {createPortal(<>
     {open && <div ref={page} className="dcu-settings-page" data-dcu-settings-page role="region" aria-label={t('settings.title')}>
       <nav className="dcu-settings-nav" aria-label={t('settings.title')}>
-        <button ref={back} type="button" className="dcu-settings-back" onClick={close}><ArrowLeft size={16}/>{renderSlot('settings.close', {}) ?? t('settings.back')}</button>
+        <button ref={back} type="button" className="dcu-settings-back" onClick={close}><ZIconArrowLeft size={16}/>{renderSlot('settings.close', {}) ?? t('settings.back')}</button>
         {renderSlot('settings.header', {})}
-        <label className="dcu-settings-search"><Search size={15} aria-hidden="true"/><input type="search" value={query} aria-label={t('settings.search')} placeholder={t('settings.search')} onChange={event => { setQuery(event.target.value) }}/></label>
+        <label className="dcu-settings-search"><ZIconSearch size={15} aria-hidden="true"/><input type="search" value={query} aria-label={t('settings.search')} placeholder={t('settings.search')} onChange={event => { setQuery(event.target.value) }}/></label>
         <div className="dcu-settings-groups">
           {(['personal', 'integrations', 'records'] as const).map(group => {
             const entries = visible.filter(row => settingsGroup(row.id) === group)

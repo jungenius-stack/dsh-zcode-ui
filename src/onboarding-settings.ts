@@ -35,9 +35,9 @@ export function registerOnboardingSettings(ctx: Context): void {
         })
         return
       }
-      ctx.logger.warn('[zcode-ui-for-dsh] 当前宿主没有设置 schema 接口，跳过引导设置注册。')
+      ctx.logger.warn('[dsh-zcode-ui] 当前宿主没有设置 schema 接口，跳过引导设置注册。')
     } catch (error) {
-      ctx.logger.warn('[zcode-ui-for-dsh] 引导设置注册已跳过：%s', error)
+      ctx.logger.warn('[dsh-zcode-ui] 引导设置注册已跳过：%s', error)
     }
   })
 }
