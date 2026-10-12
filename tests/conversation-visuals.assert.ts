@@ -74,6 +74,9 @@ assert.match(footerActions, /CONTEXT_OVERVIEW_FOOTER_ID = 'context-overview'/, '
 assert.match(footerActions, /HIDDEN_FOOTER_ACTION_IDS: ReadonlySet<string>/, '隐藏名单必须是只读 Set，避免运行时被改掉')
 assert.match(sidebar, /only: action\.id/, '底部动作必须按 id 单独 renderSlot，不能整槽渲染')
 assert.match(sidebar, /footer-actions 必须保持竖排/, '逐条 data-slot 锚点可能被插件设为 100% 宽，底部动作区不得改成横向 flex')
+// 2026-10-12 实测反馈：底栏各入口是同一组的兄弟项，逐项加横线会堆出一排"意义不明的直线"
+//（记忆/任务/归档/设置之间全是线）。分组用间距，不用分隔线；区块级的边界线（工作区、底栏上沿）保留。
+assert.doesNotMatch(sidebar, /\.dcu-footer-actions>\*\+\*\{[^}]*border-top/, '底栏入口之间不得逐项画分隔线')
 assert.doesNotMatch(sidebar, /lc-ov-entry/, '不得再靠 dsh-context 的按钮 class 藏入口')
 assert.doesNotMatch(sidebar, /\[data-slot\]:has\(/, '不得按 slot 祖先隐藏洞察入口，否则会把同槽的用量统计一起藏掉')
 assert.match(sidebar, /dcu-compact-nav[\s\S]*sidebar.newTask[\s\S]*sidebar.search[\s\S]*sidebar.experts[\s\S]*sidebar.skills[\s\S]*sidebar.plugins[\s\S]*sidebar.connectors[\s\S]*sidebar.schedule[\s\S]*sidebar.assistant/, '窄轨必须保留主导航图标')
@@ -131,7 +134,11 @@ assert.match(sidebar, /\.dcu-im-tab\[data-on=true\]\{[^}]*background:var\(--dcu-
 assert.match(sidebar, /\.dcu-extension-items::before\{content:"";position:absolute;left:-12px/, '扩展树线必须与父级图标中心对齐')
 assert.doesNotMatch(sidebar, /\.dcu-extension-items \.dcu-menu-icon\{display:none\}/, '扩展子项必须显示各自的图标')
 assert.match(sidebar, /\.dcu-extension-items button\{[^}]*grid-template-columns:16px minmax\(0,1fr\)/, '扩展子项必须保留图标列')
-assert.match(sidebar, /dcu-workspaces-tabs/, '有页签时不得再保留动作区和页签之间的第二条分隔线')
+// 2026-10-12 实测反馈：侧栏各区块靠间距区分，不画分隔线（设计文档的侧栏几何只规定 px-2/py-3/gap-1 间距）。
+// 同理底栏入口之间也不得逐项画线——原先那两条规则会在侧栏里堆出一排"意义不明的直线"。
+assert.doesNotMatch(sidebar, /\.dcu-workspaces\{[^}]*border-top/, '工作区区块不得用分隔线')
+assert.doesNotMatch(sidebar, /\.dcu-foot\{[^}]*border-top/, '底栏不得用分隔线')
+assert.match(sidebar, /dcu-workspaces-tabs\{padding-top:0\}/, '有页签时不得再叠加顶部内衬')
 assert.match(sidebar, /\.dcu-root\{[^}]*font:14px\/20px var\(--dsw-font-family\)/, '侧栏必须跟随宿主 --dsw-font-family')
 assert.doesNotMatch(sidebar, /--dcu-font/, '侧栏不得再定义 --dcu-font')
 assert.doesNotMatch(sidebar, /Inter,ui-sans-serif/, '侧栏不得再写死 Inter 栈')
