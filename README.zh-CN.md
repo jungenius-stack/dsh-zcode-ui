@@ -23,6 +23,10 @@
 > 它派生自开源项目 [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)（Apache-2.0），设计值取自 [zai-org/ZCode](https://github.com/zai-org/ZCode)（Apache-2.0）。
 > 「DeepSeek」「DeepSeek Harness」「ZCode」等名称归各自所有者，此处仅用于说明兼容性与设计来源。
 
+> [!WARNING]
+> **测试版（beta）—— 这还是一个早期测试版本。** 界面与行为仍在快速变化，已知的粗糙之处都如实写在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
+> **非常欢迎纠错和改进建议**——请直接开一个 [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues)。最有用的反馈很简短：你期望看到什么、实际发生了什么，如果是视觉问题就附一张截图。
+
 DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉语言：侧栏、工作区会话树、头部搜索、输入框全部采用 ZCode 的几何、配色与图标，明暗两套主题都是。
 
 **除了外观，什么都不动。** 这是一个纯粹的展示层插件：不碰会话、工作区、设置，也不碰任何数据通路——一切仍然走 DSH 自己的 `SlotRegistry` 插槽与 `ctx` 公共服务。
@@ -173,6 +177,15 @@ dsh --profile web --dump-config
 - [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) —— 已知问题、跳过的断言、环境遗留、发布前检查清单。
 - [`docs/UPSTREAM-CHANGELOG.md`](docs/UPSTREAM-CHANGELOG.md) —— fork 点之前的上游更新日志。
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) —— 怎么构建、怎么验证、怎么提交。
+
+## 反馈与贡献
+
+这是一个**测试版**，且由一个人维护，所以反馈是它变好的主要途径。
+
+- **哪里不对、哪里难看？** 开一个 [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues)：说明你期望什么、实际发生了什么，视觉问题请附截图——侧栏与输入框的截图最有用。
+- **有想法或改进建议？** 同样开 issue 就行，没有别的流程。
+- **想直接提交改动？** 见 [CONTRIBUTING.md](CONTRIBUTING.md)——提交前 `pnpm gate` 必须全绿。
+- **报之前先扫一眼** [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md)：已知限制都写在里面了，包括哪些问题**不归本插件**。
 
 ## 开发
 

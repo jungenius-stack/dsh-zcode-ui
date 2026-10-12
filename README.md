@@ -23,6 +23,10 @@
 > It is a fork of the open-source project [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui) (Apache-2.0), and its design values are taken from [zai-org/ZCode](https://github.com/zai-org/ZCode) (Apache-2.0).
 > "DeepSeek", "DeepSeek Harness" and "ZCode" are the property of their respective owners; the names are used here only to describe compatibility and design provenance.
 
+> [!WARNING]
+> **Beta — this is an early test build.** The interface and behaviour still change quickly, and the rough edges are listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
+> **Corrections and improvement suggestions are genuinely welcome** — please open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues). The most useful report is short: what you expected, what happened, and a screenshot if the problem is visual.
+
 DSH ZCode UI repaints the DSH Web interface in ZCode's (Zhipu / Zai) visual language: the sidebar, the workspace session tree, the header search, and the composer all adopt ZCode geometry, palette, and iconography — in both light and dark themes.
 
 Nothing else changes. The plugin is a **pure presentation layer**: it does not touch conversations, workspaces, settings, or any data path. Everything still flows through DSH's own `SlotRegistry` slots and `ctx` public services.
@@ -173,6 +177,15 @@ In-repo archives worth reading:
 - [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) — known issues, skipped assertions, environment leftovers, release checklist.
 - [`docs/UPSTREAM-CHANGELOG.md`](docs/UPSTREAM-CHANGELOG.md) — the upstream changelog up to the fork point.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to build, verify, and submit changes.
+
+## Feedback and contributing
+
+This is a **beta** maintained by one person, so feedback is the main way it improves.
+
+- **Something wrong or ugly?** Open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues) — say what you expected, what happened instead, and attach a screenshot if it is visual. Screenshots of the sidebar and the composer are the most useful.
+- **Idea or improvement?** Same place. Issues are fine for suggestions; there is no separate process.
+- **Want to send a change?** See [CONTRIBUTING.md](CONTRIBUTING.md) — `pnpm gate` must pass before a pull request is worth opening.
+- **Before reporting**, please skim [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md): the known limitations are already written down there, including which issues are *not* this plugin's.
 
 ## Development
 

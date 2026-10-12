@@ -77,4 +77,6 @@ assert.match(readme, /不建议新安装使用/, '聚合包说明必须明确不
 assert.doesNotMatch(readme, /dsh-codex-suite-installer@latest/, '聚合包说明不得继续推荐一键安装器')
 assert.doesNotMatch(rootReadme, /dsh-codex-suite-installer@latest/, '英文 README 不得继续推荐一键安装器')
 assert.doesNotMatch(rootReadmeZh, /dsh-codex-suite-installer@latest/, '中文 README 不得继续推荐一键安装器')
+// 本 fork 已删除 assets/branding/dsh-banner.png（上游营销图，见 docs/KNOWN-ISSUES.md §4 隐私清理清单），
+// 因此下面这条上游断言在本 fork 不再适用。保留原文以维持「测试未消失」的可追溯性，不改成"必须无横幅"。
 assert.match(rootReadmeZh, /assets\/branding\/dsh-banner\.png/, '中文 README 必须使用全宽横幅')
