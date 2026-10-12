@@ -448,3 +448,16 @@ node scripts/run-compat-host.mjs
 
 **已知操作细节**：`verify-compat-host` 会往 `DCU_E2E_WORKSPACE` 写 `compat-reference.txt`，
 **同一个工作区重复跑会 `EEXIST`** → 复用工作区前先删该文件，或让 harness 每次新建隔离目录（默认行为即是）。
+
+### 3b 附注（2026-10-12 视觉复验发现）：第 2 条此前改错了组件
+
+§3b 第 2 条当时改的是 `session-tree.tsx` 的 `SessionHoverCard`，但**侧栏工作区树（即实测反馈里的那张卡）走的是
+`workspace-hover-card.tsx` 的 `WorkspaceHoverCard`**；前者只服务定时任务 / IM 频道里的会话卡。所以侧栏那张卡
+一直仍在显示「标题 + 时长 + 项目名」，**上一轮修复对它完全没生效**。
+
+- 已修：`workspace-hover-card.tsx` 的**会话分支**只去掉时长与项目行（行内右侧已常驻时长、项目已由树形层级表达），
+  保留分支行；**工作区行**的 pin / 数量 / 路径 / 编辑入口一律不动。
+- 已修断言：`settings-integration.assert.ts` 里那条「会话时间必须出现在悬停卡片右上角」——它把**旧设计写成了契约**，
+  正是它让"改错组件"没被发现。现改为反向断言（不得渲染时长 / 项目行，必须保留分支行）。
+- 复验：隔离宿主（真机浏览器）实拍，悬停卡现在只显示完整标题；同图另见发送键为 ZCode 主色实心圆。
+- 遗留：`CodexWorkspaceBrowser.tsx` 的 `.dcu-wb-tip-time{...}` 规则已成死代码，可随手删除。

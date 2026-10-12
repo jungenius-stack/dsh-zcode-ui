@@ -233,7 +233,12 @@ assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:var\(--ds
 assert.match(workspaceBrowser, /dcu-wb-session-time/, '会话行右侧必须显示紧凑相对时间')
 assert.match(workspaceBrowser, /<SessionTime time=\{formatCompactTime\(session\.updatedAt, t, now\)\}/, '项目内会话必须把行内短格式相对时间画在右侧')
 assert.match(workspaceBrowser, /dcu-wb-tip/, '会话必须提供 Codex 风格悬停卡片')
-assert.match(workspaceBrowser, /dcu-wb-tip-time/, '会话时间必须出现在悬停卡片右上角')
+// 2026-10-12 实测反馈：会话行的时长已在行内右侧常驻、所属项目已由树形层级表达，悬停卡不再重复这两项。
+// 注意侧栏工作区树的会话卡是 workspace-hover-card.tsx（同时服务工作区行），与 session-tree.tsx 的
+// SessionHoverCard（定时任务/IM 频道）不是同一个组件——此前只修了后者，这里补上。
+assert.doesNotMatch(hoverCard, /dcu-wb-tip-time/, '会话悬停卡不得再渲染时长（行内右侧已常驻）')
+assert.doesNotMatch(hoverCard, /!workspace && hoverTip\.project !== undefined/, '会话悬停卡不得再渲染项目行（树形层级已表达）')
+assert.match(hoverCard, /!workspace && hoverTip\.branch !== undefined/, '会话悬停卡必须保留分支行（侧栏看不到的信息）')
 assert.match(workspaceBrowser, /formatHoverTime\(session.updatedAt, t, now\)/, '会话悬停卡片必须使用卡片文案的相对时间')
 assert.match(workspaceBrowser, /dcu-wb-project-head[^]*onMouseEnter=\{\(event\) => \{ const box = hoverCardAnchor/, '悬停项目行必须显示卡片')
 assert.match(workspaceBrowser, /showTip\(\{ kind: 'workspace'/, '项目文件夹悬停必须显示卡片，供顶栏文件夹复用')
