@@ -2,6 +2,7 @@
   "name": "dsh-zcode-ui",
   "version": "1.0.0",
   "description": "DSH ZCode UI — 把 DeepSeek Harness Web 的界面换成 ZCode 风格：侧栏、工作区会话树、全局搜索与轮次导航 · A ZCode-styled sidebar, workspace session tree, global search, and turn navigation skin for DSH Web",
+  "author": "jungenius-stack <322767483+jungenius-stack@users.noreply.github.com>",
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public",
