@@ -51,6 +51,7 @@ DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉
 ## 环境要求
 
 - 一个可用的 **DeepSeek Harness Web**，且 `dsh` 在 `PATH` 上。下文示例使用 `web` profile，请替换成你自己的 profile 名。
+- **主机兼容性。** peer 依赖声明的 `@deepseek-ai/dsh-client-*` 范围为 `>=0.1.6-alpha.2 <0.3.0-0`，开发期固定为 `0.2.0-rc.2`。重型档 `pnpm gate:host` 会把插件打包、装进隔离的 `DSH_HOME`，并用本机真实的 `dsh` 二进制跑一遍安装链路（可用 `DCU_DSH_BIN` 覆盖）。
 - 从源码构建需要 **Node.js `^22.19.0 || >=24.0.0`**。
 - ⚠️ macOS 上构建或测试时，**不要**把 DSH 自带的 Node 24 放在 `PATH` 最前面：它加载不了 `rolldown` 的原生绑定（`code signature ... different Team IDs`），`vitest` / `tsdown` 会直接失败。换成任意 22.22.x 即可。
 
@@ -106,6 +107,23 @@ dsh --profile web --dump-config
 | 管理会话 | 打开会话菜单：重命名、置顶、标记未读、归档、分叉、复制、删除 |
 | 复用历史输入 | 空输入框按上/下键，召回本工作区提交过的内容 |
 | 在轮次间跳转 | 用当前会话左侧的轮次标记 |
+
+## 常见问题
+
+**装完了，界面没变化？**
+先确认你装的 profile 就是正在运行 DSH Web 的那个，然后重启 DSH Web 并硬刷新浏览器（`Ctrl+Shift+R`）。`dsh --profile web --dump-config` 的输出里应该能看到 `zcode-ui`。如果该 profile 的 `cordis.patch.yml` 里还留着 `ui-sidebar` 或 `ui-settings-general` 的 `disabled: true`，把那几行删掉再重载。
+
+**会不会动我的会话、工作区或文件？**
+不会。这是纯展示层：它通过 DSH 的 `--dsw-*` 令牌层给界面换色，并通过官方插槽与公共服务渲染侧栏。它从不写会话记录；把项目从侧栏移除也不会删除任何文件夹。
+
+**能和别的 DSH 插件一起用吗？**
+可以，与 profile 里的其他插件共存。需要说明的是：实机反馈的 4 个界面问题实际属于计费插件与 context-pilot，不归本插件——详见 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md)。
+
+**为什么有 3 个断言是跳过的？**
+它们校验的是上游 monorepo 的发布契约（`packages/`、`.github/workflows/`），而本仓库是单包 fork，被测对象不存在。文件被保留并加显式 `SKIP` 块，而不是删除——见[已知限制](#已知限制)。
+
+**这是官方插件吗？**
+不是。这是个人项目，没有得到任何方面的背书（见文首声明）。
 
 ## 验证
 

@@ -51,6 +51,7 @@ This fork keeps upstream's interaction scaffolding and data layer, and adds:
 ## Requirements
 
 - A working **DeepSeek Harness Web** installation with `dsh` on your `PATH`. Examples below use the `web` profile; substitute your own profile name.
+- **Host compatibility.** Peer dependencies declare the `@deepseek-ai/dsh-client-*` range `>=0.1.6-alpha.2 <0.3.0-0`; development is pinned to `0.2.0-rc.2`. The heavy gate (`pnpm gate:host`) packs the plugin, installs it into an isolated `DSH_HOME`, and exercises the real `dsh` binary found on the machine — override it with `DCU_DSH_BIN`.
 - **Node.js `^22.19.0 || >=24.0.0`** if you build from source.
 - ⚠️ On macOS, do **not** put DSH's bundled Node 24 first on `PATH` when building or testing: it cannot load the `rolldown` native binding (`code signature ... different Team IDs`) and `vitest` / `tsdown` will fail. Any other Node 22.22.x works.
 
@@ -106,6 +107,23 @@ Once DSH Web is reloaded, the left navigation is rendered by this plugin.
 | Manage a conversation | Its menu: rename, pin, mark unread, archive, fork, copy, delete |
 | Reuse earlier input | Press Up/Down in an empty composer to recall input from this workspace |
 | Jump between turns | The turn marks to the left of the current conversation |
+
+## FAQ
+
+**Nothing changed after installing.**
+Check that the profile you installed into is the one actually running DSH Web, then restart DSH Web and hard-refresh the browser (`Ctrl+Shift+R`). `dsh --profile web --dump-config` should list `zcode-ui`. If that profile's `cordis.patch.yml` still carries `disabled: true` for `ui-sidebar` or `ui-settings-general`, delete those rows and reload.
+
+**Does it touch my conversations, workspaces, or files?**
+No. It is presentation-only: it recolours the interface through DSH's `--dsw-*` token layer and renders the sidebar through official slots and public services. It never writes conversation records, and removing a project from the sidebar does not delete its folder.
+
+**Can I use it next to other DSH plugins?**
+Yes. It coexists with the other plugins in your profile. Note that four interface issues reported from real use turned out to belong to the cost-meter and context-pilot plugins rather than this one — they are documented in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
+
+**Why are three assertions skipped?**
+They validate the upstream monorepo's release contracts (`packages/`, `.github/workflows/`), which do not exist in this single-package fork. The files are kept with an explicit `SKIP` block instead of being deleted — see [Known limitations](#known-limitations).
+
+**Is this an official plugin?**
+No. It is a personal project with no endorsement from anyone (see the notice at the top).
 
 ## Verification
 
