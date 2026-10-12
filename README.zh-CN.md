@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="assets/screenshots/conversation-light.png" alt="DSH ZCode UI" width="100%">
+  <img src="assets/screenshots/conversation-light.png" alt="DSH ZCode UI — 亮色" width="100%">
+  <img src="assets/screenshots/conversation-dark.png" alt="DSH ZCode UI — 暗色" width="100%">
 </p>
 
 <div align="center">

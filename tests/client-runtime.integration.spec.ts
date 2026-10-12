@@ -386,13 +386,7 @@ test('搜索和窄轨切换不会重渲染或重新挂载工作区树', async ()
 })
 
 test('扩展分组默认收起，展开偏好会持久化且悬停不改变展开状态', async () => {
-  const storage = window.localStorage ?? new Map<string, string>()
-  if (window.localStorage === undefined) {
-    Object.defineProperty(window, 'localStorage', {
-      configurable: true,
-      value: { getItem: (key: string) => storage.get(key) ?? null, setItem: (key: string, value: string) => { storage.set(key, value) }, removeItem: (key: string) => { storage.delete(key) } },
-    })
-  }
+  // localStorage 由 tests/vitest-setup.ts 全局提供；这里只清掉本用例自己的键。
   window.localStorage.removeItem('dsh-codex-ui.sidebar-expansion.v1')
   const container = document.createElement('div')
   document.body.appendChild(container)
