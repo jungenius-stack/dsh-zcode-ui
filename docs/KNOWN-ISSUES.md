@@ -5,7 +5,7 @@
 维护原则：**宁可显式记录，不要静默留白**。任何「跑不绿但暂时不动」的测试都必须在此登记原因，
 避免后续维护者把已知的存量漂移误当成新引入的回归。
 
-最后更新：2026-10-12（19:00 复核：31 通过 / 3 跳过 / 3 失败）
+最后更新：2026-10-12（当前基线：34 通过 / 3 跳过 / 0 失败）
 
 ---
 
@@ -14,15 +14,15 @@
 运行 `node tests/run-assertions.mjs` 的基线结果：
 
 ```
-31 通过 / 3 跳过 / 3 失败（共 37 个脚本）
+34 通过 / 3 跳过 / 0 失败（共 37 个脚本）
   已跳过：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
-  已失败：conversation-visuals.assert.ts、dependency-manager.assert.ts、settings-integration.assert.ts
 ```
 
 套件已改为**跑完全部再汇总**（原实现遇到第一个失败即退出），一次即可看清全部问题。
 
-> 基线会随工作树变化：`ecf64ef`（18:48）把 `session-tree.assert.ts` 的悬停卡片断言改为
-> 「不得再渲染项目行与时长行」后，该脚本由红转绿，失败数从 4 降为 3。
+> 基线会随工作树变化：19:00 时还有 3 条失败（`conversation-visuals` / `dependency-manager` /
+> `settings-integration`，均为上游样式漂移），当天已全部重定基转绿，详见 §3。本块数字与
+> `README` 中引用的口径一致。
 
 ---
 

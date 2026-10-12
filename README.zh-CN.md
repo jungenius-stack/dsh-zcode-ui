@@ -1,86 +1,167 @@
 <p align="center">
-  <img src="assets/screenshots/conversation-light.png" alt="DSH ZCode UI — 亮色" width="100%">
-  <img src="assets/screenshots/conversation-dark.png" alt="DSH ZCode UI — 暗色" width="100%">
+  <img src="assets/screenshots/conversation-light.png" alt="DSH ZCode UI — 亮色主题" width="100%">
+  <img src="assets/screenshots/conversation-dark.png" alt="DSH ZCode UI — 暗色主题" width="100%">
 </p>
 
 <div align="center">
 
 # DSH ZCode UI
 
-**把 DSH Web 的界面换成 ZCode 风格**
+**把 DeepSeek Harness（DSH）Web 的界面换成 ZCode 风格 —— 侧栏、工作区会话树、全局搜索、轮次导航**
 
-[English](README.md) · [Apache-2.0](LICENSE)
+[English](README.md) · [更新日志](CHANGELOG.zh-CN.md) · [Apache-2.0](LICENSE)
 
-![DSH Web Plugin](https://img.shields.io/badge/DSH%20Web-Plugin-111827.svg)
-![设计来源](https://img.shields.io/badge/设计来源-ZCode%20(Apache--2.0)-4d6bfe.svg)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![npm package](https://img.shields.io/npm/v/dsh-zcode-ui.svg?label=npm%20package)](https://www.npmjs.com/package/dsh-zcode-ui)
+[![npm downloads](https://img.shields.io/npm/dt/dsh-zcode-ui.svg?label=npm%20downloads&v=2)](https://www.npmjs.com/package/dsh-zcode-ui)
+[![DSH Web Plugin](https://img.shields.io/badge/DSH%20Web-Plugin-0f766e.svg)](https://github.com/jungenius-stack/dsh-zcode-ui)
+[![Node.js 22 or later](https://img.shields.io/badge/Node.js-22%20or%20later-339933.svg?logo=node.js&logoColor=white)](https://nodejs.org/)
 
 </div>
 
-> 社区维护的 DSH Web 界面插件，非 DeepSeek AI 官方产品。设计值取自 [zai-org/ZCode](https://github.com/zai-org/ZCode)（Apache-2.0）；交互脚手架派生自 [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)（Apache-2.0）。
+> [!IMPORTANT]
+> **这是一个个人维护的第三方插件，没有任何官方背书。**
+> 它**不是** DeepSeek AI 的产品，也**不是**任何机构的官方插件——它由个人（`jungenius-stack`）利用业余时间维护。
+> 它派生自开源项目 [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)（Apache-2.0），设计值取自 [zai-org/ZCode](https://github.com/zai-org/ZCode)（Apache-2.0）。
+> 「DeepSeek」「DeepSeek Harness」「ZCode」等名称归各自所有者，此处仅用于说明兼容性与设计来源。
 
-## 它是什么
+DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉语言：侧栏、工作区会话树、头部搜索、输入框全部采用 ZCode 的几何、配色与图标，明暗两套主题都是。
 
-把 DSH Web 的界面换成 ZCode（智谱 Zai）的视觉语言：
+**除了外观，什么都不动。** 这是一个纯粹的展示层插件：不碰会话、工作区、设置，也不碰任何数据通路——一切仍然走 DSH 自己的 `SlotRegistry` 插槽与 `ctx` 公共服务。
 
-- **布局**：ZCode 侧栏几何——8px 圆角、32px 行高、px-2/py-3/gap-1 间距、150ms ease-out 过渡；
-- **配色**：Zai Light / Zai Dark 双主题完整色板，写入 DSH 的 `--dsw-*` 令牌层（168 令牌 × 明暗两套），官方区域（标题栏、会话列、按钮、菜单、输入壳）随皮肤整体换色；
-- **图标**：侧栏导航与操作使用 Lucide（与 ZCode 同款图标库），新建任务 `MessageCirclePlus`、定时 `CalendarClock` 等按 ZCode 选取；
-- **明暗主题**：跟随 DSH 自身的明暗偏好（`body[data-ds-dark-theme]`），亮色画布 `#f8f8f8`、暗色 `#161616`，与 ZCode `--color-background` 逐像素一致。
+## 你会得到什么
 
-数据面完全不动：**不使用** ZCode 的 Zustand / RPC / services，会话、工作区、设置等一切数据仍走 DSH 自己的 SlotRegistry 插槽（`@deepseek-ai/dsh-client-ui-renderer`）与 ctx 公共服务。
+| 方面 | 皮肤做了什么 |
+| --- | --- |
+| **布局** | ZCode 侧栏几何——8px 圆角、32px 行高、`px-2 / py-3 / gap-1` 间距、150–200ms `ease-out` 动效、七档字号刻度 |
+| **配色** | 完整的 Zai Light / Zai Dark 色板写入 DSH 的 `--dsw-*` 令牌层；标题栏、会话列表、按钮、菜单、输入壳等官方区域整体换色 |
+| **图标** | 侧栏导航与行内操作使用 Lucide（与 ZCode 同一套图标库） |
+| **主题** | 跟随宿主自身的明暗偏好（`body[data-ds-dark-theme]`）；亮色画布 `#f8f8f8`、暗色 `#161616` |
+| **侧栏行为** | 项目与会话的置顶 / 分组 / 拖拽排序，未读与运行中指示；头部搜索覆盖会话、设置与快捷操作；重命名 / 归档 / 分叉 / 复制 / 删除；长会话轮次导航；空输入框按上/下键召回历史输入 |
 
-## 功能（继承自 dsh-codex-ui 脚手架）
+## 与上游的差别
 
-- 置顶/分组/拖拽整理项目与会话，未读与运行中指示；
-- 头部全局搜索：会话、设置、快捷操作；
-- 会话重命名、归档、复制、删除、移动；
-- 长会话轮次导航；
-- 空输入框按上/下键召回本工作区历史输入。
+本 fork 保留上游的交互脚手架与数据层，在此之上增加：
+
+- **ZCode 皮肤本体**——明暗两套各 174 个 `--dsw-*` 令牌，另加 18 个结构性令牌，合计 192 个唯一令牌名。`src/` 中出现的每一个被消费令牌都在映射表里，`token-coverage` 断言会在这一点不再成立时直接让构建失败。
+- **主题单一真源**——只认宿主属性，不做 `prefers-color-scheme` 回退。旧做法在「宿主是亮色、系统是暗色」时会把侧栏与内容区撕成两半。
+- **靠看真实界面发现的修复**，而不是靠读代码：会话悬停卡精简为只显示标题；发送键使用真正的主色（`--dcu-primary` 现在定义在 `:root`，输入区在 `.dcu-root` 之外才能解析到它）；全局面板打开时提供「返回会话」入口；删掉侧栏自绘的分隔线；标题跑马灯不再裁掉两端；底栏分组分隔；空状态卡收矮。
+- **一套真能跑起来的验证栈**——见[验证](#验证)。上游那批真浏览器布局脚本此前在本机**从未真正执行过**（缺 Chromium 二进制），这也正是 5 条过期断言长期没被发现的原因。
+
+## 环境要求
+
+- 一个可用的 **DeepSeek Harness Web**，且 `dsh` 在 `PATH` 上。下文示例使用 `web` profile，请替换成你自己的 profile 名。
+- 从源码构建需要 **Node.js `^22.19.0 || >=24.0.0`**。
+- ⚠️ macOS 上构建或测试时，**不要**把 DSH 自带的 Node 24 放在 `PATH` 最前面：它加载不了 `rolldown` 的原生绑定（`code signature ... different Team IDs`），`vitest` / `tsdown` 会直接失败。换成任意 22.22.x 即可。
 
 ## 安装
+
+### 让智能体帮你装（推荐）
+
+把下面这段发给任何能执行终端命令的智能体：
+
+```text
+请把 DSH 插件 dsh-zcode-ui 装进我本地的 web profile，执行：
+dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npmjs.org/
+然后运行 dsh --profile web --dump-config，确认配置里出现 zcode-ui，并告诉我怎么重载 DSH、怎么开始使用这套皮肤。
+```
+
+### 手动安装
 
 ```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
-dsh plugin --profile web add .
-dsh --profile web --dump-config   # 确认出现 zcode-ui 条目
+dsh plugin --profile web add dsh-zcode-ui@latest --registry=https://registry.npmjs.org/
+dsh --profile web --dump-config
 ```
 
-重启 DSH Web 并硬刷新浏览器（一般 `Ctrl+Shift+R`）即可看到皮肤。
+重启 DSH Web 并硬刷新浏览器（一般是 `Ctrl+Shift+R`）。看到新侧栏就说明皮肤生效了。停用或卸载插件即可恢复官方界面。
 
-## 本地调试（不安装）
+### 从源码安装（用于未发布的改动）
 
-```bash
-# 1) 构建（必须先有 lib/）
+```powershell
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+git clone https://github.com/jungenius-stack/dsh-zcode-ui.git
+Set-Location .\dsh-zcode-ui
 pnpm install --frozen-lockfile
 pnpm build
-
-# 2) 以 --patch 方式启动，补丁层指向本仓库绝对路径
-dsh --profile web --patch "$(pwd)/debug/cordis.debug.patch.yml" --port 17823 --no-open
-
-# 3) 浏览器打开日志里带 token 的 URL；改 src 后重新 pnpm build 并重启即可
+dsh plugin --profile web add .
+dsh --profile web --dump-config
 ```
+
+`lib/` 已随仓库提交，克隆下来不构建也能用——但改过 `src/` 后必须重新构建。若本机 pnpm 与 Node 版本不匹配，改用 `npm install` + `npm run build` 效果等价。
+
+## 使用
+
+重载 DSH Web 后，左侧导航就由本插件渲染。
+
+| 想做什么 | 怎么做 |
+| --- | --- |
+| 开新会话 | **新建任务**，或用工作区上的 **+** / **新建会话** |
+| 找东西 | 在头部搜索框输入，从会话、设置页、快捷操作里挑 |
+| 收起侧栏 | 头部面板按钮；收起后的窄条上仍留有展开控件 |
+| 从全局面板返回 | 面板打开时，面板入口正下方会出现**返回会话** |
+| 置顶项目 | 把它拖进**置顶**区，或用项目菜单里的**置顶项目** |
+| 管理会话 | 打开会话菜单：重命名、置顶、标记未读、归档、分叉、复制、删除 |
+| 复用历史输入 | 空输入框按上/下键，召回本工作区提交过的内容 |
+| 在轮次间跳转 | 用当前会话左侧的轮次标记 |
 
 ## 验证
 
+四层，都能在本地跑。`npm run gate` 把它们串成一条（约 55 秒），`pre-push` 钩子会自动执行：
+
+| 层级 | 命令 | 覆盖范围 |
+| --- | --- | --- |
+| 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
+| 单元 / 集成 | `npm run test:unit` | 47 个文件、311 个用例 |
+| 契约断言 | `node tests/run-assertions.mjs` | 37 个脚本——34 通过、3 个有意跳过 |
+| 真机布局 | `npm run test:layout` | 11 个 Chromium 脚本，量真实几何与交互 |
+
+`npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。
+
+布局脚本需要一次性安装 Playwright 自带的 Chromium：`./node_modules/.bin/playwright install chromium`。
+
+## 已知限制
+
+都在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里如实记录——那份文件是唯一真源，以下每一条在其中都有完整展开：
+
+- **有 3 个断言是有意跳过的。** 它们校验的是上游 monorepo 的发布契约（`packages/`、`.github/workflows/`），而本仓库是单包 fork，被测对象根本不存在。文件被保留并加显式 `SKIP` 块，而不是删除——删除会让「测试不见了」和「问题解决了」难以区分。
+- **实机反馈的 7 个界面问题里，有 4 个不归本插件。** 它们被查到属于计费插件与 context-pilot（费用重复显示、状态栏拥挤），以及宿主内置控件；已记录在案，没有静默忽略。
+- **上游两个未结 issue（[#40](https://github.com/MichengAI/dsh-codex-ui/issues/40)、[#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)）经探测未复现**（macOS、四种窗口尺寸）。非 macOS 平台、真实系统缩放、全屏/分屏仍未验证。
+- **没有 CI。** 门禁在本地跑，并由 `pre-push` 钩子在推送时执行。本机 `node_modules` 处于手工修补状态（为绕开 `tsdown` 的依赖缺口），重新 `npm install` 后可能需要重新打补丁。
+
+## 参考资料与致谢
+
+没有这些项目，就没有这个插件：
+
+| 项目 | 在这里的角色 |
+| --- | --- |
+| [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)（Apache-2.0） | fork 的父项目——侧栏、工作区会话树、搜索、轮次导航、设置骨架、测试工具链与数据层思路都来自它。本 fork 基于它的 `1.1.34`，再加上 ZCode 皮肤与上述修复。 |
+| [zai-org/ZCode](https://github.com/zai-org/ZCode)（Apache-2.0） | 设计来源——色板、几何、图标选型与动效值均取自它（已与 v3.15.1 逐项核对）。 |
+| [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) | 本插件所挂载的宿主程序。 |
+| [Lucide](https://lucide.dev/) | 侧栏使用的图标库。 |
+
+仓库内值得一读的存档：
+
+- [`docs/ZCODE-DESIGN.md`](docs/ZCODE-DESIGN.md) —— 从 ZCode 提取的完整设计规范。
+- [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) —— 已知问题、跳过的断言、环境遗留、发布前检查清单。
+- [`docs/UPSTREAM-CHANGELOG.md`](docs/UPSTREAM-CHANGELOG.md) —— fork 点之前的上游更新日志。
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) —— 怎么构建、怎么验证、怎么提交。
+
+## 开发
+
 ```bash
-node debug/capture.mjs "http://127.0.0.1:<port>/?token=<token>" debug/shots
+pnpm install --frozen-lockfile
+pnpm build          # tsc --noEmit && tsdown  → lib/
+pnpm gate           # 类型 + 断言 + vitest + 11 个浏览器脚本
+pnpm gate:host      # 隔离真实宿主的兼容性重型档
 ```
 
-输出明暗两份截图与 `report.json`：`data-dsh-zcode-skin` 标记、关键令牌计算值（亮 `rgb(248,248,248)` / 暗 `rgb(22,22,22)`）、`.dcu-root` 侧栏存在、Lucide 图标数量、控制台错误列表。
+所有脚本都是 `package.json` 里的普通条目，用 `npm run build` / `npm run gate` 效果完全一致。
 
-## 结构
-
-| 文件 | 职责 |
-| --- | --- |
-| `src/client/zcode-tokens.ts` | Zai 双主题 → DSH `--dsw-*` 令牌映射（配色提取层） |
-| `src/client/zcode-skin.ts` | 令牌样式表注入（`:root:root` 优先级阶梯） |
-| `src/client/zcode-theme.ts` | `--dcu-*` 插件层令牌 + 主题 class 同步 |
-| `src/client/zcode-icons.tsx` | Lucide 图标选型（与 ZCode 一致） |
-| `src/client/CodexSidebar.tsx` | 侧栏外壳、搜索面板、composer 样式（ZCode 几何） |
-| `src/client/CodexWorkspaceBrowser.tsx` | 项目/会话树（rounded-lg、bg-selected） |
-| `docs/ZCODE-DESIGN.md` | 从 ZCode 仓库提取的完整设计规范存档 |
+改完 `src` 要先构建再安装或提交。新功能应复用 DSH 既有插槽与公共服务，不要依赖宿主私有 DOM，也不要写会话记录。
 
 ## License
 
-Apache-2.0，与上游脚手架及 ZCode 一致。
+[Apache License 2.0](LICENSE)，与上游脚手架及 ZCode 设计来源一致。上游的版权与署名声明均予保留。
