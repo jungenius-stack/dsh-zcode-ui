@@ -47,20 +47,42 @@
 
 ---
 
-## 3. 存量失败断言（3 个，非本 fork 新引入）
+## 3. 存量失败断言 → 已全部清零（2026-10-12）
 
-这 3 个断言的目标与 ZCode 改造无关，是**上游 Codex 样式在任务 A 改版时未同步**造成的漂移。
+原先只有 3 个文件报红，但**每个文件的第一条不匹配就抛错**，所以真正过期的远不止 3 条。
+用 `scripts/collect-assert-mismatches.mjs`（把 `assert.match` 换成收集器、跑完列出**全部**不匹配）一测，
+发现两份"视觉契约"文件整体钉着 **Codex 时代的视觉语言**：`conversation-visuals.assert.ts` 23 处、
+`settings-integration.assert.ts` 11 处；再加上 `dependency-manager.assert.ts` 的 1 处包名，合计 **35 处**。
 
-| 失败文件 | 断言要求 | 为何与现状冲突 |
+| 文件 | 过期项 | 性质与处理 |
 | --- | --- | --- |
-| `tests/conversation-visuals.assert.ts` | 折叠窄轨必须填满宿主 56px 列 | 折叠轨几何已按 ZCode `WorkspaceSidebarCollapsedRail` 重写 |
-| `tests/settings-integration.assert.ts` | 专家菜单必须与设置中的专家图标一致 | 图标已换成 Lucide 语言，与宿主图标不再同源 |
-| `tests/dependency-manager.assert.ts` | Desktop profile 中已声明且存在的 **Codex UI** 必须显示已安装 | 包已更名为 `dsh-zcode-ui`，断言仍在找上游包名 |
+| `dependency-manager.assert.ts` | 1 | 夹具仍声明上游包名 `@michengai/dsh-codex-ui`，而 `src/dependencies.ts` 的 `{ id: 'ui' }` 认的是 `dsh-zcode-ui` → 改为 fork 包名 |
+| `conversation-visuals.assert.ts` | 23 | 配色/文字层级**迁移到主题层**（`zcode-theme.ts`，断言改为读该真值源）；几何与动效常量随 ZCode 刻度更新（头部 34→40px、内衬 28→32px、间距 8→4px、动效统一 180ms ease-out、圆角 10→8px、行高 30→32px、刻度 left −16→−12px、图标列 20→16px）；窄轨设置入口改为宿主 `wide:false` 渲染；展开按钮改用 `ZIconCollapse` |
+| `settings-integration.assert.ts` | 11 | 图标体系整体换 Lucide（文件夹/新建会话/定时/IM/继续分支）；字号改为七档令牌；包名/注册 id 改为 `dsh-zcode-ui` / `zcode-ui-for-dsh`；导航内衬改为 px-2(8px) |
+
+**结论：34 通过 / 3 跳过 / 0 失败**（`node tests/run-assertions.mjs`）；`scripts/gate.mjs` 的
+`KNOWN_RED_ASSERT` 已清空，此后任何断言失败都会拦住提交。
+
+### 3.1 设计变更登记（不写成"必须如此"的断言，避免把变更伪装成契约）
+
+重定基过程中发现以下几条**不是数值过期，而是 ZCode 有意改掉的设计决定**。它们没有按现状写成硬断言，
+而是登记在此，供将来判断"是回归还是延续设计"：
+
+| 位置 | 原 Codex 设计 | 现行 ZCode 设计 | 影响 |
+| --- | --- | --- | --- |
+| 侧栏导航层级 | 导航文字（`--dcu-sidebar-navigation`）比项目标题更淡，是独立层级 | ZCODE-DESIGN §2 只有 primary/secondary/tertiary/icon 四档，无"导航档"；`--dcu-sidebar-navigation` 与 primary 同值，主菜单直接用 primary | 导航与标题不再有深浅差 |
+| 毛玻璃降级 | `@supports not (backdrop-filter)` 时恢复**实底**保证可读 | 玻璃层本身半透明，另由 `body[data-we-appwindow]` 关闭模糊；可读性依赖宿主背景 + 主题文字色 | 不支持毛玻璃时不再有独立实底兜底 |
+| 任务频道/定时页签 | 整行切换器（`border-bottom` 分隔），字号与主导航同级(14px)，选中加粗(600) | ZCode **分段控件**：`--dcu-surface` 底 + 1px 边框 + 8px 圆角，字号 12px(sm)，选中用底色而非字重 | 页签形态与层级语义都变了 |
+| 项目文件夹图标 | 区分「当前展开」（官方实心）/「其他展开」（线框）/「收起」（闭合） | 只区分展开（`ZIconFolderOpen`）/收起（`ZIconFolder`） | 当前项不再有独立图标样式 |
 
 **`session-tree.assert.ts` 的两轮红灯都已转绿**：第一轮因「要求 Codex 的 10px 圆角 / 30px 高度 /
 弹簧缓动」与 ZCode 改造冲突，已按设计意图更新断言（10px→8px、30px→32px 行高、弹簧→ease-out）；
 第二轮因悬停卡片去掉项目行与时长行（见 3b 第 2 条）而报红，已在 `ecf64ef` 同步更新断言——
 从「必须带项目行的 Codex 文件夹图标」改为显式断言「不得再渲染 `dcu-wb-tip-row` / `dcu-wb-tip-time`」。
+
+> 工具：`scripts/collect-assert-mismatches.mjs`（只读，不改断言）会把某份 `*.assert.ts` 里**全部**
+> 不匹配的「说明 ← 期望模式」列出来。凡是这类"第一条就抛错"的断言文件再次变红，先跑它再动手，
+> 否则只能一轮剥一条。
 
 ---
 
@@ -154,7 +176,243 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
   本机可用 `/Users/m1/.workbuddy-ai/binaries/node/versions/22.22.2-6/bin/node`（已验证可用）。
 - **本仓库无 CI**：`npm test` 包含 `pnpm run typecheck && vitest run && tsdown && node tests/run-assertions.mjs`，
   其中 `pnpm` 在当前环境不可直接调用，需改用 `npm run` 对应脚本。
-- **`vitest run` 在当前环境起不来**（2026-10-12 实测）：启动即报 `Cannot find native binding` →
-  `Cannot find module '@rolldown/binding-wasm32-wasi'`，rolldown 的原生绑定与 wasm 兜底都缺，
-  与上面「手工修补 node_modules」是同一根因。影响：`tests/**/*.spec.ts` 这一层目前**无法本地执行**，
-  新增的 `tests/vitest-setup.ts` 只能靠 `tsc --noEmit` 把关。修复前**不要用「vitest 全绿」当验收依据**。
+- **构建与测试必须用正确的 Node（2026-10-12 更正：此前"缺原生绑定"是误判）**：
+  原生绑定 `@rolldown/binding-darwin-arm64@1.2.4` 一直躺在 `.pnpm` 里、链接也正确；
+  真正原因是 **DSH 自带的 Node 24**（`~/.dsh/dsh-runtimes/.../node/bin/node`）在 macOS 上被代码签名拦住：
+  `dlopen(...): code signature ... not valid for use in process: mapping process and mapped file (non-platform)
+  have different Team IDs`。同一个 `.node` 在 `~/.workbuddy/binaries/node/versions/22.22.2-6` 下能正常加载。
+  **结论：跑 `vitest` / `tsdown` 时不要把 DSH 自带 Node 放到 PATH 前面**，用 22.22.2-6（满足 `engines`）或 PATH 上的 22.12。
+  用对 Node 后两者都正常：`vitest run` 47 个文件 / 311 个用例，`tsdown` 约 1.2 秒构建完成；
+  `lib/` 已于 2026-10-12 19:52 成功重建。vitest 的真实失败基线见 §9。
+- **真浏览器检查需要 Playwright 自带的 Chromium**：`./node_modules/.bin/playwright install chromium`
+  （94 MB，装进 `~/Library/Caches/ms-playwright`）。本机已于 2026-10-12 安装
+  （`chromium_headless_shell-1243`）。缺它时 11 个布局脚本会以 `Executable doesn't exist` 失败——
+  而**此前正是因为缺浏览器，这整套真机检查从未真正跑过**，把 5 个存量失败一起藏住了，见 §6。
+- **本地门禁已就位**：`npm run gate`（= `node scripts/gate.mjs`，**四步：类型检查 → 断言套件 → vitest → 11 个真机布局脚本**；
+  含 vitest 后约 **70 秒**）。注意必须用能加载原生绑定的 Node（见上一条），否则 vitest 一步会以环境错误拦下。
+  pre-push 钩子在 `.githooks/pre-push`，启用方式 `git config core.hooksPath .githooks`（**本机已启用**，
+  2026-10-12 用临时裸仓库 `git push --dry-run` 实测过钩子确实被触发）；`git push --no-verify` 可临时跳过。
+  已知红项集中登记在 `scripts/gate.mjs` 的三张表（`KNOWN_RED_ASSERT` / `KNOWN_RED_VITEST_FILES` /
+  `KNOWN_RED_LAYOUT`），某项转绿时门禁会主动提示移除，避免登记表腐烂。
+
+---
+
+## 6. 真浏览器布局套件：基线与逐条处理（2026-10-12）
+
+在装上 Playwright Chromium 之前，`pnpm run test:layout` 里那 11 个脚本在本机**从未真正执行过**：
+它们一启动就报 `Executable doesn't exist`，看起来只是"环境没配好"，实际把 5 个存量失败一起藏住了。
+装上浏览器后的首测基线是 **6 通过 / 5 失败**；逐条核查并修复后的现状是 **11 通过 / 0 失败**（`KNOWN_RED_LAYOUT` 已清空）。
+
+| 脚本 | 首测失败原因 | 判定与处理 |
+| --- | --- | --- |
+| `verify-sidebar-titlebar.mjs` | 期望控件顶边 51px，实测 54px（`darwin/false/expanded`） | **口径过期**。核对后交通灯避让**本身没坏**：头部顶边仍正好等于宿主保留区 48px；变的是两项 ZCode 几何（头部 38→40px 使内边距 3→4px、控件 32→28px 使行内居中 +2px）。已改为断言真契约（头部顶边 === 保留区，控件落在保留区之下且不被推远），不再写死内部偏移；并用「把皮肤对保留区的消费改成 0px」注入故障**反向验证过它仍会红**（实测顶边 6 < 保留区 48） |
+| `verify-sidebar-transition.mjs` | 断言要求 `0.5s`，实测 `0.18s` | **口径过期**。P1-2 已把动效统一到 ZCode 的 150–200ms ease-out（`CodexSidebar.tsx`：`transition:grid-template-columns 180ms ease-out`）。断言更新为 0.18s，中间帧/收敛断言保留 |
+| `verify-workspace-drop-layout.mjs` | ① 空状态字体不统一 ② 截断标题必须滚动 | **两处都是过期口径**：① 合成页面未注入 `zcode-tokens.ts` 令牌 → 已按源码注入全部 `--dsw-*`（注入后 caption = 14−1 = 13px，原断言本身即成立）；② 跑马灯已按实测反馈移除、改为纯 ellipsis → 断言改为双向：**不得再出现滚动动画** + **必须真的按 ellipsis 截断** |
+| `verify-composer-tools.mjs` | 字号 16px ≠ 13px | **夹具缺令牌**（菜单字号用 `var(--dsw-font-size-caption)`，解析失败回退继承值 16px）。三处合成页面补注入令牌后，原断言（含 18px 圆角、深浅底色）全部成立，未改断言 |
+| `verify-composer-style.mjs` | ① 圆角 25/20px ≠ 16px ② 发送键底色期望实色、实测透明 | ① **口径过期**，已按 ZCode 的 16px 更新 ② **是真问题**，已按方案 1 修复（令牌提升到根作用域），脚本转绿，见 §8 |
+
+**登记点**：`scripts/gate.mjs` 的 `KNOWN_RED_LAYOUT`（**现已清空**）。
+门禁只拦截**新增**失败；某脚本转绿时会主动提示从登记表移除，避免登记表腐烂。
+
+**尚未覆盖的场景**（真机检查与探测都没测）：Windows / Linux、真实系统缩放（探测里用
+`deviceScaleFactor` 近似）、全屏与分屏、多显示器。
+
+---
+
+## 7. 上游 open issue 的继承风险（#40 探测记录）
+
+上游 `MichengAI/dsh-codex-ui` 有两个未结 issue，本 fork 与它同源，风险共享：
+
+| issue | 症状 | 本 fork 实测（2026-10-12） |
+| --- | --- | --- |
+| [#40](https://github.com/MichengAI/dsh-codex-ui/issues/40) | 「侧栏会遮挡」「拖动不了」「显示不完全」 | **4 种窗口尺寸下均未复现**，详见下 |
+| [#41](https://github.com/MichengAI/dsh-codex-ui/issues/41) | 官方桌面版无法选择 Agent 预设 | 本机输入框底托条正常渲染「默认工作区 / ☁ 标准模式」，**未复现** |
+
+#40 的探测方法与结论（窗口 1280×800、1280×800@1.25、1024×700、900×600）：
+
+- **遮挡**：`.dcu-wb-tree` 与 `.dcu-foot` 的盒子重叠为 **0px**（footer 是静态 flex 兄弟，不覆盖滚动区）。
+  首次探测曾把"行 box 落在 footer 之下的行"误判为遮挡，实为滚动容器正常裁剪——
+  滚到底后最后一行**完整可见且可命中**，故该误判已撤回。
+- **拖动**：HTML5 拖拽可用，拖拽指示 `dcu-wb-session-drop` 正常出现，1024×700 下顺序真的改变。
+  未能复现"拖不动"。
+- **显示不完全**：`scrollHeight 436 > clientHeight 272` 属正常滚动；滚到底即可看到全部行。
+
+**未验证**：非 macOS 平台、真实系统缩放、全屏/分屏，以及报障人提到的「回车当」（原文含义不明）。
+
+---
+
+## 8. 已修复：发送键配色规则取不到令牌（令牌作用域问题）
+
+`verify-composer-style.mjs` 里那条「发送键底色」的断言，核查后确认**不是口径过期，而是皮肤里有一条失效声明**。
+
+**现象与证据（2026-10-12 实测）**
+
+- 皮肤的规则是
+  `[data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div button[class$=_primary]{width:28px;transform:none;background:var(--dcu-primary);color:var(--dcu-primary-foreground)}`
+  （`src/client/CodexSidebar.tsx`）。
+- 但 `--dcu-primary` / `--dcu-primary-foreground` 当时**只定义在 `zcode-theme.ts` 的 `ZCODE_THEME_STYLE` 中，
+  且作用域限定为 `.dcu-root` / `.dcu-settings-page` / `.dcu-home`**。
+- 真实应用实测：`button[aria-label="发送消息"]` 的 `background-color` 为 **`rgba(0, 0, 0, 0)`**，
+  从按钮向上遍历 12 层祖先**没有任何元素定义 `--dcu-primary`** → 该 `var()` 解析失败。
+  规则里只有 `width:28px;transform:none` 真正生效（宽度实测确为 28px）。
+
+**采用的修法（方案 1：补作用域）**
+
+把这两个令牌从侧栏作用域**提升到根作用域**（`zcode-theme.ts`），并以同样的主题选择器给出暗色值：
+
+```css
+:root{--dcu-primary:#000000;--dcu-primary-foreground:#ffffff}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-foreground:#000000}
+```
+
+**影响面很小且已核实**：全仓库只有发送键那两处消费这两个令牌（`CodexSidebar.tsx` 的常态与 hover 规则），
+所以提升作用域不会让其它 `--dcu-*` 消费者开始解析；`--dcu-surface` 等侧栏本地令牌**保持原作用域不动**。
+
+**回归结果**：`verify-composer-style.mjs` 转绿（浅色 `#000` / 暗色 `#fff`，与 ZCode 主色一致）；
+该脚本的夹具原本只注入皮肤样式、不注入主题层，已同步补上 `ZCODE_THEME_STYLE`——否则夹具仍取不到令牌、
+断言会继续测"空靶"。
+
+> ⚠️ **产物已重建**（2026-10-12 19:52；此前"tsdown 失败"是 Node 选错导致，见 §5 的更正）：
+> `lib/client.js` 现已包含本次修复。但**宿主仍需重启**才会加载新 bundle，重启前实机看到的仍是旧行为。
+
+---
+
+## 9. vitest 基线 → 已全部转绿（2026-10-12）
+
+此前因用错 Node（见 §5 的更正），`vitest run` 从未真正执行过。换对 Node 后首测：
+**47 个文件 / 311 个用例中有 5 个文件 / 20 个用例失败**。逐条定性后确认
+**全部是测试侧问题，没有一个是产品缺陷**，共三类：
+
+| 类别 | 文件（用例数） | 根因 | 修法 |
+| --- | --- | --- | --- |
+| 硬编码上游身份 | `session-title-provider.spec.ts`(1)、`settings-registration.spec.ts`(1) | 断言写死 `michengai-codex-ui-session-title` / `@michengai/dsh-codex-ui/...`；fork 已改名为 `zcode-ui-session-title` / `dsh-zcode-ui/session-title` | 更新期望值（测试侧） |
+| 夹具 ctx 缺 `logger` | `client-runtime.integration.spec.ts`(7)、`official-sidebar-activate.spec.ts`(1) | 皮肤安装时会调用 `ctx.logger.info(...)`（`src/client/index.ts`），而两个夹具的 mock ctx 都没提供 `logger`；宿主真实 ctx 一定带它 | 夹具补 `logger: { info, warn, error }`（测试侧） |
+| macOS 路径符号链接 | `session-migration.spec.ts`(10) | 生产用 `realpath(target.path)` 规范化目标路径（`src/session-migration.ts:581`），而夹具的 `sessionPersistence.locate` mock 用**原始串**比较 `meta.cwd === targetPath`；macOS 的 `tmpdir()` 是 `/var/...`、realpath 为 `/private/var/...` → mock 返回旧工件 → 迁移守卫**按设计**拦下"同目录迁移" | 夹具临时根目录改用 `realpath(mkdtemp(...))`；**产品代码无需改动** |
+
+修复后 **47 个文件 / 311 个用例全部通过**（`vitest run` exit 0）；`scripts/gate.mjs` 的
+`KNOWN_RED_VITEST_FILES` 已清空，此后任何 vitest 失败都会拦住提交。
+
+> 教训：本仓库的宿主交互测试大量依赖 mock ctx 与**路径字符串比较**——同一份用例**在 macOS 上比在
+> Linux CI 上更严格**（`/var` 符号链接、`ctx.logger` 是否存在）。新增这类夹具时：涉及路径比较先 `realpath`，
+> 涉及 ctx 必须提供 `logger`。
+
+---
+
+## 10. compat 宿主 harness（`scripts/run-compat-host.mjs`）已可用，但上游脚本的 UI 期望尚未适配本 fork
+
+**2026-10-12：把这条 harness 从"跑不起来"修到"能真跑"**，共 6 处改动（全部在 `scripts/`，不涉及产品代码）：
+
+| # | 位置 | 问题 | 修法 |
+| --- | --- | --- | --- |
+| 1 | `run-compat-host.mjs` | 安装目录仍找 `@michengai/dsh-codex-ui` | 改为裸包名 `dsh-zcode-ui` |
+| 2 | 同上 | patch 断言写死上游 id | 改为 `zcode-ui-session-title` / `dsh-zcode-ui/session-title` |
+| 3 | 同上 | 标题插件 id 断言写死上游名 | 改为 `zcode-ui-session-title` |
+| 4 | `verify-session-features-host.mjs` | i18n 命名空间用上游 `michengai.codexUi` | 改为本 fork 的 `zcode.ui` |
+| 5 | `run-compat-host.mjs` | 版本守卫用 `require.resolve('@deepseek-ai/dsh/package.json')`，而桌面版 App 的 CLI 把宿主打进 `app.asar`，解析不到 | 改成双路径：以 `<cli> --version` 为权威来源（必检），能解析 `@deepseek-ai/*` 时再保留逐包校验；**只放过 `MODULE_NOT_FOUND`**，版本不符照旧抛出 |
+| 6 | 同上 | 假设 CLI 是 JS 入口，用 `node <cli>` 调它；桌面版 CLI 是 **shell 垫片** → 语法错 | 按 shebang 判别：JS 入口用当前 node，垫片直接执行；`web` 子进程同样处理 |
+| 7 | 同上 | 隔离根目录用 `mkdtemp` 原串（macOS `/var/...`），宿主会规范化成 `/private/var/...`，而插件按会话 `cwd` 作键存输入历史 → 夹具种的历史取不到 | 根目录 `realpath` 化（与 `session-migration.spec.ts` 同一类修复） |
+
+**跑法**（约 1–2 分钟）：
+```bash
+export PATH="$HOME/.workbuddy/binaries/node/versions/22.22.2-6/bin:$PATH"
+npm pack --pack-destination /tmp
+DCU_DSH_BIN="/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh" \
+DCU_E2E_TARBALL=/tmp/dsh-zcode-ui-1.0.0.tgz DCU_E2E_VERSION=0.2.0-rc.2 \
+node scripts/run-compat-host.mjs
+```
+失败时 harness 会保留隔离 profile（路径打印在输出里，形如
+`/private/var/folders/.../T/dcu-compat-host-xxxx`），可用来复现排查。`verify-compat-host.mjs` 里
+种入输入历史用的 `michengai.codex-ui.input-history.v1` **是本 fork 保留的真实键名**（见 `src/client/input-history.ts`），不要"顺手改成 zcode"。
+
+**当前卡点（需要决策，未擅自适配）**：修完上述 7 处后，harness 已经能装包、起宿主、跑第一个脚本，并且
+过了输入历史调回（ArrowUp）、空草稿建议、兼容面板三项检查，最终停在 `verify-compat-host.mjs:66`：
+
+```js
+await page.getByRole('button', { name: '任务', exact: true }).click()   // 30s 超时
+```
+
+原因是**上游导航与本 fork 不同**：上游插件的侧栏首项是「任务」，而本 fork 的侧栏已改为 ZCode 结构
+（新建任务 / 扩展管理 / 底部的记忆·任务·归档由宿主或其它插件提供）。因此这一条（以及后面的
+`verify-settings-exit` / `verify-session-features-host`）需要按本 fork 的导航结构适配，**并逐条登记是
+设计变更还是缺陷**——处理原则与 §3.1 相同，不要把"当前代码怎样"直接写成契约。
+
+在适配完成前，这条 harness **不要**纳入 `scripts/gate.mjs`（它是一个独立的重型档，需要 tarball + 隔离宿主 + 约 1–2 分钟）。
+
+### 10.1 已定位的下一处卡点：全局面板打开后没有"返回会话"的入口
+
+用常驻隔离宿主 + 探针（把 `verify-compat-host.mjs:66` 临时替换为打印**全部矩形可见**的控件，跑完已还原）确认：
+
+打开 `sidebar.panellist` 的全局面板后（本例是兼容测试面板夹具），本 fork 的侧栏可见控件只有：
+`新建任务 / 收缩侧边栏 / 搜索会话 / 兼容测试面板 / 扩展管理(专家·技能·插件·连接器·定时任务·IM助理) / 置顶 / 项目 / 最近 / 设置`
+——**没有任何"返回会话/关闭面板"的专用控件**；再点一次面板入口与按 Escape 都无效（面板仍在、输入框仍被替换掉）。
+
+上游插件的 `任务` 入口正是承担这个返回职责，而 ZCode 侧栏结构里不存在该入口。两种解读，需要决策：
+
+- **设计变更**：ZCode 侧栏靠「点击会话行 / 新建任务」回到会话区（真实使用中有会话行，因此能回去；本隔离宿主里恰好没有会话行）。
+  → 那么 `verify-compat-host.mjs` 这一条应改为点击会话行，或改断言目标。
+- **真 UX 缺口**：全局面板打开时缺少明确的返回入口（用户可能"被困"在面板里，只能靠会话行）。
+  → 那么应改**产品 UI**：面板打开时提供返回/关闭控件。
+
+**在决定之前不要改这一条断言**。后续还有 `verify-settings-exit.mjs` / `verify-session-features-host.mjs` 两个脚本未跑到
+（harness 遇首败即停）。另注：`verify-compat-host.mjs` 会往 `DCU_E2E_WORKSPACE` 写 `compat-reference.txt`，
+**重复跑同一工作区会 EEXIST** —— 迭代时先删掉该文件，或用全新工作区。
+
+### 10.2 已解决：全局面板缺返回入口（产品修复）＋ 新暴露：建议菜单在 900px 宽下越出视口
+
+**§10.1 的困境已按"真 UX 缺口"处理并修好（产品侧）**：
+
+- 侧栏新增显式「返回会话」入口，**只在全局面板打开时出现**，动作是 `selectPanel(null)`（打开面板的逆操作，
+  宿主会恢复此前主视图，会话与草稿都保留）。展开态是带文字的菜单项，紧凑轨是同名 aria-label 的图标按钮。
+  复用已有能力，没有新接管线（`session-navigation.ts` 的 `openConversation` 早就是这个语义）。
+- 两处脚本适配（`verify-compat-host.mjs` 第 66 / 78 行）：上游点的是「任务」导航项，本 fork 改点「返回会话」。
+  **这两处是"设计变更 + 产品补齐"后的等价操作，不是把断言改成迎合代码**——原缺口已用产品改动补齐。
+- 回归：门禁四步全绿（断言 34 通过 / vitest 311 通过 / 布局 11 通过 / tsc），说明新增入口没碰坏任何既有契约；
+  harness 端到端也已验证「返回后草稿仍在、会话 id 不变」。
+
+**接着暴露的新问题（真实、非口径）**：脚本推进到 `verify-compat-host.mjs:114` 的
+「建议菜单不得越出视口」断言失败：
+
+```
+dark / width=900 / 触发符 "/"
+outer=672  inner=662  left=-69.30  right=602.70
+```
+
+即建议菜单在 900px 宽下**左移出视口 69px**。两个要点：
+
+1. `scripts/verify-composer-tools.mjs`（本 fork 自己的菜单脚本）只覆盖 **390 / 1280** 两个宽度，
+   **900 恰好没覆盖** → 这是一处真实的测试覆盖缺口，被 compat harness（真实宿主）抓出来了。
+2. 需要判断是**宿主演进**（0.2.0-rc.2 改了菜单锚点/尺寸约束，而 fork 的覆盖规则随之失效）还是
+   **fork 自身定位缺陷**；本 fork 的合成夹具自建 `[data-composer-card]`，看不到真实宿主下的锚点差异。
+   → 复现方式：按 §10 跑法起隔离宿主，把视口设 900、在输入框敲 `/`，量 `[data-trigger-menu]` 的
+   `getBoundingClientRect()` 与宿主锚点元素的相对关系。
+
+**§10.2 追加证据（同日）——越界的成因已排除"我们的令牌"，但还没定论**：
+
+在失败点插探针（跑完已还原）量到（视口 900、dark、触发符 `/`）：
+
+```
+card:  class yhfFVG_card          left=-53  right=610  w=663  max-width:672px
+anchor: class yhfFVG_overlayAnchor left=-53  right=610  w=663  position:absolute
+menu:  left=-53 right=610 w=663  css left/right = 0   ← 菜单与锚点完全一致
+tokens: --dsh-chat-content-width:640px   --dsh-composer-card-max-width:calc(640px + 32px)
+```
+
+随后核对宿主包（`@deepseek-ai/dsh-client-ui-conversation@0.2.0-rc.2`）发现：
+
+- **宿主自己也声明同一个公式**：`--dsh-composer-card-max-width:calc(var(--dsh-chat-content-width) + 32px)`
+  （另有候选 `min(calc(100% - 16px), 952px)`）；fork 在 `CodexSidebar.tsx:141` 的 `[data-conversation-scroll]` 上
+  重声明的是**与宿主一致的公式**，不是新引入的约束。
+- 宿主的卡片规则是 `.…_card{box-sizing:border-box;width:100%;max-width:var(--dsh-composer-card-max-width)}`
+  → 卡片宽度由**容器**决定，`max-width` 只会封顶，**不可能把卡片撑出容器**。
+
+因此 `left=-53` 更可能是**整列偏左 / 文档发生了横向滚动**（−53 与"容器宽 663、被右移约 293px"等价，
+293 与侧栏 240 量级相近），而**不是**本插件令牌造成的。菜单忠实跟随卡片（`left/right:0`）属于正确行为。
+
+**下一步的决定性检查（尚未做）**：在同一个 900px、dark、`/` 的现场，同时记录
+`window.scrollX` / `document.documentElement.scrollLeft`、会话列容器（卡片父级）的 rect、
+以及 `[data-conversation-scroll]` 的 rect。若 `scrollX > 0`，说明是横向滚动导致（应查是谁把文档撑宽了：
+很可能是被打开的某个面板或菜单），**不要**先改本插件的令牌公式。
+
+**已顺带修掉的覆盖缺口**：`scripts/verify-composer-tools.mjs` 的宽度矩阵由 `[390, 1280]`
+扩为 `[390, 900, 1024, 1280]`（3 处循环）并跑通；这也证实该越界**无法**在合成夹具里复现
+（合成卡片不消费那个令牌），真机 harness 才是能抓到它的地方。
