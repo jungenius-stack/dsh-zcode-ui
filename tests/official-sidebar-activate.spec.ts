@@ -16,6 +16,8 @@ test('官方侧栏已声明 panellist 时，本插件仍能激活并在卸载后
     return dispose
   }
   const ctx = {
+    // 宿主 ctx 一定带 logger：皮肤安装时会 ctx.logger.info 记录版本，夹具必须提供（缺它会 TypeError）。
+    logger: { info: () => {}, warn: () => {}, error: () => {} },
     slots: new Proxy(slots, { get: (target, key) => key === 'inject' ? inject : typeof Reflect.get(target, key) === 'function' ? Reflect.get(target, key).bind(target) : Reflect.get(target, key) }),
     locale: { bind: () => (key: string) => key, register: () => () => {}, getSnapshot: () => ({ revision: 0 }), subscribe: () => () => {} },
     layout: { toggleSidebar: () => {} },

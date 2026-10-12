@@ -37,6 +37,8 @@ class ClientApplyHarness {
   }
 
   readonly ctx = {
+    // 宿主 ctx 一定带 logger：皮肤安装时会 ctx.logger.info 记录版本，夹具必须提供（缺它会 TypeError）。
+    logger: { info: () => {}, warn: () => {}, error: () => {} },
     // 此夹具不提供可选的配置文件服务。
     inject: () => () => {},
     slots: this.slots,

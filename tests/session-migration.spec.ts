@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, test, vi } from 'vitest'
@@ -26,7 +26,11 @@ type FixtureOptions = {
 }
 
 async function fixture(options: FixtureOptions = {}) {
-  const root = await mkdtemp(join(tmpdir(), 'dcu-session-move-'))
+  // 必须 realpath：生产代码用 realpath(target.path) 规范化目标路径（src/session-migration.ts），
+  // 而 macOS 的 tmpdir 是 /var/... 的符号链接，realpath 得到 /private/var/...。夹具若保留原始串，
+  // 下面 sessionPersistence.locate 的 `meta.cwd === targetPath` 永远不成立 → 返回旧工件 →
+  // 迁移守卫按设计拦下"同目录迁移"。Linux 上没有这个符号链接，所以上游 CI 从未暴露（见 §9）。
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'dcu-session-move-')))
   temporaryDirectories.push(root)
   const sourcePath = join(root, 'source-workspace')
   const targetPath = options.sameWorkspacePath === true ? sourcePath : join(root, 'target-workspace')

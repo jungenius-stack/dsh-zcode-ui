@@ -90,7 +90,7 @@ test('独立插件在 sessionTitle 与 llm 就绪后注册 first-prompt', async 
   ctx.plugin(SessionTitle)
   ctx.plugin(Llm)
   await ctx.plugin({ name, inject, apply })
-  expect(name).toBe('michengai-codex-ui-session-title')
+  expect(name).toBe('zcode-ui-session-title')
   expect(inject).toEqual(['sessionTitle', 'llm'])
   expect(providers).toHaveLength(1)
   expect(providers[0]?.automatic).toBe('first-prompt')

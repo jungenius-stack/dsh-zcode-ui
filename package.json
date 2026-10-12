@@ -69,6 +69,7 @@
   "scripts": {
     "build": "tsc --noEmit && tsdown",
     "typecheck": "tsc --noEmit",
+    "gate": "node scripts/gate.mjs",
     "test": "pnpm run typecheck && vitest run && tsdown && node tests/run-assertions.mjs && pnpm run test:layout",
     "test:host": "node scripts/verify-settings-exit.mjs",
     "test:settings-backdrop": "node scripts/verify-settings-backdrop.mjs",

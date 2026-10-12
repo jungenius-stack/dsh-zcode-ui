@@ -129,11 +129,13 @@ const writeManifest = async (root: string, packageName: string, version: string)
   await writeFile(join(directory, 'package.json'), JSON.stringify({ name: packageName, version }), 'utf8')
 }
 await mkdir(statusProfile, { recursive: true })
+// 2026-10-12 更新：本 fork 的 UI 包名是 `dsh-zcode-ui`（见 src/dependencies.ts 的 `{ id: 'ui' }`），
+// 夹具原先仍声明上游包名 `@michengai/dsh-codex-ui`，导致 'ui' 状态永远查不到 → 误报未安装。
 await writeFile(join(statusProfile, 'package.json'), JSON.stringify({
-  dsh: { profile: { bundles: ['@michengai/dsh-codex-ui'] } },
-  dependencies: { '@michengai/dsh-codex-ui': '0.2.92' },
+  dsh: { profile: { bundles: ['dsh-zcode-ui'] } },
+  dependencies: { 'dsh-zcode-ui': '0.2.92' },
 }), 'utf8')
-await writeManifest(statusProfile, '@michengai/dsh-codex-ui', '0.2.92')
+await writeManifest(statusProfile, 'dsh-zcode-ui', '0.2.92')
 await writeManifest(statusRuntimeRoot, '@deepseek-ai/dsh', '0.1.2-alpha.1')
 const previousFetch = globalThis.fetch
 globalThis.fetch = async input => new Response(JSON.stringify({ version: String(input).includes('@deepseek-ai') ? '0.1.2-alpha.1' : '0.2.92' }))

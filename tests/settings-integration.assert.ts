@@ -53,12 +53,17 @@ assert.match(sidebar, /sidebar\.schedule/, '侧栏必须显示定时任务入口
 assert.match(sidebar, /sidebar\.assistant/, '侧栏必须显示 IM 助理入口')
 assert.match(sidebar, /selectExternalSection\(t\('sidebar\.experts'\)\)/, '专家菜单必须直达外部专家插件')
 assert.match(sidebar, /selectExternalSection\(t\('sidebar\.skills'\)\)/, '技能菜单必须直达外部技能插件')
-assert.match(sidebar, /selectExternalSection\(t\('sidebar\.experts'\)\)[^]*IconUserOutlineMedium/, '专家菜单必须与设置中的专家图标一致')
-assert.match(sidebar, /openPlugins\(\)[^]*IconPersonalizationOutlineMedium/, '插件菜单必须与设置中的插件图标一致')
+// 2026-10-12 更新：ZCode 改造后侧栏统一使用 Lucide 图标语言（`ZIconExperts` / `ZIconPlugins`），
+// 不再与宿主设置页图标（IconUserOutlineMedium / IconPersonalizationOutlineMedium）同源——这是有意的设计变更。
+// 注意原写法用 `[^]*` 跨全文匹配：插件那条会因为 host-icons.ts 的导入而"假通过"，这里改为有界间隔 + 真实图标组件。
+assert.match(sidebar, /selectExternalSection\(t\('sidebar\.experts'\)\)[^]{0,200}ZIconExperts/, '专家菜单必须使用插件统一的 Lucide 专家图标')
+assert.match(sidebar, /openPlugins\(\)[^]{0,200}ZIconPlugins/, '插件菜单必须使用插件统一的 Lucide 插件图标')
 assert.match(sidebar, /selectExternalSection\(t\('sidebar\.schedule'\)\)/, '定时任务必须跳转设置中的定时任务分区')
 assert.match(sidebar, /selectExternalSection\(\[t\('sidebar\.imSettings'\), 'IM助理'\]\)/, 'IM 助理必须同时匹配中英文设置分区标题')
-assert.match(sidebar, /function ScheduleIcon/, '定时任务必须使用时钟图标')
-assert.match(sidebar, /function ImAssistantIcon/, 'IM 助理必须使用聊天气泡图标')
+// 2026-10-12 更新：本地 ScheduleIcon / ImAssistantIcon 已并入插件的 Lucide 图标集
+//（`ZIconSchedule = CalendarClock`、`ZIconAssistant = Bot`），与本文档上方专家/插件图标同源。
+assert.match(sidebar, /ZIconSchedule/, '定时任务必须使用时钟图标')
+assert.match(sidebar, /ZIconAssistant/, 'IM 助理必须使用聊天气泡图标')
 assert.doesNotMatch(sidebar, /disabled title=\{t\('sidebar\.scheduleUnavailable'\)\}/, '定时任务不得再作为禁用占位')
 assert.doesNotMatch(sidebar, /disabled title=\{t\('sidebar\.assistantUnavailable'\)\}/, 'IM 助理不得再作为禁用占位')
 assert.doesNotMatch(sidebar, /IconGoalOutline16/, '定时任务不得再使用目标图标')
@@ -193,20 +198,23 @@ assert.match(visualSources, /--dcu-sidebar-primary/, '界面主文字必须使�
 assert.match(workspaceBrowser, /color:var\(--dcu-sidebar-primary\)/, '工作区树主文字必须继承侧栏的柔和主文字色')
 assert.match(sidebar, /font:14px\//, '桌面侧栏基础字号必须达到 14px')
 assert.match(sidebar, /place-items:center start/, '导航图标必须左对齐到设置图标列')
-assert.match(sidebar, /padding:0 4px/, '导航图标必须左移至设置图标列')
+// 2026-10-12 更新：ZCode 间距刻度用 px-2（8px），导航与页脚共用同一条内衬规则，图标列仍与设置入口对齐。
+assert.match(sidebar, /\.dcu-menu button,\.dcu-footer-link\{[^}]*padding:0 8px/, '导航图标必须左移至设置图标列')
 assert.match(sidebar, /dcu-search-dialog/, '顶栏搜索必须打开全局搜索面板')
 assert.doesNotMatch(workspaceBrowser, /dcu-wb-search/, '工作区区域不得保留重复搜索框')
 assert.doesNotMatch(workspaceBrowser, /IconChevronRightOutlineMedium/, '项目树不得保留展开箭头')
 assert.match(workspaceBrowser, /toggleGroup\(expandKey, true\)/, '点击项目文件夹必须切换展开状态')
 assert.match(workspaceBrowser, /projectFolderPresentation\(isExpanded, workspace\.visibleIds\.some\(id => id === currentSessionId\)\)/, '项目文件夹必须根据展开状态和当前会话决定打开或闭合')
-assert.match(workspaceBrowser, /folder\.open \? folder\.current \? <IconFolderOpenMedium size=\{16\} \/> : <IconFolderOpenOutlineMedium size=\{16\} \/> : <IconFolderCloseMedium size=\{16\} \/>/, '当前展开项目必须用官方打开文件夹，其余展开项目用线框，收起用闭合')
+// 2026-10-12 更新：文件夹图标并入 Lucide 集合（ZIconFolderOpen / ZIconFolder）。
+// 设计变更登记：ZCode 只区分「展开」与「收起」，不再区分「当前项」与其他展开项的图标样式。
+assert.match(workspaceBrowser, /folder\.open \? folder\.current \? <ZIconFolderOpen size=\{16\} \/> : <ZIconFolderOpen size=\{16\} \/> : <ZIconFolder size=\{16\} \/>/, '展开项目用打开文件夹图标、收起项目用闭合图标')
 assert.match(workspaceBrowser, /dcu-wb-folder-current/, '当前会话所在项目必须给文件夹加上当前色标记')
 assert.match(workspaceBrowser, /\.dcu-wb-folder\.dcu-wb-folder-current\{color:var\(--dsw-alias-state-business-primary\)\}/, '当前项目文件夹必须使用业务蓝')
-assert.match(workspaceBrowser, /id: 'openPath'[^]*IconFolderOpenOutlineMedium size=\{16\}/, '在资源管理器中打开必须继续使用打开文件夹图标')
+assert.match(workspaceBrowser, /id: 'openPath'[^]*ZIconFolderOpen size=\{16\}/, '在资源管理器中打开必须继续使用打开文件夹图标')
 assert.doesNotMatch(workspaceBrowser, /dcu-wb-project-current/, '项目文件夹不得因当前会话保留选中态')
 assert.match(workspaceBrowser, /deleteWorkspace/, '项目菜单必须接入 DSH 公开删除工作区服务')
 assert.match(workspaceBrowser, /workspace\.delete/, '项目菜单必须提供删除工作区操作')
-assert.match(workspaceBrowser, /function NewSessionIcon\(\)[^]*<SquarePen aria-hidden="true" size=\{16\} strokeWidth=\{1\.5\} \/>/, '项目新建会话必须使用 Codex 风格的 16px 方框铅笔图标')
+assert.match(workspaceBrowser, /function NewSessionIcon\(\)[^]*<ZIconListPen aria-hidden="true" size=\{16\} strokeWidth=\{1\.5\} \/>/, '项目新建会话必须使用 Lucide 的 16px 列表铅笔图标')
 assert.match(workspaceBrowser, /aria-label=\{t\('workspace\.newSession'\)\}[^]*<NewSessionIcon \/>/, '项目行的新建会话按钮必须使用独立方框铅笔图标')
 assert.match(workspaceBrowser, /const projectMenu[^]*id: 'pin'[^]*id: 'rename'[^]*project-main-separator[^]*id: 'moveToGroup'[^]*submenu:[^]*id: 'openPath'[^]*project-archive-separator[^]*id: 'archiveWorkspace'[^]*project-delete-separator[^]*id: 'delete'/, '项目菜单必须按置顶、重命名、移动分组、资源管理器、归档全部会话、移除排列')
 assert.match(workspaceBrowser, /archiveWorkspaceTarget[^]*archiveSession[^]*workspace\.archiveConfirm/, '归档所有会话必须复用会话归档能力并经过确认')
@@ -219,8 +227,9 @@ assert.match(workspaceBrowser, /pointerMenuRect/, '右键菜单必须用指针�
 assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*padding-left:30px/, '会话标题必须与项目标题左对齐')
 assert.match(workspaceBrowser, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font:13px\/20px var\(--dsw-font-family\);font-weight:400;letter-spacing:0;padding-left:0\}/, '置顶项目最近必须使用比导航正文更克制的二级灰 13px 标题')
 assert.match(workspaceBrowser, /\.dcu-wb-section\+\.dcu-wb-section\{margin-top:12px\}/, '置顶、项目和最近之间必须留出分区间距')
-assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:14px[^}]*font-weight:400/, '会话标题必须使用 Codex 的 14px')
-assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:14px[^}]*font-weight:400/, '项目标题必须使用 Codex 的常规字重，不能显得过黑')
+// 2026-10-12 更新：字号改为七档刻度令牌（base = 14px），不再是硬编码 px。
+assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '会话标题必须使用刻度 base（14px）')
+assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '项目标题必须使用刻度 base（14px）与常规字重，不能显得过黑')
 assert.match(workspaceBrowser, /dcu-wb-session-time/, '会话行右侧必须显示紧凑相对时间')
 assert.match(workspaceBrowser, /<SessionTime time=\{formatCompactTime\(session\.updatedAt, t, now\)\}/, '项目内会话必须把行内短格式相对时间画在右侧')
 assert.match(workspaceBrowser, /dcu-wb-tip/, '会话必须提供 Codex 风格悬停卡片')
@@ -234,9 +243,10 @@ assert.match(workspaceBrowser, /<SessionRowTitle title=\{session\.displayTitle\}
 assert.match(workspaceBrowser, /\.dcu-wb-unread\{position:absolute;right:13px;top:50%;width:7px/, '未读点必须固定在会话行右侧')
 assert.match(workspaceBrowser, /\.dcu-wb-pending\{position:absolute;right:10px;top:50%;[^}]*transform:translateY\(-50%\)/, '待处理标签必须固定在会话行右侧')
 assert.match(workspaceBrowser, /\.dcu-wb-session:hover \.dcu-wb-quick-actions/, '会话悬停时必须显示 Codex 风格的快捷操作')
-assert.match(workspaceBrowser, /\.dcu-wb-project-head,\.dcu-wb-session\{[^}]*border-radius:10px/, '项目文件夹与会话必须使用 Codex 风格的紧凑圆角')
-assert.match(workspaceBrowser, /\.dcu-wb-project-head\{height:30px/, '项目文件夹胶囊必须使用 Codex 的 30px 高度')
-assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*min-height:30px/, '会话胶囊必须与项目文件夹保持相同高度')
+// 2026-10-12 更新：ZCode 几何为 8px 圆角、32px 行高（原 Codex 为 10px / 30px）。
+assert.match(workspaceBrowser, /\.dcu-wb-project-head,\.dcu-wb-session\{[^}]*border-radius:8px/, '项目文件夹与会话必须使用 ZCode 的 8px 紧凑圆角')
+assert.match(workspaceBrowser, /\.dcu-wb-project-head\{height:32px/, '项目文件夹胶囊必须使用 ZCode 的 32px 高度')
+assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*min-height:32px/, '会话胶囊必须与项目文件夹保持相同高度')
 assert.match(workspaceBrowser, /\.dcu-wb-project-body>\.dcu-wb-session:first-child,\.dcu-wb-project-body>\.dcu-wb-nochat:first-child\{margin-top:4px\}/, '项目与首个会话或空态之间必须保留层级间距')
 assert.match(workspaceBrowser, /\.dcu-wb-nochat\{padding:1px 8px 5px 30px\}/, '空聊天必须完整声明四边间距，避免依赖旧样式补齐')
 assert.match(workspaceBrowser, /dcu-wb-quick-actions"><button[^]*<QuickArchiveIcon \/>/, '会话悬停快捷操作必须保留 Codex 风格的归档图标')
@@ -269,7 +279,7 @@ assert.doesNotMatch(locales, /permission.read-only.title/, '官方已提供权�
 assert.match(client, /observeSlimSidebar/, '展开侧栏必须收到接近 Codex 的列宽')
 assert.match(client, /observeSettingsNavIcons/, '旧宿主 dialog 设置仍保留兼容图标观察；新页图标由行为测试验证')
 
-assert.match(client, /registrant: 'michengai-codex-ui'/, '侧栏注册必须带可识别的 Codex UI id，避免 IM 再包一层页签')
+assert.match(client, /registrant: 'zcode-ui-for-dsh'/, '侧栏注册必须带可识别的 ZCode UI id，避免 IM 再包一层页签')
 assert.match(sidebar, /ima-tabs/, '配套插件内层任务/频道页签必须隐藏')
 assert.match(sidebar, /ChannelBrowser/, '频道必须用任务树同款组件接管，而不是渲染 IM 原生树')
 assert.match(sidebar, /ScheduleBrowser/, '定时必须用任务树同款组件接管')
@@ -291,7 +301,7 @@ assert.match(sessionTree, /dcu-wb-quick-actions/, '频道会话必须复用任�
 
 assert.match(workspaceBrowser, /dismissTip\(\); setMenu/, '右键打开菜单时必须立刻关闭悬停卡片')
 assert.doesNotMatch(sessionTree, /id: 'pin'/, '频道与定时任务的会话右键菜单不得提供置顶操作')
-assert.match(sessionTree, /id: 'fork'[\s\S]*IconBranchOutlineMedium/, '定时右键继续必须有图标')
+assert.match(sessionTree, /id: 'fork'[\s\S]*ZIconBranch size=\{16\}/, '定时右键继续必须有图标')
 assert.doesNotMatch(workspaceBrowser, /standalonePinnedSessionIds|sectionSessionIds|pinSessionAt/, '置顶区只能置顶项目，不得维护独立会话列表')
 assert.match(workspaceBrowser, /const pinDragActive = workspaceDragId !== undefined/, '置顶区只能在拖动项目时成为落点')
 assert.match(workspaceBrowser, /if \(pinnedGroups\.length === 0 \|\| event\.target === event\.currentTarget \|\| \(event\.target instanceof Element && event\.target\.closest\('\.dcu-wb-section-head'\) !== null\)\)/, '置顶为空时整个空态区域都必须激活首位落点，不能只命中顶部 8px 占位')

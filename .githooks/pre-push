@@ -1,0 +1,13 @@
+#!/bin/sh
+# dsh-zcode-ui pre-push 门禁：类型检查 + 断言套件 + 真浏览器布局检查。
+# 启用（每个克隆各做一次）：git config core.hooksPath .githooks
+# 跳过（仅限明知故犯的临时提交）：git push --no-verify
+set -e
+cd "$(dirname "$0")/.."
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-push: 找不到 node，无法执行门禁；装好 Node 后重试，或用 git push --no-verify 跳过。" >&2
+  exit 1
+fi
+
+exec node scripts/gate.mjs

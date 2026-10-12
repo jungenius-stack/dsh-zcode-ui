@@ -8,6 +8,9 @@ const navigator = readFileSync(new URL('../src/client/TurnNavigator.tsx', import
 const client = readFileSync(new URL('../src/client/index.ts', import.meta.url), 'utf8')
 const settings = readFileSync(new URL('../src/client/settings-page-styles.ts', import.meta.url), 'utf8')
 const settingsPage = readFileSync(new URL('../src/client/CodexSettingsPage.tsx', import.meta.url), 'utf8')
+// 2026-10-12：ZCode 改造后配色/文字层级由主题层（zcode-theme.ts 的 ZCODE_THEME_STYLE）统一给出，
+// 不再是侧栏样式表里的字面量。凡断言"侧栏必须是什么颜色"的，都应指向这唯一的真值源。
+const theme = readFileSync(new URL('../src/client/zcode-theme.ts', import.meta.url), 'utf8')
 
 const sidebarStylesheet = sidebar.match(/const stylesheet = `([\s\S]*?)`/)?.[1]
 assert.ok(sidebarStylesheet, '必须能读取侧栏样式，避免防回归检查被跳过')
@@ -50,12 +53,17 @@ assert.doesNotMatch(navigator, /\.dcu-turn-link:hover,.dcu-turn-link:focus-visib
 assert.match(navigator, /width:16px;height:8px/, '轮次导航命中区必须紧凑')
 assert.match(navigator, /--dcu-tick-w,5px/, '轮次导航默认必须是更短的微刻度')
 assert.match(navigator, /\.dcu-turn-list\{display:grid;gap:2px/, '刻度默认间距必须收紧')
-assert.match(sidebar, /\.dcu-compact\{width:100%/, '折叠窄轨必须填满宿主 56px 列，避免图标量到错误位置')
+// 2026-10-12 更新：ZCode 改造后折叠轨不再靠根节点 `width:100%` 撑满，而是紧凑外壳自身固定 56px
+// （`.dcu-compact-shell{display:none;width:56px}` + 折叠态切换到它）。意图不变：窄轨必须正好填满宿主 56px 列。
+assert.match(sidebar, /\.dcu-compact-shell\{display:none;width:56px\}/, '折叠外壳必须固定 56px 宽，填满宿主列')
+assert.match(sidebar, /\.dcu-root\.dcu-compact \.dcu-compact-shell\{display:flex/, '折叠态必须切换到紧凑外壳')
 assert.match(sidebar, /BrandWordmark size=\{24\}/, '侧栏品牌标识必须放大')
-assert.match(sidebar, /\.dcu-head-actions\{display:grid;grid-auto-flow:column;grid-auto-columns:28px;align-items:center;column-gap:8px;height:28px\}/, 'head actions grid')
+// 2026-10-12 更新：以下三条钉的是 P1 之前的几何常量，ZCode 刻度落地后头部高 34→40px、
+// 纵向内边距 28→32px、控件间距 8→4px。断言意图（单行头部、控件垂直居中、图标对齐）不变。
+assert.match(sidebar, /\.dcu-head-actions\{display:grid;grid-auto-flow:column;grid-auto-columns:28px;align-items:center;column-gap:4px;height:28px\}/, 'head actions grid')
 assert.match(sidebar, /\.dcu-head\{display:grid;grid-template-columns:minmax\(0,1fr\) auto/, 'head single row')
-assert.match(sidebar, /\.dcu-head\{[^}]*height:var\(--dcu-header-height,34px\)/, '侧栏顶部与会话顶栏共用控件带高度')
-assert.match(sidebar, /\.dcu-head\{[^}]*padding:calc\(\(var\(--dcu-header-height,34px\) - 28px\)\/2\) 8px calc\(\(var\(--dcu-header-height,34px\) - 28px\)\/2\) 12px/, '顶部控件垂直居中，保留 Logo 左侧留白')
+assert.match(sidebar, /\.dcu-head\{[^}]*height:var\(--dcu-header-height,40px\)/, '侧栏顶部与会话顶栏共用控件带高度')
+assert.match(sidebar, /\.dcu-head\{[^}]*padding:calc\(\(var\(--dcu-header-height,40px\) - 32px\)\/2\) 8px calc\(\(var\(--dcu-header-height,40px\) - 32px\)\/2\) 12px/, '顶部控件垂直居中，保留 Logo 左侧留白')
 assert.match(sidebar, /\.dcu-head \.dcu-icon\{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px/, 'head icons aligned')
 assert.match(sidebar, /<div className="dcu-head-actions"><button type="button" className="dcu-icon" aria-label=\{t\('sidebar\.collapse'\)\}[\s\S]*sidebar\.search/, '收缩按钮必须在 LOGO 右侧、搜索左侧，并随搜索一起靠右')
 assert.match(sidebar, /const compact = collapsed \|\| width < 80/, '列宽小于 80px 时也必须进入窄轨')
@@ -69,35 +77,43 @@ assert.match(sidebar, /footer-actions 必须保持竖排/, '逐条 data-slot 锚
 assert.doesNotMatch(sidebar, /lc-ov-entry/, '不得再靠 dsh-context 的按钮 class 藏入口')
 assert.doesNotMatch(sidebar, /\[data-slot\]:has\(/, '不得按 slot 祖先隐藏洞察入口，否则会把同槽的用量统计一起藏掉')
 assert.match(sidebar, /dcu-compact-nav[\s\S]*sidebar.newTask[\s\S]*sidebar.search[\s\S]*sidebar.experts[\s\S]*sidebar.skills[\s\S]*sidebar.plugins[\s\S]*sidebar.connectors[\s\S]*sidebar.schedule[\s\S]*sidebar.assistant/, '窄轨必须保留主导航图标')
-assert.match(sidebar, /dcu-compact .dcu-settings-seat>\[data-dcu-settings-trigger\]\{display:grid;place-items:center;width:36px;min-height:36px;padding:0!important;font-size:0!important/, '窄轨设置入口只能保留图标')
+// 2026-10-12 更新：窄轨设置入口改为把 `wide:false` 交给宿主插槽渲染（宿主自己出纯图标形态），
+// 插件不再注入 `[data-dcu-settings-trigger]` 的 font-size:0 覆盖。
+assert.match(sidebar, /renderSlot\('sidebar\.settings', \{ wide: !visualCompact \}/, '窄轨设置入口必须交给宿主以 wide:false 渲染成纯图标')
 assert.doesNotMatch(sidebar, /dcu-settings-seat>button\{[^}]*font-size:0/, '桌面账号头像按钮不能套用设置入口的文字隐藏规则')
-assert.match(sidebar, /<div className="dcu-compact-shell"><button type="button" className="dcu-icon" aria-label=\{t\('sidebar\.expand'\)\} onClick=\{toggleSidebar\}><IconPanelLeftOutlineMedium size=\{16\} \/>/, '折叠态展开按钮必须位于窄轨顶部')
+// 2026-10-12 更新：窄轨展开按钮改用插件统一的 Lucide 图标（ZIconCollapse）。
+assert.match(sidebar, /<div className="dcu-compact-shell"><button type="button" className="dcu-icon" aria-label=\{t\('sidebar\.expand'\)\} onClick=\{toggleSidebar\}><ZIconCollapse size=\{16\} \/>/, '折叠态展开按钮必须位于窄轨顶部')
 assert.match(sidebar, /const SidebarSearch = forwardRef/, '搜索状态必须隔离到独立子树，不能让工作区树随输入重渲染')
 assert.match(sidebar, /useDeferredValue\(query\)/, '搜索过滤必须让输入更新优先，避免大量会话时阻塞键入')
 assert.match(sidebar, /SIDEBAR_COLLAPSE_SETTLE_MS = 500/, '收缩时必须先淡出宽态，再切换窄轨，避免内容突变')
 assert.match(sidebar, /width:var\(--dcu-sidebar-expanded-width,240px\)/, '宽态内容必须保持展开宽度，避免宿主动画把文字挤成竖排')
-assert.match(sidebar, /dcu-sidebar-expanded-in 500ms cubic-bezier/, '侧栏展开必须立即使用合成层淡入动画')
+// 2026-10-12 更新：动效统一到 ZCode 的 150–200ms ease-out（原 Codex 为 500ms 弹簧曲线）。
+assert.match(sidebar, /dcu-sidebar-expanded-in 180ms ease-out/, '侧栏展开必须立即使用合成层淡入动画')
 assert.match(sidebar, /\.dcu-compact-shell\{display:none;width:56px\}/, '窄轨必须固定为 56px 并锚定左侧，不能在正在变化的宿主列中居中漂移')
-assert.match(sidebar, /dcu-search-dialog-in 180ms cubic-bezier/, '搜索弹窗必须保留轻量淡入缩放动画')
+assert.match(sidebar, /dcu-search-dialog-in 180ms ease-out/, '搜索弹窗必须保留轻量淡入缩放动画')
 assert.doesNotMatch(sidebar, /transition:none!important/, '不得再关闭宿主侧栏的宽度动画')
-assert.match(sidebar, /background:#eef7f5/, '浅色侧栏必须使用 Codex 风格的浅青灰背景')
-assert.match(sidebar, /body\[data-ds-dark-theme\] \.dcu-root\{--dcu-sidebar-background:#1d2120/, '暗色侧栏必须使用 Codex 风格的深灰绿背景')
+assert.match(theme, /--dcu-sidebar-background:#f0f0f0/, '浅色侧栏必须使用 Zai ZCode 的 #f0f0f0 中性灰背景')
+assert.match(theme, /--dcu-sidebar-background:#161616/, '暗色侧栏必须使用 Zai ZCode 的 #161616 背景')
 assert.match(sidebar, /body\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*pointer-events:none[^}]*--we-sidebar-color[^}]*--we-sidebar-alpha[^}]*backdrop-filter:blur\(var\(--we-sidebar-blur/, 'Wallpaper Engine 玻璃必须在不拦截点击的独立背景层复用颜色、透明度和模糊变量')
 assert.doesNotMatch(sidebar, /\.dcu-root\{[^}]*(?:backdrop-filter|transform|contain):/, '侧栏根节点不得创建 fixed 包含块，否则设置和搜索弹窗会被限制在侧栏内')
 assert.doesNotMatch(sidebar, /\.dcu-root\s*\{(?:[^{}]*;)?\s*(?:-webkit-)?(?:filter|perspective)\s*:(?!\s*none\s*(?:!important\s*)?[;}])[^;}]+/i, '侧栏根节点不得通过非 none 的 filter 或 perspective 创建 fixed 包含块')
 assert.doesNotMatch(sidebar, /\.dcu-root\s*\{(?:[^{}]*;)?\s*will-change\s*:[^;}]*\b(?:transform|translate|rotate|scale|filter|backdrop-filter|perspective|contain)\b/i, '侧栏根节点不得通过 will-change 提前创建 fixed 包含块')
 assert.doesNotMatch(sidebar, /\.dcu-root\{[^}]*(?:isolation|z-index):/, '侧栏根节点不得隔离层叠上下文，否则弹窗会被主会话内容遮挡')
 assert.match(sidebar, /body\[data-ds-dark-theme\]\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*--we-sidebar-color[^}]*--we-sidebar-alpha/, '暗色侧栏必须单独降低 Wallpaper Engine 玻璃底色强度')
-assert.match(sidebar, /@supports not \(\(backdrop-filter:blur\(1px\)\) or \(-webkit-backdrop-filter:blur\(1px\)\)\)\{body\[data-we-sidebar-glass\] \.dcu-root\{background:#eef7f5/, '浏览器不支持毛玻璃时必须恢复浅色实底保证文字可读')
-assert.match(sidebar, /body\[data-ds-dark-theme\]\[data-we-sidebar-glass\] \.dcu-root\{background:#1d2120/, '浏览器不支持毛玻璃时必须恢复暗色实底保证文字可读')
-assert.match(sidebar, /--dcu-tip-bg:#ffffff/, '浅色悬停卡片必须是浅底，不得写死深色')
-assert.match(sidebar, /body\[data-ds-dark-theme\] \.dcu-root\{[^}]*--dcu-tip-bg:#2a2a2a/, '暗色悬停卡片必须使用 Codex 的中性深灰背景')
-assert.match(sidebar, /--dcu-sidebar-primary:#393d3e;--dcu-sidebar-secondary:#676b6c;--dcu-sidebar-tertiary:#9a9f9f;--dcu-sidebar-navigation:#4e5253;--dcu-sidebar-icon:#4e5253/, '浅色侧栏必须使用 Codex 风格的中性灰文字层级，不能接近纯黑')
-assert.match(sidebar, /--dcu-sidebar-primary:#b9bab9;--dcu-sidebar-secondary:#909191;--dcu-sidebar-tertiary:#666867;--dcu-sidebar-navigation:#b9bab9;--dcu-sidebar-icon:#afafaf/, '暗色侧栏必须使用 Codex 风格的中性灰文字层级，不能接近纯白')
-assert.match(sidebar, /--dcu-sidebar-navigation:#4e5253/, '浅色导航文字必须比项目标题更淡，匹配 Codex 的常规层级')
-assert.match(sidebar, /\.dcu-menu button[^}]*color:var\(--dcu-sidebar-navigation\)[^}]*font-weight:400/, '主导航必须使用 Codex 风格的常规字重与灰阶')
-assert.match(sidebar, /\.dcu-extension-items button\{[^}]*font-size:13px;font-weight:400/, '扩展二级导航必须比父级更淡更小，形成缩进层级')
-assert.match(sidebar, /\.dcu-extension-panel\{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows 220ms cubic-bezier\(\.16,1,\.3,1\),opacity 160ms ease-out/, '扩展子项必须使用连续的高度和透明度动画')
+// 2026-10-12 设计变更登记：原 `@supports not (backdrop-filter)` 的"恢复实底"降级已不存在。
+// 现方案是玻璃层本身半透明，另由 `body[data-we-appwindow]` 关闭模糊（见下一行断言）；
+// 文字可读性依赖宿主背景 + 主题文字色，不再有独立实底兜底。此处的意图变化记录在 KNOWN-ISSUES §3。
+assert.match(sidebar, /body\[data-we-appwindow\]\[data-we-sidebar-glass\] \.dcu-root::before\{-webkit-backdrop-filter:none;backdrop-filter:none\}/, '应用窗口内必须关闭毛玻璃，退回纯色层保证文字可读')
+assert.match(theme, /--dcu-tip-bg:#ffffff/, '浅色悬停卡片必须是浅底，不得写死深色')
+assert.match(theme, /--dcu-tip-bg:#2b2b2b/, '暗色悬停卡片必须使用 ZCode 的中性深灰背景')
+assert.match(theme, /--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#777777;[\s\S]*?--dcu-sidebar-tertiary:#9f9f9f;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252/, '浅色侧栏必须使用 ZCode 的中性灰文字层级（primary #262626 / secondary #777777 / tertiary #9f9f9f / icon #525252）')
+assert.match(theme, /--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;[\s\S]*?--dcu-sidebar-tertiary:#4f4f4f;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3/, '暗色侧栏必须使用 ZCode 的中性灰文字层级（primary #d4d4d4 / secondary #888888 / tertiary #4f4f4f / icon #a3a3a3）')
+// 2026-10-12 设计变更登记：ZCODE-DESIGN §2 只定义了 primary/secondary/tertiary/icon 四档，
+// 没有"导航比标题更淡"的独立层级——`--dcu-sidebar-navigation` 现与 primary 同值，主菜单直接用 primary。
+// 因此不再断言"导航必须更淡"，改为断言主菜单的字重与取色（意图：常规字重、不用主标题色）。
+assert.match(sidebar, /\.dcu-menu button[^}]*color:var\(--dcu-sidebar-primary\)[^}]*font-weight:400/, '主导航必须使用 ZCode 的常规字重与语义文字色')
+assert.match(sidebar, /\.dcu-extension-items button\{[^}]*font-size:var\(--dsw-font-size-caption\);font-weight:400/, '扩展二级导航必须比父级更淡更小，形成缩进层级')
+assert.match(sidebar, /\.dcu-extension-panel\{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows 180ms ease-out,opacity 160ms ease-out/, '扩展子项必须使用连续的高度和透明度动画')
 assert.match(sidebar, /\.dcu-extension-panel\[data-open=false\]\{grid-template-rows:0fr;opacity:0;pointer-events:none\}/, '收缩的扩展面板必须禁止鼠标命中')
 assert.match(sidebar, /\.dcu-extensions-group:hover \.dcu-extension-default-icon,[^{]*\{opacity:0/, '扩展分组悬停时必须隐藏左侧扩展图标')
 assert.match(sidebar, /\.dcu-extensions-group:hover \.dcu-extension-state-arrow/, '扩展分组悬停时必须在左侧图标位显示状态箭头')
@@ -107,17 +123,21 @@ assert.doesNotMatch(sidebar, /dcu-extensions-group" onMouseEnter|extensionsHover
 assert.match(sidebar, /SIDEBAR_EXPANSION_STORAGE_KEY = 'dsh-codex-ui\.sidebar-expansion\.v1'/, '扩展分组偏好必须使用统一的存储键名约定')
 assert.match(sidebar, /browserStorage\(\)/, '扩展分组偏好必须复用统一的浏览器存储访问器')
 assert.match(sidebar, /\.dcu-extension-panel,.dcu-extension-leading svg\{animation:none;transition:none\}/, '扩展动画必须遵循减少动态效果设置')
-assert.match(sidebar, /\.dcu-im-tabs\{[^}]*border-bottom:1px solid var\(--dcu-sidebar-border\)/, '任务频道定时页签必须是整行切换器')
-assert.match(sidebar, /\.dcu-im-tab\{[^}]*font:14px\/22px/, '任务频道定时页签必须与主导航同级字号')
-assert.match(sidebar, /\.dcu-im-tab\[data-on=true\]\{[^}]*font-weight:600/, '选中页签必须比未选项更重')
-assert.match(sidebar, /\.dcu-extension-items::before\{content:"";position:absolute;left:-16px/, '扩展树线必须与父级图标中心对齐')
+// 2026-10-12 设计变更登记：任务频道/定时页签由"整行切换器"改为 ZCode 的分段控件
+//（`--dcu-surface` 底 + 1px 边框 + 8px 圆角 + 2px 内衬），不再用 border-bottom 分隔。
+assert.match(sidebar, /\.dcu-im-tabs\{[^}]*background:var\(--dcu-surface\);border:1px solid var\(--dcu-sidebar-border\);border-radius:8px/, '任务频道定时页签必须是 ZCode 分段控件（surface 底 + 边框 + 8px 圆角）')
+assert.match(sidebar, /\.dcu-im-tab\{[^}]*font:500 12px\/18px/, '任务频道定时页签使用刻度 sm(12px)，不再与主导航同级字号')
+assert.match(sidebar, /\.dcu-im-tab\[data-on=true\]\{[^}]*background:var\(--dcu-sidebar-selected\)/, '选中页签必须用底色区分（ZCode 分段控件不再用字重加粗）')
+assert.match(sidebar, /\.dcu-extension-items::before\{content:"";position:absolute;left:-12px/, '扩展树线必须与父级图标中心对齐')
 assert.doesNotMatch(sidebar, /\.dcu-extension-items \.dcu-menu-icon\{display:none\}/, '扩展子项必须显示各自的图标')
-assert.match(sidebar, /\.dcu-extension-items button\{[^}]*grid-template-columns:20px minmax\(0,1fr\)/, '扩展子项必须保留图标列')
+assert.match(sidebar, /\.dcu-extension-items button\{[^}]*grid-template-columns:16px minmax\(0,1fr\)/, '扩展子项必须保留图标列')
 assert.match(sidebar, /dcu-workspaces-tabs/, '有页签时不得再保留动作区和页签之间的第二条分隔线')
 assert.match(sidebar, /\.dcu-root\{[^}]*font:14px\/20px var\(--dsw-font-family\)/, '侧栏必须跟随宿主 --dsw-font-family')
 assert.doesNotMatch(sidebar, /--dcu-font/, '侧栏不得再定义 --dcu-font')
 assert.doesNotMatch(sidebar, /Inter,ui-sans-serif/, '侧栏不得再写死 Inter 栈')
-assert.match(sidebar, /\.dcu-settings-seat>\[data-dcu-settings-trigger\][^}]*color:var\(--dcu-sidebar-navigation\);font:14px\/20px var\(--dsw-font-family\);font-weight:400/, '底部设置入口必须与主导航保持同一文字层级')
+// 2026-10-12 更新：设置入口现由宿主插槽渲染（`[data-slot="settings.trigger"]`），取侧栏语义主色；
+// 与导航同层级（见上文"导航不再有独立层级"的设计变更登记）。
+assert.match(sidebar, /\.dcu-settings-seat \[data-slot="settings\.trigger"\]\{color:var\(--dcu-sidebar-primary\)\}/, '底部设置入口必须与主导航保持同一文字层级')
 
 assert.match(client, /observeConversationHeader/, '会话顶栏必须把对话/轨迹页签挪到子代理右侧')
 assert.match(navigator, /TURN_SUMMARY_LIMIT = 72/, '轮次摘要必须截断到 72 字符，防止长文本拖垮刻度')
@@ -131,4 +151,4 @@ assert.ok(tickMarkSize(3, 2, false).width > tickMarkSize(5, 2, false).width, '�
 assert.ok(tickMarkSize(2, 5, true).width < 8, '悬停其他条时，原来的选中刻度必须收回去')
 assert.match(navigator, /data-hovering/, '轨道悬停时必须进入仅高亮悬停条的状态')
 assert.match(navigator, /\[data-hovering=true\] \.dcu-turn-link\[aria-current=true\]/, '悬停时不得继续强调原来的选中刻度')
-assert.match(navigator, /cubic-bezier\(\.16,1,\.3,1\)/, '刻度长短切换必须使用更丝滑的缓动')
+assert.match(navigator, /transition:width 180ms ease-out/, '刻度长短切换必须使用 ZCode 的 180ms ease-out 缓动')
