@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type DragEvent, type MouseEvent, type ReactNode } from 'react'
+import type { DragEvent, MouseEvent, ReactNode } from 'react'
 import { Menu, type MenuEntry } from '@deepseek-ai/dsh-client-ui-primitives'
 import {
   ZIconArchive,
@@ -17,7 +17,7 @@ import {
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import { NS } from './locales.ts'
 import type { PendingInteractionKind } from './session-pending.ts'
-import { sessionTitleLine, titleOverflowPx, titleScrollDurationMs } from './session-title-scroll.ts'
+import { sessionTitleLine } from './session-title-scroll.ts'
 
 export function PinIcon() {
   return <ZIconPin aria-hidden="true" size={16} strokeWidth={1.5} />
@@ -137,31 +137,11 @@ export function SessionTime({ time }: { time?: string }) {
 }
 
 export function SessionRowTitle({ title }: { title: string }) {
-  const text = sessionTitleLine(title)
-  const wrapRef = useRef<HTMLSpanElement>(null)
-  const textRef = useRef<HTMLSpanElement>(null)
-  const [shift, setShift] = useState(0)
-
-  useLayoutEffect(() => {
-    const wrap = wrapRef.current
-    const inner = textRef.current
-    if (wrap === null || inner === null) return
-    const measure = () => { setShift(titleOverflowPx(inner.scrollWidth, wrap.clientWidth)) }
-    measure()
-    let cancelled = false
-    const fonts = typeof document === 'undefined' ? undefined : document.fonts
-    if (fonts !== undefined) void fonts.ready.then(() => { if (!cancelled) measure() })
-    if (typeof ResizeObserver === 'undefined') return () => { cancelled = true }
-    const observer = new ResizeObserver(measure)
-    observer.observe(wrap)
-    return () => { cancelled = true; observer.disconnect() }
-  }, [text])
-
-  const style = shift > 0
-    ? { '--dcu-title-shift': `${shift}px`, '--dcu-title-duration': `${titleScrollDurationMs(shift)}ms` } as CSSProperties
-    : undefined
-
-  return <span ref={wrapRef} className="dcu-wb-session-title" data-overflow={shift > 0 || undefined} style={style}><span ref={textRef} className="dcu-wb-session-title-text">{text}</span></span>
+  // 纯 ellipsis 截断，完整标题交给 tooltip 承担。
+  // 原先的「hover 跑马灯」已移除：父容器 `.dcu-wb-session-title` 是 overflow:hidden，
+  // 而滚动时内层被撑成 width:max-content 再叠加 translateX，导致标题**两端同时被裁**
+  // （实测容器 130px、文字 175px，滚动中途左右都不可读）。
+  return <span className="dcu-wb-session-title"><span className="dcu-wb-session-title-text">{sessionTitleLine(title)}</span></span>
 }
 
 export function SessionRow({

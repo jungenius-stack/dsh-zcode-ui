@@ -1,18 +1,12 @@
-/** 会话行只展示标题第一行，避免换行把胶囊撑高。 */
+/**
+ * 会话行只展示标题第一行，避免换行把胶囊撑高。
+ *
+ * 说明：本模块原先还导出 titleOverflowPx / titleScrollDurationMs，配合 CSS 实现
+ * 「hover 时标题跑马灯滚动」。该机制已移除——父容器 `.dcu-wb-session-title` 是
+ * `overflow:hidden`，而滚动时内层被撑成 `width:max-content`，导致标题**两端同时被裁**
+ * （实测容器 130px、文字 175px，滚动中途两端都不可读）。现改为纯 ellipsis 截断，
+ * 完整标题由既有的 tooltip 承担。
+ */
 export function sessionTitleLine(title: string): string {
   return title.split(/\r?\n/)[0] ?? title
-}
-
-/** 标题比可视槽多出来的像素；1px 内当作测量误差。 */
-export function titleOverflowPx(scrollWidth: number, clientWidth: number): number {
-  const extra = Math.ceil(scrollWidth - clientWidth)
-  return extra > 1 ? extra : 0
-}
-
-const PX_PER_SECOND = 42
-
-/** 按溢出长度估算单程时长，长标题更慢，避免一闪而过。 */
-export function titleScrollDurationMs(overflowPx: number): number {
-  if (overflowPx <= 0) return 0
-  return Math.min(8000, Math.max(1600, Math.round((overflowPx / PX_PER_SECOND) * 1000)))
 }
