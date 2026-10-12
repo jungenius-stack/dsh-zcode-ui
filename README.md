@@ -41,6 +41,25 @@ Nothing else changes. The plugin is a **pure presentation layer**: it does not t
 | **Theme** | Follows the host's own light/dark preference via `body[data-ds-dark-theme]`; light canvas `#f8f8f8`, dark canvas `#161616` |
 | **Sidebar behaviour** | Pin / group / drag-reorder projects and conversations, unread and running indicators, header search over sessions + settings + quick actions, rename / archive / fork / copy / delete, turn navigation in long conversations, Up/Down recall of previous input |
 
+## Screenshots
+
+The two images at the top of this page are the light and dark sidebar + workspace tree. A few more views.
+
+> Project names, conversation titles and the balance figures in every screenshot are **demo data** — the
+> captures are sanitised before committing so no real workspace ever appears in this repository.
+
+Settings page — selected states are neutral, matching the sidebar (no blue leftovers from the host defaults):
+
+![Settings page, light theme](assets/screenshots/settings-light.png)
+
+Header search across conversations and settings:
+
+![Header search, light theme](assets/screenshots/search-light.png)
+
+Collapsed rail — icon-only, with tooltips on hover:
+
+![Collapsed rail, light theme](assets/screenshots/collapsed-light.png)
+
 ## How it differs from upstream
 
 This fork keeps upstream's interaction scaffolding and data layer, and adds:

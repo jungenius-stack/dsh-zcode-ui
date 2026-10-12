@@ -199,6 +199,11 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
       (c) 删除未被任何文档引用的 `assets/screenshots/conversation.png` 与上游营销图
       `assets/branding/dsh-banner.png`（后者宣传的是上游自己的 5 个配套插件，不属于本项目）；
       (d) 清除 `docs/` 中残留的本机绝对路径。
+- [x] **展示图重新拍摄（2026-10-13）** —— 原 `debug/shots*/` 10 张与 `assets/screenshots/conversation.png`
+      因含真实项目名与账户余额，已在隐私清理中删除并清除历史。现用**脱敏后重拍**的 5 张替代：
+      `conversation-light/dark`（顶部横幅）、`settings-light`、`search-light`、`collapsed-light`，
+      内容为演示数据（acme-web / playground / ¥0.00 / ¥12.00）。拍摄脚本每次都会先把
+      项目名、会话标题、余额替换为演示值，并**逐张目检**后再入库——文本正则扫不出图里的信息。
 - [x] **存量失败断言的处理** —— 已清零：本条原文针对"第 3 节的 3 个失败"，这些断言已于
       2026-10-12 全部重定基转绿（见 §3）。当前断言套件 34 通过 / 3 有意跳过（上游 monorepo
       专属脚本，见 §2）/ 0 失败，发布前不存在"套件为红误导使用者"的问题。
