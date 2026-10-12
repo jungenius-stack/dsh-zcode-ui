@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BatchTTS/dsh-zcode-ui.git"
+    "url": "git+https://github.com/YOUR-GITHUB-USERNAME/dsh-zcode-ui.git"
   },
   "bugs": {
-    "url": "https://github.com/BatchTTS/dsh-zcode-ui/issues"
+    "url": "https://github.com/YOUR-GITHUB-USERNAME/dsh-zcode-ui/issues"
   },
-  "homepage": "https://github.com/BatchTTS/dsh-zcode-ui#readme",
+  "homepage": "https://github.com/YOUR-GITHUB-USERNAME/dsh-zcode-ui#readme",
   "type": "module",
   "packageManager": "pnpm@11.28.5",
   "engines": {

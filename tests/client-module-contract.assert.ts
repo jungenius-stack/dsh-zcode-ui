@@ -26,6 +26,9 @@ const staticWebModules = [
 
 assert.deepEqual(runtimeRequires, staticWebModules, '客户端 bundle 只能要求 DSH Web 启动器稳定提供的静态模块')
 assert.doesNotMatch(hostBundle, /from ["']@deepseek-ai\/dsh-client-ui-settings-general["']/, '宿主入口不得再按包名导入 settings-general，否则会向上解析到旧副本')
+// 与上游不同（有意为之）：上游 monorepo 固定在 pnpm@11.22.0；本 fork 的依赖树实际由
+// pnpm@11.28.5 安装——依据是 node_modules/.modules.yaml 的 packageManager 字段为
+// "pnpm@11.28.5"，且 package.json 已同步声明该值。此处对齐为 11.28.5 而非沿用上游值。
 assert.equal(manifest.packageManager, 'pnpm@11.28.5', '仓库固定使用统一 pnpm 版本')
 assert.equal(manifest.engines?.node, '^22.19.0 || >=24.0.0', '仓库使用统一 Node LTS 基线')
 assert.doesNotMatch(bundle, /createLucideIcon\("alarm-clock"/, '客户端 bundle 不得包含未使用的 Lucide 图标')
