@@ -63,10 +63,11 @@
 
 ## 4. 发布前必做
 
-- [ ] **填写真实 GitHub 用户名**：`package.json` 的 `repository` / `bugs` / `homepage`
-      目前是占位符 `YOUR-GITHUB-USERNAME`。
-      注意：早期版本曾填 `BatchTTS`，但该账号在 GitHub 上**不存在**（`api.github.com/users/BatchTTS` 返回 404），
-      它是本机 git 的 local 身份（`BatchTTS <agent@local>`，邮箱为占位），不可直接用作发布账号。
+- [x] **填写真实 GitHub 用户名** —— 已完成：`repository` / `bugs` / `homepage` 均指向
+      `github.com/jungenius-stack/dsh-zcode-ui`。该账号已通过 `api.github.com/users/jungenius-stack`
+      核实存在（id 322767483）。
+      历史备注：早期版本曾填 `BatchTTS`，但该账号在 GitHub 上**不存在**（API 返回 404），
+      它只是本机 git 的 local 身份（`BatchTTS <agent@local>`，邮箱为占位），不可用作发布账号。
 - [ ] **核对 npm 包名是否可用**：`dsh-zcode-ui` 为裸包名，发布前确认未被占用。
 - [ ] **确认 `publishConfig`**：当前为 `access: public` + 官方 registry，若改为私有需调整。
 - [ ] **决定是否处理第 3 节的 4 个存量失败**（发布前套件为红会误导使用者）。
