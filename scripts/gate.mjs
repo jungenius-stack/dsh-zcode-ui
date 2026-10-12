@@ -97,7 +97,7 @@ console.log(vitestEnvBroken
     ? 'vitest：全部通过'
     : `vitest：${vitestFailedFiles.length} 个文件失败（已登记 ${vitestFailedFiles.filter(file => KNOWN_RED_VITEST_FILES.includes(file)).length} 个）/ 新增 ${newVitestFailures.length} 个`)
 console.log(`布局检查：${layoutPassed} 通过 / ${KNOWN_RED_LAYOUT.length} 已登记红项 / ${newLayoutFailures.length} 新增失败（共 ${LAYOUT.length} 项）`)
-console.log('未纳入：三个需要活宿主的脚本（verify-compat-host / verify-settings-exit / verify-session-features-host）—— 见 docs/KNOWN-ISSUES.md §6')
+console.log('未纳入本档：三个需要活宿主的脚本（verify-compat-host / verify-settings-exit / verify-session-features-host）—— 它们由重型档 npm run gate:host 覆盖，见 docs/KNOWN-ISSUES.md §10.3')
 
 const blocked = !typecheck.ok || vitestEnvBroken || newAssertFailures.length > 0
   || newVitestFailures.length > 0 || newLayoutFailures.length > 0
