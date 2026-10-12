@@ -19,8 +19,8 @@ body[data-ds-dark-theme],.theme-zai-dark{color-scheme:dark}
 body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-foreground:#000000}
 /* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。 */
 .dcu-root,.dcu-settings-page,.dcu-home{
-  --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#777777;
-  --dcu-sidebar-tertiary:#9f9f9f;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252;
+  --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#5c5c5c;
+  --dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252;
   --dcu-sidebar-hover:rgba(13,13,13,.05);--dcu-sidebar-selected:rgba(13,13,13,.05);
   --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-tip-bg:#ffffff;--dcu-tip-border:rgba(13,13,13,.1);
   --dcu-tip-shadow:0 8px 24px rgba(13,13,13,.12);--dcu-focus:#0b7fff;
@@ -30,7 +30,7 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
 body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,body[data-ds-dark-theme] .dcu-home,
 .theme-zai-dark .dcu-root,.theme-zai-dark .dcu-settings-page,.theme-zai-dark .dcu-home{
   --dcu-sidebar-background:#161616;--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;
-  --dcu-sidebar-tertiary:#4f4f4f;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3;
+  --dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3;
   --dcu-sidebar-hover:rgba(255,255,255,.05);--dcu-sidebar-selected:rgba(255,255,255,.1);
   --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);
   --dcu-tip-shadow:0 8px 24px rgba(0,0,0,.4);--dcu-focus:#4099ff;

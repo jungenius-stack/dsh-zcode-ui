@@ -85,7 +85,8 @@ assert.match(sidebar, /dcu-compact-nav[\s\S]*sidebar.newTask[\s\S]*sidebar.searc
 assert.match(sidebar, /renderSlot\('sidebar\.settings', \{ wide: !visualCompact \}/, '窄轨设置入口必须交给宿主以 wide:false 渲染成纯图标')
 assert.doesNotMatch(sidebar, /dcu-settings-seat>button\{[^}]*font-size:0/, '桌面账号头像按钮不能套用设置入口的文字隐藏规则')
 // 2026-10-12 更新：窄轨展开按钮改用插件统一的 Lucide 图标（ZIconCollapse）。
-assert.match(sidebar, /<div className="dcu-compact-shell"><button type="button" className="dcu-icon" aria-label=\{t\('sidebar\.expand'\)\} onClick=\{toggleSidebar\}><ZIconCollapse size=\{16\} \/>/, '折叠态展开按钮必须位于窄轨顶部')
+// 2026-10-13 更新：折叠轨图标补 title（无标签窄轨需要 tooltip 说明用途）。
+assert.match(sidebar, /<div className="dcu-compact-shell"><button type="button" className="dcu-icon" aria-label=\{t\('sidebar\.expand'\)\} title=\{t\('sidebar\.expand'\)\} onClick=\{toggleSidebar\}><ZIconCollapse size=\{16\} \/>/, '折叠态展开按钮必须位于窄轨顶部')
 assert.match(sidebar, /const SidebarSearch = forwardRef/, '搜索状态必须隔离到独立子树，不能让工作区树随输入重渲染')
 assert.match(sidebar, /useDeferredValue\(query\)/, '搜索过滤必须让输入更新优先，避免大量会话时阻塞键入')
 assert.match(sidebar, /SIDEBAR_COLLAPSE_SETTLE_MS = 500/, '收缩时必须先淡出宽态，再切换窄轨，避免内容突变')
@@ -109,8 +110,11 @@ assert.match(sidebar, /body\[data-ds-dark-theme\]\[data-we-sidebar-glass\] \.dcu
 assert.match(sidebar, /body\[data-we-appwindow\]\[data-we-sidebar-glass\] \.dcu-root::before\{-webkit-backdrop-filter:none;backdrop-filter:none\}/, '应用窗口内必须关闭毛玻璃，退回纯色层保证文字可读')
 assert.match(theme, /--dcu-tip-bg:#ffffff/, '浅色悬停卡片必须是浅底，不得写死深色')
 assert.match(theme, /--dcu-tip-bg:#2b2b2b/, '暗色悬停卡片必须使用 ZCode 的中性深灰背景')
-assert.match(theme, /--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#777777;[\s\S]*?--dcu-sidebar-tertiary:#9f9f9f;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252/, '浅色侧栏必须使用 ZCode 的中性灰文字层级（primary #262626 / secondary #777777 / tertiary #9f9f9f / icon #525252）')
-assert.match(theme, /--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;[\s\S]*?--dcu-sidebar-tertiary:#4f4f4f;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3/, '暗色侧栏必须使用 ZCode 的中性灰文字层级（primary #d4d4d4 / secondary #888888 / tertiary #4f4f4f / icon #a3a3a3）')
+// 2026-10-13 更新：ZCode 的 foreground-subtle/subtlest 是叠在**白底**上推导的，落到侧栏 #f0f0f0 上
+// 实测只有 3.93:1 / 2.32:1（低于 WCAG AA 4.5:1）。此处按侧栏底色重新取值：secondary #5c5c5c(5.87:1)、
+// tertiary #686868(4.89:1)。见 docs/KNOWN-ISSUES.md §3.1 设计变更登记。
+assert.match(theme, /--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#5c5c5c;[\s\S]*?--dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252/, '浅色侧栏必须使用达标的中性灰文字层级（primary #262626 / secondary #5c5c5c / tertiary #686868 / icon #525252，均 ≥4.5:1）')
+assert.match(theme, /--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;[\s\S]*?--dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3/, '暗色侧栏必须使用达标的中性灰文字层级（primary #d4d4d4 / secondary #888888 / tertiary #828282 / icon #a3a3a3，均 ≥4.5:1）')
 // 2026-10-12 设计变更登记：ZCODE-DESIGN §2 只定义了 primary/secondary/tertiary/icon 四档，
 // 没有"导航比标题更淡"的独立层级——`--dcu-sidebar-navigation` 现与 primary 同值，主菜单直接用 primary。
 // 因此不再断言"导航必须更淡"，改为断言主菜单的字重与取色（意图：常规字重、不用主标题色）。

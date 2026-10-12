@@ -16,8 +16,9 @@ export const NEW_CONVERSATION_STYLE = `
 .dcu-home-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 /* 图标与标题同排、紧凑排布。原先是 column + space-between + gap:22px + min-height:106px，
    导致图标贴顶、文案贴底、中间留白约 50px（DSH 内实测反馈），窄窗口还会把标题折行。 */
-.dcu-home-card{appearance:none;display:flex;flex-direction:row;align-items:center;gap:8px;min-width:0;padding:10px 12px;border:1px solid color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent);border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background-color 150ms ease-out,border-color 150ms ease-out}
-.dcu-home-card>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dcu-home-card{appearance:none;display:flex;flex-direction:row;align-items:center;gap:8px;min-width:0;min-height:42px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent);border-radius:10px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background-color 150ms ease-out,border-color 150ms ease-out}
+/* 标签允许两行：四个卡片在 1440px 下每张约 171px，单行必然截断（实测四个标签全部断在半词上）。 */
+.dcu-home-card>span{min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;line-height:18px;text-wrap:pretty}
 .dcu-home-card:hover,.dcu-home-card[aria-pressed=true]{background:color-mix(in srgb,var(--dsw-alias-label-primary) 5%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-label-primary) 20%,transparent)}
 .dcu-home-card svg{width:16px;height:16px;flex:none;color:var(--dcu-home-icon)}
 .dcu-home-card:focus-visible,.dcu-home-task:focus-visible{outline:2px solid var(--dsw-alias-label-primary);outline-offset:3px}

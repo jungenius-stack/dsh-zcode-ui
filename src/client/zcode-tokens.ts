@@ -58,7 +58,9 @@ export const ZCODE_LIGHT: TokenMap = {
   '--dsw-alias-bg-layer-3': '#ffffff',
   '--dsw-alias-bg-layer-4': '#f0f0f0',
   '--dsw-alias-bg-overlay': '#ffffff',
-  '--dsw-alias-bg-module-platform': '#ebf4ff',
+  // 选中态统一走中性：宿主用它表达"已选模块"。ZCode 原值为 accent #ebf4ff（蓝），
+  // 但侧栏的选中态是中性 rgba(13,13,13,.05)，同一套皮肤两种语言 —— 此处改中性，见 KNOWN-ISSUES §3.1
+  '--dsw-alias-bg-module-platform': '#efefef',
   '--dsw-alias-bg-multi-select': '#f0f0f0',
   '--dsw-alias-bg-l1': '#ffffff',
   '--dsw-alias-bg-l2': '#ffffff',
@@ -277,7 +279,7 @@ export const ZCODE_DARK: TokenMap = {
   '--dsw-alias-bg-layer-3': '#2b2b2b',
   '--dsw-alias-bg-layer-4': '#363636',
   '--dsw-alias-bg-overlay': '#2b2b2b',
-  '--dsw-alias-bg-module-platform': '#001d3d',
+  '--dsw-alias-bg-module-platform': '#3a3a3a',
   '--dsw-alias-bg-multi-select': '#363636',
   '--dsw-alias-bg-l1': '#202020',
   '--dsw-alias-bg-l2': '#2b2b2b',

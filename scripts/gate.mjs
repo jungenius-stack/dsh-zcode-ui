@@ -41,6 +41,7 @@ const LAYOUT = [
   ['scripts/verify-settings-backdrop.mjs', []],
   ['scripts/verify-settings-geometry.mjs', []],
   ['scripts/verify-upstream-style-regressions.mjs', []],
+  ['scripts/verify-a11y-and-overflow.mjs', []],
 ]
 
 /** 去掉 ANSI 颜色码：vitest 的 `FAIL` 带颜色时前面是转义序列，会破坏行首匹配。 */

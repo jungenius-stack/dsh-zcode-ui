@@ -1,6 +1,6 @@
 /** Codex 设置页的局部 tokens 与布局，不覆盖宿主其他弹窗。 */
 export const settingsPageStyles = `
-.dcu-settings-page{--sp-bg:#f8f8f8;--sp-nav:var(--dcu-sidebar-background,#f0f0f0);--sp-card:#ffffff;--sp-border:rgba(13,13,13,.1);--sp-text:#262626;--sp-muted:#737373;--sp-hover:rgba(13,13,13,.05);--sp-active:rgba(13,13,13,.05);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
+.dcu-settings-page{--sp-bg:#f8f8f8;--sp-nav:var(--dcu-sidebar-background,#f0f0f0);--sp-card:#ffffff;--sp-border:rgba(13,13,13,.1);--sp-text:#262626;--sp-muted:#6b6b6b;--sp-hover:rgba(13,13,13,.05);--sp-active:rgba(13,13,13,.05);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
 body[data-ds-dark-theme] .dcu-settings-page{--sp-bg:#161616;--sp-nav:var(--dcu-sidebar-background,#161616);--sp-card:#2b2b2b;--sp-border:rgba(255,255,255,.1);--sp-text:#d4d4d4;--sp-muted:#8f8f8f;--sp-hover:rgba(255,255,255,.05);--sp-active:rgba(255,255,255,.1);color-scheme:dark}
 .dcu-settings-page *{box-sizing:border-box}
 .dcu-settings-page button,.dcu-settings-page input{font:inherit}
