@@ -4,6 +4,26 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.3.0 - 2026-10-13
+
+### Changed
+
+- **Sidebar collapse/expand is now a compositor-layer animation**: the transitioned property moves off `grid-template-columns` onto `transform`/`left` displacement of the content column and the drag handle, with the grid tracks held static during the flight and switched once at each end. The old implementation re-laid-out the whole page every frame, and that cost grows with the conversation — measured by the user as "the sidebar frame rate degrades with the current conversation length". Same machine, same fixture, 60 Hz headless: with 1200 messages the old build ran 26/30 frames per 500 ms with a 20.0 ms average / 37 ms max / 8 frames over 20 ms mid-flight; the new build runs 16.3 ms average / 18 ms max / **zero dropped frames** mid-flight (light content: zero as well). The user's display is 120 Hz (8.33 ms budget), where the old build exceeded the budget on nearly every frame of a long conversation.
+- During the flight the content column widens by one shift (a single one-off reflow — unavoidable under push semantics, but it happens once); at the collapse end the track snaps to 56 px at the same width, so there is no second reflow; expand mirrors this with one reflow at its end.
+- Track snapshots and corrections of host-written values are all written with style transitions paused — the host's `.frame[data-animating]` and companion plugins (dsh-better-sidebar) can both hang transitions on grid/left, and without the pause a one-off correction would animate into a visible drift.
+- Frames that start up already collapsed now animate their first expand correctly (the old collapsed branch never wrote the init marker, so the first expand was mistaken for a cold start and skipped the animation).
+- A drag in progress cancels an in-flight sidebar animation (the drag owns the track), so the animation's settle timer can no longer fight the drag's per-frame writes.
+
+### Fixed
+
+- The frame-rate degradation above (root cause: the animated property was a layout property); the missing first-expand animation from a cold-collapsed start; in-flight animations fighting drags.
+
+### Verification
+
+- `scripts/verify-sidebar-transition.mjs` rewritten: asserts static tracks mid-flight, continuous transform intermediate frames that converge, no animation residue after the snapshot, the handle sliding monotonically from the collapsed visual position, instant settle on reversal, one-frame settle under reduced motion, no animation during drag plus cancellation of in-flight animations, and coexistence with dsh-better-sidebar's `#root` rules (padding-right transition preserved, no grid transition on the frame, transform-only on the content column).
+- New regression assertion that frame cost is decoupled from content volume (10 vs 1200 messages: zero dropped frames mid-flight, average hugging the vsync baseline) — the old implementation fails it (20.0 ms / 37 ms / 8 frames over 20 ms).
+- Full gate: typecheck 0 errors / vitest 311 passed / build clean / assertions 35 passed 0 failed / all 12 layout scripts passed.
+
 ## 1.2.1 - 2026-10-13
 
 ### Changed

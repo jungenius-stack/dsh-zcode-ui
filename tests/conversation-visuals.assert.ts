@@ -103,7 +103,15 @@ assert.match(sidebar, /body\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*po
 assert.doesNotMatch(sidebar, /\.dcu-root\{[^}]*(?:backdrop-filter|transform|contain):/, '侧栏根节点不得创建 fixed 包含块，否则设置和搜索弹窗会被限制在侧栏内')
 assert.doesNotMatch(sidebar, /\.dcu-root\s*\{(?:[^{}]*;)?\s*(?:-webkit-)?(?:filter|perspective)\s*:(?!\s*none\s*(?:!important\s*)?[;}])[^;}]+/i, '侧栏根节点不得通过非 none 的 filter 或 perspective 创建 fixed 包含块')
 assert.doesNotMatch(sidebar, /\.dcu-root\s*\{(?:[^{}]*;)?\s*will-change\s*:[^;}]*\b(?:transform|translate|rotate|scale|filter|backdrop-filter|perspective|contain)\b/i, '侧栏根节点不得通过 will-change 提前创建 fixed 包含块')
-assert.doesNotMatch(sidebar, /\.dcu-root\{[^}]*(?:isolation|z-index):/, '侧栏根节点不得隔离层叠上下文，否则弹窗会被主会话内容遮挡')
+// 唯一允许的层叠提升是动画期间那条（负向后视排除），依据见下一条断言。
+assert.doesNotMatch(sidebar, /(?<!\]:not\(\[data-dragging\]\) )\.dcu-root\{[^}]*(?:isolation|z-index):/, '侧栏根节点不得无条件隔离层叠上下文，否则弹窗会被主会话内容遮挡')
+// 2026-10-13（1.3.0 合成层开合动画）：允许**动画期间**的层叠提升。内容列用 transform
+// 位移会生成层叠上下文，且 DOM 顺序在侧栏列之后，不抬升侧栏就会被滑动中的内容盖住。
+// 安全性依据：搜索弹窗是全屏 scrim（z-index 10020），打开期间侧栏按钮不可点，
+// 「弹窗与开合动画同时存在」在交互上不可达；宿主浮层（overlayLayer z-index 20）
+// 同理会挡住侧栏的收起按钮。禁止的是**无条件**隔离——那会把弹窗长期困在侧栏的
+// 层叠上下文里。动画窗口仅 180ms（--dcu-motion-move-duration）。
+assert.match(sidebar, /\[data-dcu-sidebar-motion\]:not\(\[data-dragging\]\) \.dcu-root\{z-index:1\}/, '动画期间侧栏必须抬到位移中的内容列之上，且只允许动画期间抬升')
 assert.match(sidebar, /body\[data-ds-dark-theme\]\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*--we-sidebar-color[^}]*--we-sidebar-alpha/, '暗色侧栏必须单独降低 Wallpaper Engine 玻璃底色强度')
 // 2026-10-12 设计变更登记：原 `@supports not (backdrop-filter)` 的"恢复实底"降级已不存在。
 // 现方案是玻璃层本身半透明，另由 `body[data-we-appwindow]` 关闭模糊（见下一行断言）；

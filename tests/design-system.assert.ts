@@ -295,3 +295,29 @@ assert.ok(
   extractedStructure.trimEnd().endsWith(':root:root body[data-ds-dark-theme]{color-scheme:dark}'),
   'STRUCTURE_CSS 的抽取内容必须延伸到**最后一条声明**（尾标记）——截在中段时前一条仍会绿',
 )
+
+// ── 9. 皮肤信封与外来表面发现 ────────────────────────────────────────────────
+// 目标：让「将来加入的任何插件」不靠枚举类名也能收敛。信封管继承属性（字体/盒模型），
+// 发现哨兵管剩下的（报不达标的外来根）。两边都必须真的接上线。
+const envelope = read('skin-envelope.ts')
+const discovery = read('foreign-surface-discovery.ts')
+const indexSource = read('index.ts')
+
+for (const surface of ['.dcu-root', '.dcu-settings-page', '.dcu-home', '[data-conversation-scroll]']) {
+  assert.ok(envelope.includes(surface), `信封未覆盖表面 ${surface}——外来内容落在那里就不受约束`)
+}
+assert.match(envelope, /font-family:var\(--dsw-font-family\)/, '信封必须在表面上设字体（继承属性，后代自动跟随）')
+assert.match(envelope, /box-sizing:border-box/, '信封必须统一盒模型（box-sizing 不继承，需逐元素）')
+// 信封**不得**碰外来内容的字号/颜色/圆角——越过这条线就是"修复别人的组件"。
+assert.doesNotMatch(envelope, /font-size|color:|border-radius/, '信封不得规定字号/颜色/圆角，那是外来内容的功能结构与语义')
+
+// 契约锚点必须全部登记为已知外来根，否则哨兵会把已收敛的插件当未知重复报。
+for (const prefix of ['cm']) {
+  assert.match(discovery, new RegExp(`prefix: '${prefix}'`), `${prefix} 已在 foreign-content-contract 收敛，必须登记进 KNOWN_FOREIGN_ROOTS`)
+}
+// 等宽判定必须看计算字体：哈希类名里没有 code/mo no 字样，靠类名必漏（实测误报过）。
+assert.match(discovery, /isMono = \/mono\|menlo\|consolas\|courier\/i\.test/, '等宽语境必须按计算字体判定')
+// 自动检测**不得**对外来内容的背景底色下结论：有白底不等于错（浮层/菜单本该有底），
+// 这是设计判断，实测它把白底浮层全误报了。
+assert.doesNotMatch(discovery, /不透明底色/, '发现机制不得对背景底色下结论（那是设计判断，不是可自动判定的缺陷）')
+assert.match(indexSource, /observeForeignSurfaces\(\)/, '外来表面发现哨兵必须以应用级 effect 注册')

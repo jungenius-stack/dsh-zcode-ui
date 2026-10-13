@@ -18,7 +18,7 @@ import { EMPTY_COMPANION_TABS, type CompanionTabAvailability } from './companion
 import { ChannelBrowser } from './ChannelBrowser.tsx'
 import { ScheduleBrowser } from './ScheduleBrowser.tsx'
 import { isSidebarDragHandle, sidebarWidthDuringDrag, shouldCollapseOnSidebarDrag } from './sidebar-drag.ts'
-import { applySidebarWidth, findSidebarFrame, parseSidebarGrid, SLIM_SIDEBAR_PX } from './sidebar-width.ts'
+import { applySidebarWidth, findSidebarFrame, parseSidebarGrid, settleSidebarMotion, SLIM_SIDEBAR_PX } from './sidebar-width.ts'
 import { isTaskSession } from './workspace-browser.ts'
 import { clearAutomationTaskSettingsRequest, requestAutomationTaskSettings } from './automation-task-settings.ts'
 import type { UseSessionPendingInteraction, UseSessionStatus } from './session-pending.ts'
@@ -137,13 +137,28 @@ body[data-we-sidebar-glass] .dcu-expanded-shell,body[data-we-sidebar-glass] .dcu
 .dcu-root{--dcu-sidebar-top-clearance:0px}
 html[data-platform=darwin]:not([data-fullscreen]) .dcu-root{--dcu-sidebar-top-clearance:var(--dsh-frame-top-clearance,48px);padding-top:var(--dcu-sidebar-top-clearance)}
 html[data-platform=darwin]:not([data-fullscreen]) .dcu-root.dcu-compact{padding-top:calc(var(--dcu-sidebar-top-clearance,0px) + (var(--dcu-header-height,40px) - 32px)/2)}
-[data-dcu-codex-sidebar-initialized]{transition:grid-template-columns var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
-/* dsh-better-sidebar 的 #root 布局规则会覆盖 transition 简写；合并两侧过渡而非只争抢左栏。 */
-#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]){transition:grid-template-columns var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),padding-right var(--ds-transition-duration-slow,.3s) var(--ds-ease-in-out,cubic-bezier(.4,0,.2,1))}
+/* 侧栏开合是合成层动画（1.3.0）：网格轨道在动画期间保持静止，内容列与拖拽柄用
+   transform 位移。旧实现让 grid-template-columns 直接过渡，每帧全页重排、成本随
+   会话内容增长（用户实测帧率随上下文长度劣化），轨道改由 JS 在动画两端一次性切换。
+   dsh-better-sidebar 的 #root 规则会覆盖 transition 简写，这里显式保留它的
+   padding-right，但不再把 grid-template-columns 挂进过渡。 */
+#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]){transition:padding-right var(--ds-transition-duration-slow,.3s) var(--ds-ease-in-out,cubic-bezier(.4,0,.2,1))}
 #root [data-dcu-codex-sidebar-initialized][data-dragging]{transition:none}
-[data-dcu-codex-sidebar-initialized] [data-side="sidebar"]{transition:left var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
-[data-dcu-codex-sidebar-initialized][data-dragging],[data-dcu-codex-sidebar-initialized][data-dragging] [data-side="sidebar"]{transition:none}
-@media (prefers-reduced-motion:reduce){[data-dcu-codex-sidebar-initialized],[data-dcu-codex-sidebar-initialized] [data-side="sidebar"],#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]){transition:none}.dcu-root.dcu-collapsing .dcu-compact-shell{animation:none}}
+/* 位移目标：JS 按「展开宽度 - 56」写 --dcu-sidebar-shift。收起时内容列先加宽一个
+   shift（一次性重排，不参与过渡），再整体左移；展开时内容列留在宽轨道上右移。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-center-column]{transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion=collapse]:not([data-dragging]) [data-dcu-center-column]{width:calc(100% + var(--dcu-sidebar-shift,0px));transform:translateX(calc(-1 * var(--dcu-sidebar-shift,0px)))}
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion=expand]:not([data-dragging]) [data-dcu-center-column]{transform:translateX(var(--dcu-sidebar-shift,0px))}
+/* 拖拽柄同曲线位移（它绝对定位于列边界，动画期间布局 left 从收起视觉位滑到展开位）。
+   宿主只给展开态挂手柄，收起时它随宿主卸载，无需收起向位移。left 过渡对 8px 命中条
+   的布局成本可忽略，且与宿主 .frame[data-animating] .handle 的过渡模式一致。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"]{transition:left var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+/* 位移中的内容列会盖住侧栏列（transform 生成层叠上下文）；动画期间把外壳抬到它之上。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root{z-index:1}
+/* 展开动画的基准轨道是收起几何（56px），宽态外壳要不被裁切才能完整淡入。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion=expand]:not([data-dragging]) [data-dcu-sidebar-column]{overflow:visible}
+[data-dcu-codex-sidebar-initialized][data-dragging] [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dragging] [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dragging] [data-side="sidebar"]{transition:none;width:auto;transform:none}
+@media (prefers-reduced-motion:reduce){[data-dcu-codex-sidebar-initialized],#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]),[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"]{transition:none}.dcu-root.dcu-collapsing .dcu-compact-shell{animation:none}}
 .dcu-native-workspaces{flex-direction:column}.dcu-native-workspaces>[data-mcp-connector-top-mount=true]{flex:none}.dcu-root .mcpConnectorLauncher,.dcu-root [data-mcp-connector-top-mount=true]{display:none!important}
 .dcu-dependency-notice{margin:0 8px 8px;border:1px solid var(--dcu-sidebar-border);border-radius:8px;padding:8px;color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-sm);line-height:18px}
 /* ZCode 命令面板：rounded-2xl(16px) 壳、bg-menu、shadow-md、12px 分组标题 font-medium。 */
@@ -357,11 +372,14 @@ export function CodexSidebar({ workspaceShortcuts, navigationHistory, globalPane
     const onDown = (event: PointerEvent): void => {
       if (dragging || !isSidebarDragHandle(event.target)) return
       const nextFrame = findSidebarFrame(document)
-      const tracks = nextFrame === undefined ? undefined : parseSidebarGrid(nextFrame.style.gridTemplateColumns)
+      if (nextFrame === undefined) return
+      // 展开动画飞行中手柄已在 56px 视觉位，先落定再读基准，避免拖拽从中间值起跳。
+      settleSidebarMotion(nextFrame)
+      const tracks = parseSidebarGrid(nextFrame.style.gridTemplateColumns)
       const nextHandle = event.target instanceof Element
         ? event.target.closest<HTMLElement>('[data-side="sidebar"]') ?? undefined
         : undefined
-      if (nextFrame === undefined || tracks === undefined || nextHandle === undefined) return
+      if (tracks === undefined || nextHandle === undefined) return
       stopHostDrag(event)
       dragging = true
       pointerId = event.pointerId

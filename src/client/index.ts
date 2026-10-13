@@ -53,6 +53,7 @@ import { hasArchiveSessionDelete } from './archive-session-delete.ts'
 import { installSkin, SKIN_VERSION } from './zcode-skin.ts'
 import { installThemeStyle, syncZCodeTheme } from './zcode-theme.ts'
 import { observeHostAnchors } from './host-anchor-contract.ts'
+import { observeForeignSurfaces } from './foreign-surface-discovery.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {
@@ -148,6 +149,8 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => syncZCodeTheme(), 'zcode-ui-for-dsh: theme mirror')
   // 上游哈希类名锚点的存在性自检：改名时响亮报警，而不是让界面悄悄少一块。
   ctx.effect(() => observeHostAnchors(), 'zcode-ui-for-dsh: host anchor sentinel')
+  // 外来表面发现哨兵：新插件装进来若不达标，控制台报警并给出处置建议（不自动改别人）。
+  ctx.effect(() => observeForeignSurfaces(), 'zcode-ui-for-dsh: foreign surface sentinel')
   ctx.logger.info('dsh-zcode-ui: ZCode skin v%s installed', SKIN_VERSION)
   const t = ctx.locale.bind(NS)
   ctx.effect(() => observeHeroWidthHandles(t('home.resizeInput')), 'zcode-ui-for-dsh: hero width handles')

@@ -8,6 +8,8 @@
  * 样式表同时认两个信号，未同步时（首帧、无 JS）也不丢主题。
  */
 
+import { SKIN_ENVELOPE_STYLE } from './skin-envelope.ts'
+
 /** Zai 双色板：供 <style> 注入，覆盖 dcu-* 变量；选择器与宿主暗色属性、ZCode class 双兼容。 */
 export const ZCODE_THEME_STYLE = `
 :root{color-scheme:light}
@@ -87,7 +89,9 @@ export function installThemeStyle(): () => void {
   if (tag === null) {
     tag = document.createElement('style')
     tag.setAttribute('data-plugin-css', TAG_ID)
-    tag.textContent = ZCODE_THEME_STYLE
+    // 主题层 + 皮肤信封：后者让进入我们地盘的外来内容自动继承皮肤字体与盒模型，
+    // 不枚举类名（见 skin-envelope.ts 的分寸说明）。
+    tag.textContent = ZCODE_THEME_STYLE + '\n' + SKIN_ENVELOPE_STYLE
     document.head.appendChild(tag)
   }
   return () => {
