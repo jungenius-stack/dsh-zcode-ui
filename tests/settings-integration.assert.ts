@@ -184,7 +184,7 @@ assert.doesNotMatch(workspaceBrowser, /exportSession|sessionExportFilename|sessi
 assert.match(workspaceBrowser, /archiveSession/, '会话菜单必须保留归档操作')
 assert.match(workspaceBrowser, /deleteSession/, '会话菜单必须接入归档管理插件提供的永久删除服务')
 assert.match(workspaceBrowser, /sessions\.delete/, '会话菜单必须提供删除会话操作')
-assert.match(sessionTree, /copy-separator[^]*id: 'copyId'[^]*id: 'copyTitle'[^]*id: 'copyPath'[^]*delete-separator[^]*sessions\.delete/, '会话复制项必须按 ID、标题、工作目录排列，删除操作必须位于最底部')
+assert.match(sessionTree, /main-separator[^]*id: 'openPath'[^]*id: 'copyId'[^]*id: 'copyTitle'[^]*id: 'copyPath'[^]*delete-separator[^]*sessions\.delete/, '会话菜单结构对齐 ZCode：路径与复制组以「打开位置」打头，按 ID、标题、工作目录排列，删除位于最底部')
 assert.doesNotMatch(sessionTree, /id: 'copyLink'/, '会话菜单不得保留清单外的复制链接入口')
 assert.match(client, /remote\.workspaceRegistry/, '删除会话必须复用归档管理插件的远程服务')
 assert.match(client, /canDeleteSession: \(\) => hasArchiveSessionDelete\(ctx\.get\('remote\.workspaceRegistry'\)\)/, '侧栏和工作区必须按归档删除能力决定是否显示删除会话')

@@ -4,6 +4,26 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.7.0 - 2026-10-14
+
+### 变更
+
+- **会话菜单结构对齐 ZCode**（审计表 #9）：按 ZCode `TaskActionMenuContent` 的「管理 ‖ 路径与复制 ‖ 辅助」结构重组——
+  - 管理组以「衍生/去向」收尾（同 ZCode 以「在分屏打开」收尾）：重命名 → 归档 → 标记未读 → 在新会话中继续 → 项目（移动子菜单）；
+  - 路径与复制组以「打开位置」打头（与 ZCode 的「在访达中打开」同位）：在资源管理器中打开 → 复制会话 ID → 复制标题 → 复制路径；
+  - 删除（危险）保持在底部单列（本产品能力）；原先夹在组间的独立分隔线并入管理组尾部。
+- **触屏（`pointer:coarse`）操作常驻**（审计表 #11）：无悬停设备上，快捷归档与 ⋯ 菜单锚点常驻可见（ZCode `(hover:none)` 同原则：触屏必须能看到操作）；右侧时间左移至 60px 让位；待处理胶囊占位时除外（胶囊本身是行动号召）；桌面悬停/聚焦揭示语义不变。
+
+### 评估记录（不做，有理由）
+
+- **菜单单例化（#10）不迁移**：宿主 `Menu` 关闭态零渲染（源码 `open && MenuSurface`），且本仓行菜单无每行 RPC/订阅——ZCode 单例化的动机（避免逐行路径探测）在这里不存在，收益趋零（见 KNOWN-ISSUES §18.2）。
+
+### 验证
+
+- 新增 `scripts/verify-session-coarse-actions.mjs`：Playwright 触屏仿真（`hasTouch`）× 几何断言——两个操作常驻、时间右移 60px、**时间/⋯/归档三个边界盒互不重叠**、待处理胶囊门控生效、桌面揭示语义回归保护。布局链 14 → 15 脚本（门禁钩子同步）。
+- `tests/session-menu-items.spec.ts` 升级为全结构断言（两套选项的完整 id 序列）；`settings-integration.assert.ts` 的菜单结构断言同步更新。
+- 全量门禁：类型 0 错 / vitest 314 过 / 构建通过 / 断言 35 过 0 败 / 布局 15 脚本全过。
+
 ## 1.6.0 - 2026-10-14
 
 ### 变更

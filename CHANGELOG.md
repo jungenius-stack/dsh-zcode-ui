@@ -4,6 +4,26 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.7.0 - 2026-10-14
+
+### Changed
+
+- **Session menu structure aligned with ZCode** (audit #9): regrouped to ZCode's `TaskActionMenuContent` shape — management / paths-and-copy / auxiliary:
+  - The management group ends with the derive-and-relocate actions (as ZCode ends its group with "open in split pane"): rename → archive → mark unread → continue in a new session → project (move submenu);
+  - The paths-and-copy group opens with "open location" (the same slot ZCode gives "Open in Finder"): open in file manager → copy session ID → copy title → copy path;
+  - Delete (destructive) stays alone at the bottom (this product's capability); the separator that used to sit between groups folded into the end of the management group.
+- **Touch (`pointer:coarse`): session-row actions are always visible** (audit #11): on hover-less devices the quick archive and the ⋯ menu anchor stay visible (same principle as ZCode's `(hover:none)`: touch users must be able to see the actions); the trailing time shifts left to 60px to make room; suppressed while a pending chip occupies the area (the chip itself is the call to action); the desktop hover/focus reveal semantics are unchanged.
+
+### Evaluated, not migrated
+
+- **Menu singleton (#10) will not be migrated**: the host `Menu` renders nothing when closed (`open && MenuSurface` in its source), and these row menus do no per-row RPC or subscription — the motivation ZCode had (avoiding per-row path probes) simply does not exist here (see KNOWN-ISSUES §18.2).
+
+### Verification
+
+- New `scripts/verify-session-coarse-actions.mjs`: Playwright touch emulation (`hasTouch`) × geometry assertions — both actions persistent, the time shifted to 60px, **the time / ⋯ / archive bounding boxes provably non-overlapping**, the pending-chip gate in effect, and a regression guard for the desktop reveal semantics. Layout chain 14 → 15 scripts (gate hook synced).
+- `tests/session-menu-items.spec.ts` upgraded to full-structure assertions (complete id sequences for two option sets); the menu-structure assertion in `settings-integration.assert.ts` updated to match.
+- Full gate: typecheck 0 errors / vitest 314 passed / build clean / assertions 35 passed 0 failed / all 15 layout scripts passed.
+
 ## 1.6.0 - 2026-10-14
 
 ### Changed

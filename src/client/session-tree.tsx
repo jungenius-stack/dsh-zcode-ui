@@ -49,17 +49,15 @@ export function SessionHoverCard({ tip, onEnter, onLeave }: { tip: SessionHoverT
 }
 
 export function sessionMenuItems(t: TranslateNS<typeof NS>, options: { unread: boolean; path?: string; includePath?: boolean; moveTargets?: readonly { id: string; label: string }[]; canDelete?: boolean }): MenuEntry[] {
+  // 结构对齐 ZCode TaskActionMenuContent：管理组（重命名 → 归档 → 标记未读 → 衍生/去向，
+  // 同 ZCode 以「在分屏打开」收尾）‖ 路径与复制组（「打开位置」打头，与 ZCode 的
+  // 「在访达中打开」同位）‖ 删除单列（本产品能力）。会话置顶未迁移，见 KNOWN-ISSUES §16.2。
   const items: MenuEntry[] = [
     { id: 'rename', label: t('sessions.rename'), icon: <ZIconRename size={16} /> },
-    // 顺序对齐 ZCode TaskActionMenuContent：重命名 → 归档 → 标记未读。
     { id: 'archive', label: t('sessions.archive'), icon: <ZIconArchive size={16} /> },
     { id: 'unread', label: t(options.unread ? 'sessions.markRead' : 'sessions.markUnread'), icon: options.unread ? <ZIconEyeOff aria-hidden="true" size={16} strokeWidth={1.5} /> : <ZIconEye aria-hidden="true" size={16} strokeWidth={1.5} /> },
-    { type: 'separator', id: 'main-separator' },
     { id: 'fork', label: t('sessions.fork'), icon: <ZIconBranch size={16} /> },
   ]
-  if (options.includePath === true) {
-    items.push({ id: 'openPath', label: t('sessions.openPath'), icon: <ZIconFolderOpen size={16} />, disabled: options.path === undefined })
-  }
   if (options.moveTargets !== undefined) {
     items.push({
       id: 'moveWorkspace',
@@ -70,7 +68,8 @@ export function sessionMenuItems(t: TranslateNS<typeof NS>, options: { unread: b
     })
   }
   items.push(
-    { type: 'separator', id: 'copy-separator' },
+    { type: 'separator', id: 'main-separator' },
+    ...(options.includePath === true ? [{ id: 'openPath', label: t('sessions.openPath'), icon: <ZIconFolderOpen size={16} />, disabled: options.path === undefined } satisfies MenuEntry] : []),
     { id: 'copyId', label: t('sessions.copyId'), icon: <ZIconLink size={16} /> },
     { id: 'copyTitle', label: t('sessions.copyTitle'), icon: <ZIconCopy size={16} /> },
     ...(options.includePath === true ? [{ id: 'copyPath', label: t('sessions.copyPath'), icon: <ZIconCopy size={16} />, disabled: options.path === undefined } satisfies MenuEntry] : []),
