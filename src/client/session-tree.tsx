@@ -10,6 +10,7 @@ import {
   ZIconFolder,
   ZIconFolderOpen,
   ZIconLink,
+  ZIconLoading,
   ZIconMore,
   ZIconPin,
   ZIconRename,
@@ -129,7 +130,8 @@ export function SessionState({ pendingInteraction, unread, running, t }: Pick<Se
     return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction} aria-label={label}><span className="dcu-wb-pending-dot" aria-hidden="true" /><span className="dcu-wb-pending-label">{label}</span></span>
   }
   if (unread) return <span className="dcu-wb-unread" aria-label={t('sessions.unread')} />
-  if (running) return <span className="dcu-wb-running" aria-hidden="true" />
+  // 运行中：ZCode Spinner（LoaderIcon，size-4，1s linear 由 .dcu-spin 提供）。见 zcode-icons 的 ZIconLoading。
+  if (running) return <span className="dcu-wb-running" aria-hidden="true"><ZIconLoading size={16} className="dcu-spin" /></span>
   return null
 }
 

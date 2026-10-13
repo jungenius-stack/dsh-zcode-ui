@@ -4,6 +4,23 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.4.0 - 2026-10-13
+
+### Changed
+
+- **The running spinner is now a strict replica of the local ZCode 3.15.1 original** (replacing the 1.2.1 hand-drawn arc): the icon is `LoaderIcon` (lucide-react 1.17.0 — the original 8-spoke paths, key-for-key identical to the version ZCode pins); the size is `size-4` (16px, viewBox 24, stroke-width 2, round caps/joins); the animation is ZCode's theme literal `spin 1s linear infinite`; the colour is `currentColor` set to the sidebar's subtlest foreground rung `--dcu-sidebar-tertiary` (ZCode uses `text-foreground-subtlest`, whose 40% neutral grey reaches only 2.32:1 on #f0f0f0 — this repo re-derived it against the sidebar ground for AA, see KNOWN-ISSUES §3.1). Re-verified at runtime: 8 paths / 16×16 / 2px stroke / `rgb(104,104,104)` / `1s linear infinite`, item by item.
+- **The spin animation is now a shared theme-layer primitive `.dcu-spin`**: the sidebar's running indicator and the settings page's installing indicator share one definition (1s linear infinite), with reduced motion stopping it in place in exactly one spot (the icon holds its angle instead of disappearing). The spin only ever uses transform — it never triggers layout.
+- **The settings page's installing icon moved from a static host arc to the ZCode spinner**: it used to be the host's `IconLoadingOutlineMedium` (a static arc that never rotated); it is now the same icon as the sidebar's, and it actually spins.
+- **Icon-language unification completed**: the last three host-icon holdouts (About / Connectors / Schedule; 16-viewBox, 1/1.3 stroke) all moved to `zcode-icons` (24-viewBox, 2 stroke), and the old `host-icons.ts` bridge was retired and deleted — "single icon source" is now a fact rather than a claim.
+- **The skin envelope now normalises form controls** (extensibility): `button/input/select/textarea` fonts are not inherited (the UA stylesheet sets them explicitly), so the envelope's surface font never reached them — a bare `<button>` inside a skin surface measurably still rendered Arial. A zero-specificity `:where()` rule now normalises them to `font:inherit`: any author style (even a single `button{}`) overrides us, only the UA sheet loses. Verified: a bare button follows the skin's system-ui, while a plugin's own `font-family:Georgia` is preserved as-is.
+
+### Verification
+
+- New `scripts/verify-running-indicator.mjs`: asserts every replica parameter in a real Chromium (8 paths / size-4 / 2px / #686868 / 1s linear infinite / stops in place / centred in its cell) — the machine-enforced version of "no redesigning".
+- New `scripts/verify-motion-budget.mjs`: measures the per-frame cost of the four remaining layout-property animations (turn ticks ×120 / tab slider / extensions panel / progress bar) and asserts they stay far below the 120 Hz budget (measured max 0.2–2.1 ms against 8.33 ms), guarding against re-attaching animations to expensive layout trees.
+- New assertions: the spin spec is pinned (1s linear infinite + full-turn keyframes + both consumers + the reduced-motion stop), the envelope's form-control normalisation (zero specificity + font:inherit), and that the settings area may no longer reference host icons.
+- Full gate: typecheck 0 errors / vitest 308 passed / build clean / assertions 35 passed 0 failed / all 14 layout scripts passed.
+
 ## 1.3.0 - 2026-10-13
 
 ### Changed

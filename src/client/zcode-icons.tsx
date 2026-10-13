@@ -1,15 +1,17 @@
 /**
  * ZCode 图标语言：全站 Lucide（与 zai-org/ZCode 一致），导航/操作图标 16px（DESIGN.md size-4）。
- * 这里只包一层与 host-icons 相同的 { size } 调用约定，供侧栏与外壳使用。
+ * 这里只包一层统一的 { size, className } 调用约定，供侧栏、外壳与设置区使用。
  *
  * 本模块是**插件界面图标的唯一来源**：侧栏外壳、会话树、列表行、行内操作、
- * 悬停卡一律从这里取图标。ZCode 全站使用 Lucide，混入宿主图标会让同一屏内
- * 出现两套图标语言（stroke 几何与视觉重量都不同），故不保留宿主图标路径。
+ * 悬停卡、设置区一律从这里取图标。ZCode 全站使用 Lucide，混入宿主图标会让同一屏内
+ * 出现两套图标语言（stroke 几何与视觉重量都不同）。
+ * 2026-10-13：设置区最后三处宿主图标（About / Connectors / Schedule）已收归，
+ * 旧的 host-icons 桥接模块随之退役删除——"唯一来源"从声明变成了事实。
  */
 import {
   Archive, ArrowLeft, Bot, Box, Bug, CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight,
   CircleHelp, Clock, Copy, Cpu, Download, Eye, EyeOff, Folder, FolderOpen, FolderPlus, GitBranch,
-  Hammer, Link2, LoaderCircle, MessageCircle, MessageCirclePlus, MessageSquare, MoreHorizontal,
+  Hammer, Link2, LoaderIcon, MessageCircle, MessageCirclePlus, MessageSquare, MoreHorizontal,
   PanelLeft, PanelLeftOpen, PanelRight, Pencil, Pin, Puzzle, ScanLine, Search, Settings,
   SlidersHorizontal, Sparkles, SquarePen, Store, Telescope, Trash2, User, Users,
   type LucideIcon,
@@ -41,8 +43,19 @@ export const ZIconChannels = MessageCircle
 /** 行内更多操作。 */
 export const ZIconMore = MoreHorizontal
 
+/* ── 加载转圈 ───────────────────────────────────────────────────────────────
+ * ZCode Spinner 组件（packages/ui/src/components/ui/spinner.tsx）就是
+ * `lucide-react` 的 LoaderIcon + `size-4 animate-spin`——侧栏两处加载提示
+ * （TaskListLoadingHint / TaskListRemoteSyncHint）都直接用这一枚图标在转。
+ * LoaderIcon 在本仓 lucide-react 版本下与 ZCode 锁定的 1.17.0 渲染完全一致
+ * （同一份 8 芒路径，键值 3427ic/r700ao/wj9ykh/1bxg5t/jadmvz/bwix9q/j09sii/giyufr）。
+ * 颜色不写死在图标上：currentColor 由使用处给（ZCode 侧栏用法是 text-foreground-subtlest）。
+ * 旋转动画用主题层的共享基元 `.dcu-spin`（1s linear infinite，reduced-motion 停静止帧）。
+ */
+export const ZIconLoading = LoaderIcon
+
 /* ── 会话树 / 列表行 / 行内操作 ─────────────────────────────────────────────
- * 这些原先取自宿主图标（host-icons.ts 的 IconXxxMedium）。ZCode 全站 Lucide，
+ * 这些原先取自宿主图标（已退役的 host-icons.ts 的 IconXxxMedium）。ZCode 全站 Lucide，
  * 混用会让同一屏出现两套图标语言（stroke 几何与视觉重量都不同），故统一收归此处。
  */
 
@@ -64,8 +77,6 @@ export const ZIconDelete = Trash2
 export const ZIconDownload = Download
 /** 勾选态。 */
 export const ZIconCheck = Check
-/** 加载态。 */
-export const ZIconLoading = LoaderCircle
 /** 分支 / 派生会话。 */
 export const ZIconBranch = GitBranch
 /** 会话链接。 */

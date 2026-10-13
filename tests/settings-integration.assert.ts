@@ -260,7 +260,8 @@ assert.match(workspaceBrowser, /\.dcu-wb-context-anchor\{opacity:0;pointer-event
 assert.match(workspaceBrowser, /className="dcu-wb-more dcu-wb-context-anchor"/, '右键菜单必须使用隐藏的三点锚点')
 assert.match(workspaceBrowser, /onContextMenu=\{\(event\) => \{ event\.preventDefault\(\); event\.stopPropagation\(\); dismissTip\(\); setMenu\(\{ id, type: 'session', x: event\.clientX, y: event\.clientY \}\) \}\}/, '右键会话必须按鼠标位置打开菜单')
 assert.match(workspaceBrowser, /SessionState pendingInteraction=\{pendingInteraction\}[^]*running=\{rowRunning\(id, session\)\}/, '运行会话必须通过统一状态组件在左侧显示状态圈')
-assert.match(workspaceBrowser, /@keyframes dcu-wb-spin/, '运行状态圈必须使用旋转动画')
+// 2026-10-13：转圈改为 ZCode 原版复刻——动画是主题层共享基元 .dcu-spin，本体在会话树里。
+assert.match(readFileSync(new URL('../src/client/session-tree.tsx', import.meta.url), 'utf8'), /<ZIconLoading size=\{16\} className="dcu-spin"/, '运行状态圈必须使用 ZCode 原版转圈（LoaderIcon + 共享 .dcu-spin 基元）')
 assert.doesNotMatch(workspaceBrowser, /isPinned && <span className="dcu-wb-pin"/, '项目置顶不应显示星标')
 assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-pin\{|\.dcu-wb-pin svg/, '会话置顶标识样式必须一并移除')
 assert.doesNotMatch(workspaceBrowser, /IconFullscreenOutline16|openWindow|window\.open/, '桌面端嵌入前不得保留在新窗口打开功能')

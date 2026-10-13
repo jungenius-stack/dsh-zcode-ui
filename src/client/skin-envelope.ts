@@ -18,6 +18,17 @@
  * 唯一不继承的是 `box-sizing`，它对每个元素单独生效，因此需要后代规则——
  * 这也与皮肤既有写法（`.dcu-root *{box-sizing:border-box}`）一致。
  *
+ * ## 表单控件：继承路径够不到的第三类（2026-10-13 补）
+ *
+ * `button / input / select / textarea` 的字体**不是继承来的**——UA 样式表给它们
+ * 显式设了 `font: 400 13.3333px Arial` 一类的值，表面上设 `font-family` 对它们无效。
+ * 实测（真实 Chromium）：表面上设了 system-ui，裸 `<button>` 仍渲染 Arial——
+ * 外来插件的裸按钮会脱离皮肤字体。
+ *
+ * 修法用 `:where()` 把归一规则的**特异性压到 0**：任何作者样式（哪怕一条 `button{}`、
+ * 或插件的哈希类）都能覆盖我们，只有 UA 样式表会被压过。于是两条同时成立：
+ * 裸控件跟随皮肤；插件的有意设定原样胜出（不越"不覆盖别人故意设置"的线）。
+ *
  * ## 分寸：绝不碰外来内容的颜色、字号、圆角、间距、布局
  *
  * 颜色是语义（错误红、成功绿、品牌色），字号和布局是功能结构——越过这条线，
@@ -41,6 +52,9 @@ const SURFACE_LIST = SKIN_SURFACES.join(',')
 /** 后代通配（box-sizing 用）。 */
 const DESCENDANTS = SKIN_SURFACES.map(surface => `${surface} *`).join(',')
 
+/** 表单控件归一（零特异性：`:where()` 不计权，任何作者样式都能覆盖我们、只有 UA 会被压过）。 */
+const FORM_CONTROLS = `:where(${SURFACE_LIST}) :where(button,input,select,textarea)`
+
 export const SKIN_ENVELOPE_STYLE = [
   // 1) 继承属性只在表面上设一次：字体、数字格式。后代自动跟随；
   //    外来内容若显式设了字体/数字格式，其自身声明仍胜出（尊重有意设定）。
@@ -50,4 +64,7 @@ export const SKIN_ENVELOPE_STYLE = [
   // 2) box-sizing 不继承，需逐元素；与皮肤既有 `.dcu-root *` 写法同一约定。
   `${DESCENDANTS}{box-sizing:border-box}`,
   `${DESCENDANTS}::before,${DESCENDANTS}::after{box-sizing:border-box}`,
+
+  // 3) 表单控件的字体同样不继承（UA 样式表显式设定）；零特异性归一，见文件头注。
+  `${FORM_CONTROLS}{font:inherit}`,
 ].join('\n')

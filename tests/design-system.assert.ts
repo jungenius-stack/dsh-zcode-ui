@@ -178,7 +178,7 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   'CodexSidebar.tsx:6px': 2,
   'CodexSidebar.tsx:8px': 9,
   'CodexWorkspaceBrowser.tsx:4px': 1,
-  'CodexWorkspaceBrowser.tsx:50%': 4,
+  'CodexWorkspaceBrowser.tsx:50%': 3,
   'CodexWorkspaceBrowser.tsx:6px': 3,
   'CodexWorkspaceBrowser.tsx:8px': 9,
   'DesktopNavigationControls.tsx:50%': 1,
@@ -240,15 +240,18 @@ assert.match(
   /\.dcu-about-progress-fill\[data-wave=true\]\{animation:none;width:28%\}/,
   '进度波浪应停在静止帧（28%），保留「进行中」的可读性',
 )
-// 旋转指示的归零留在组件层（CodexWorkspaceBrowser 的 runningStyles）——它在同一份样式里
-// 同时定义 keyframes 与归零，比在主题层远端覆盖更内聚。这里改断言组件层那一份存在，
-// 避免"两处同义规则各写一遍、谁被删了都不知道"。
-const workspaceBrowser = read('CodexWorkspaceBrowser.tsx')
-assert.match(
-  workspaceBrowser,
-  /@media \(prefers-reduced-motion:reduce\)\{\.dcu-wb-running::after\{animation:none\}\}/,
-  '运行中旋转指示必须停在静止帧（归零写在它自己的样式块里）',
-)
+// 加载转圈（2026-10-13 复刻）：节奏与曲线是 ZCode 的锁定量，直接钉在原值上——
+// 任何"再设计"（改时长、改曲线、改关键帧）都会在这里变红。定义收归主题层共享基元，
+// 侧栏运行中与设置页安装中共用同一份，归零也只写一处。
+assert.match(theme, /\.dcu-spin\{animation:dcu-spin 1s linear infinite\}/, '加载转圈必须锁定 ZCode 原版节奏（1s linear infinite）')
+assert.match(theme, /@keyframes dcu-spin\{to\{transform:rotate\(360deg\)\}\}/, '转圈关键帧必须是 ZCode 原版的整圈旋转')
+assert.match(reducedMotion, /:root:root \.dcu-spin\{animation:none\}/, '转圈在减少动态效果下必须停静止帧（图标停在原角度、不消失）')
+const sessionTree = read('session-tree.tsx')
+assert.match(sessionTree, /dcu-wb-running[^>]*><ZIconLoading size=\{16\} className="dcu-spin"/, '侧栏运行中指示必须消费共享转圈基元（LoaderIcon size-4）')
+const aboutSection = read('AboutSection.tsx')
+assert.match(aboutSection, /<ZIconLoading size=\{14\} className="dcu-spin" \/>/, '设置页安装中指示必须消费共享转圈基元')
+// 图标唯一来源：宿主图标桥接模块退场后，设置区不得再出现第二套图标语言。
+assert.doesNotMatch(aboutSection + sessionTree + read('ConnectorsSection.tsx') + read('ScheduleBrowser.tsx'), /OutlineMedium|host-icons/, '设置区不得再引用宿主图标（图标唯一来源 = zcode-icons）')
 
 // 清单里登记了但源码已不再使用的锚点（改名或删除后的残留），提示清理。
 const staleInventory = [...checkedAnchors, ...uncheckedAnchors].filter(anchor => !anchorsInSource.has(anchor)).sort()
@@ -308,6 +311,10 @@ for (const surface of ['.dcu-root', '.dcu-settings-page', '.dcu-home', '[data-co
 }
 assert.match(envelope, /font-family:var\(--dsw-font-family\)/, '信封必须在表面上设字体（继承属性，后代自动跟随）')
 assert.match(envelope, /box-sizing:border-box/, '信封必须统一盒模型（box-sizing 不继承，需逐元素）')
+// 表单控件字体不继承（UA 显式设定），必须用零特异性 :where() 归一：
+// 任何作者样式都能覆盖我们、只有 UA 会被压过——裸控件跟随皮肤，插件的有意设定胜出。
+assert.match(envelope, /:where\(\$\{SURFACE_LIST\}\) :where\(button,input,select,textarea\)/, '表单控件归一必须用零特异性 :where()（插件自己的字体声明必须仍能胜出）')
+assert.match(envelope, /\$\{FORM_CONTROLS\}\{font:inherit\}/, '表单控件字体必须归一成继承（裸控件跟随皮肤）')
 // 信封**不得**碰外来内容的字号/颜色/圆角——越过这条线就是"修复别人的组件"。
 assert.doesNotMatch(envelope, /font-size|color:|border-radius/, '信封不得规定字号/颜色/圆角，那是外来内容的功能结构与语义')
 

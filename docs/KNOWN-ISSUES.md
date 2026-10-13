@@ -785,3 +785,55 @@ DSH 交出的 20 文件 / +322 −64 补丁**没有仅凭自述采信**，本会
 
 - 冷启动即收起态的帧，第一次展开不播动画（收起分支从不打初始化标记，被误判为冷启动）。
 - 拖拽进行中不取消飞行中的开合动画，动画定时器稍后落定会与拖拽逐帧写入打架。
+
+---
+
+## 15. 2026-10-13 动效全面复核 + 图标语言收尾 + 信封扩展（1.4.0）
+
+### 15.1 运行中转圈：改为严格复刻 ZCode 原版（不再自行设计）
+
+1.2.1 曾把转圈"重做"成自绘 270° 弧（理由：原版看不清、0.8s 太拖）——这是**自行再设计**，
+用户 2026-10-13 明确要求以本地 ZCode 源码为准复刻。取证链（全部来自本机，非记忆）：
+
+| 项 | 来源（本机实测） | 值 |
+| --- | --- | --- |
+| 组件 | `~/WorkBuddy AI/.../ZCode/packages/ui/src/components/ui/spinner.tsx` | `LoaderIcon` + `size-4 animate-spin` |
+| 图标 | lucide-react 1.17.0（ZCode 锁定版）`loader.mjs`；键值 3427ic/r700ao/wj9ykh/1bxg5t/jadmvz/bwix9q/j09sii/giyufr | 8 芒 loader（`Loader as LoaderIcon`） |
+| 尺寸 | 同文件 `size-4` | 16px（viewBox 24、stroke-width 2、round） |
+| 动画 | app bundle CSS 实测：`--animate-spin: spin 1s linear infinite` + `@keyframes spin{to{transform:rotate(360deg)}}` | 1s / linear / infinite |
+| 颜色 | ZCode 侧栏两处用法均 `text-foreground-subtlest`（40% 中性灰，在 #f0f0f0 上 2.32:1） | 映射到本仓 AA 达标同档 `--dcu-sidebar-tertiary`（#686868） |
+
+注意：`LoaderCircle`（弧线版）不是 ZCode 的 Spinner 图标——v1.17.0 与 v1.39.0 的
+`LoaderIcon` 都是 8 芒 `loader`；本仓把原 `ZIconLoading = LoaderCircle`（无人使用）一并收归，
+避免两枚"加载"图标分叉。
+
+### 15.2 其余动效逐项复核（仍在过渡布局属性的四处）
+
+单帧成本 = 驱动动画值后强制同步布局的 style+layout 耗时（真实插件 CSS + 真实 DOM，
+60Hz 无头；60Hz 量不到 120Hz，但「单帧成本 << 8.33ms」即 120Hz 安全）：
+
+| 动画 | 属性 | 单帧 max | P95 | 判定 |
+| --- | --- | --- | --- | --- |
+| 转场导航刻度 ×120 | width/height/flex-basis | 2.1ms | 1.2ms | 有界（每刻度 ≤16×8 小格），可接受 |
+| 会话头页签滑块 | transform+width | 0.6ms | 0.4ms | 绝对定位无子元素，可接受 |
+| 扩展面板开合 | grid-template-rows 0fr↔1fr | 0.2ms | 0.1ms | 标准自动高度技法，可接受 |
+| 关于页进度条 | width% | 1.3ms | 0.5ms | 4px 高填充，可接受 |
+
+结论：侧栏那处「成本随会话内容增长」是唯一的量级问题（1.3.0 已改合成层）；
+其余全部有界、与内容量无关。已固化为 `scripts/verify-motion-budget.mjs` 回归。
+其余 9 个入场/装饰动画全部走进入档令牌（`--dcu-motion-enter-*`）或 ZCode 锁定常量
+（转圈 1s、进度波浪 1.2s），无未令牌化的自创时长。
+
+### 15.3 图标语言收尾
+
+About / Connectors / Schedule 三处残留宿主图标（16 视箱、1/1.3 描边）已收归
+`zcode-icons`（24 视箱、2 描边）；`host-icons.ts` 桥接模块无引用者，已删除。
+此前 zcode-icons 头部声明"本模块是唯一来源"而实际有例外——现在例外清零。
+
+### 15.4 信封扩展：表单控件字体（外部性缺口，已修）
+
+`button/input/select/textarea` 的字体不继承（UA 样式表显式设定），信封原先只在表面上
+设 `font-family`，够不到它们。实测（真实 Chromium）：表面 system-ui、裸 `<button>`
+仍渲染 Arial——外来插件的裸控件会脱离皮肤字体。修法：零特异性 `:where()` 归一为
+`font:inherit`；任何作者样式（含插件哈希类）都能覆盖我们、只有 UA 被压过。
+实测：裸按钮随皮肤 system-ui；插件自己的 `font-family:Georgia` 原样保留。

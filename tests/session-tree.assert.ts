@@ -132,7 +132,8 @@ assert.match(workspace, /\.dcu-wb-collections\{[^}]*min-width:0/, '分组网格�
 assert.match(workspace, /\.dcu-wb-session\{[^}]*min-width:0;[^}]*overflow:hidden;[^}]*padding-right:28px/, '会话标题必须只为右侧状态图标预留宽度且可收缩')
 assert.match(workspace, /\.dcu-wb-session\{[^}]*padding-left:30px/, '会话标题必须与项目标题对齐：8px 行内边距 + 16px 文件夹 + 6px 间距')
 assert.match(workspace, /\.dcu-wb-running\{position:absolute;left:8px;top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '运行指示器占位必须与项目文件夹同一 16×20 格子')
-assert.match(workspace, /\.dcu-wb-running::after\{[^}]*width:12px;height:12px/, '转圈本体必须居中画在文件夹格子里')
+// 2026-10-13：转圈本体改为 ZCode 原版 LoaderIcon（size-4=16px），不再是自绘 12px 圆环。
+assert.match(workspace, /\.dcu-wb-running svg\{display:block;width:16px;height:16px/, '转圈本体必须是 16px 的 LoaderIcon，居中画在文件夹格子里')
 assert.match(workspace, /\.dcu-wb-session-flat:has\(\.dcu-wb-running\),\s*\.dcu-wb-session-top:has\(\.dcu-wb-running\)\{padding-left:30px\}/, '无项目缩进的运行会话必须给左侧转圈让出与项目标题对齐的位置')
 assert.doesNotMatch(workspace, /\.dcu-wb-session:hover \.dcu-wb-running/, '运行指示器在左侧，悬停快捷操作不得再把它藏起来')
 assert.match(workspace, /\.dcu-wb-session:hover \.dcu-wb-pending,[^}]*visibility:hidden/, '悬浮快捷操作出现时必须隐藏右侧待处理和未读，避免重叠')

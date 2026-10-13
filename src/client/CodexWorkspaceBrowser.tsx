@@ -215,15 +215,19 @@ const stylesheet = `
 .dcu-wb-rename-input:focus{border-color:var(--dsw-alias-state-business-primary);box-shadow:0 0 0 1px color-mix(in srgb,var(--dsw-alias-state-business-primary) 28%,transparent)}
 `
 
-/* 运行中指示器（2026-10-13 重做）。原版三处不精致：2px 描边在 12px 圆上占 16.7%（发糊）、
-   只有顶部一小段有色（旋转几乎看不出来）、0.8s 对 12px 图标太慢（显得拖）。
-   现改：270° 弧（缺口留在正上方，与顺时针旋转方向配合：尾部收在顶端，前缘扫过右侧）、0.6s。
-   描边仍用 2px——Chrome 会把 1.5px 这类小数字框取整成 1px（实测 DPR 1/2 均如此），
-   而 1px 在 12px 圆上太轻，压不住旁边 14px 的会话标题；提升靠弧长与轨道/弧的明度对比，不靠描边。
-   仍只用 transform 动画——合成层，120Hz 不掉帧。
-   reduced-motion 下让弧**停在原处**而不是消失：动作归零、信息保留（ZCode 同原则），
-   否则「正在运行」这个状态会因为省电设置而看不见。 */
-const runningStyles = `.dcu-wb-running{position:absolute;left:8px;top:50%;display:grid;place-items:center;flex:none;width:16px;height:20px;margin-top:-10px;border:0;background:transparent}.dcu-wb-running::after{content:"";box-sizing:border-box;width:12px;height:12px;border:2px solid color-mix(in srgb,var(--dcu-sidebar-secondary) 22%,transparent);border-right-color:var(--dcu-sidebar-secondary);border-bottom-color:var(--dcu-sidebar-secondary);border-left-color:var(--dcu-sidebar-secondary);border-radius:50%;animation:dcu-wb-spin .6s linear infinite}@keyframes dcu-wb-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.dcu-wb-running::after{animation:none}}`
+/* 运行中指示器（2026-10-13 复刻 ZCode 原版，替代 1.2.1 的自绘弧）。
+ *
+ * 源 = 本地 ZCode 3.15.1，逐项对齐，不做再设计：
+ *   · 图标：packages/ui/src/components/ui/spinner.tsx —— `LoaderIcon`（lucide-react 1.17.0，
+ *     `default as Loader, default as LoaderIcon`，即 8 芒 loader 路径），本仓同名图标渲染一致；
+ *   · 尺寸：同文件 `size-4` = 16px（viewBox 24，stroke-width 2）；
+ *   · 动画：共享基元 `.dcu-spin`（主题层，1s linear infinite —— ZCode 的 --animate-spin 原文）；
+ *   · 颜色：图标是 currentColor，色由使用处给——ZCode 侧栏两处用法均为
+ *     `text-foreground-subtlest`（最弱前景）。本插件侧栏的同一档是 --dcu-sidebar-tertiary
+ *     （ZCode 的 40% 中性灰在 #f0f0f0 上只有 2.32:1，本仓按侧栏底色重取为 AA 达标值，
+ *      见 docs/KNOWN-ISSUES.md §3.1）。
+ * reduced-motion 由 .dcu-spin 在主题层统一停静止帧（图标停在原角度、不消失）。 */
+const runningStyles = `.dcu-wb-running{position:absolute;left:8px;top:50%;display:grid;place-items:center;flex:none;width:16px;height:20px;margin-top:-10px;border:0;background:transparent}.dcu-wb-running svg{display:block;width:16px;height:16px;color:var(--dcu-sidebar-tertiary)}`
 
 const typographyStyles = `.dcu-wb{--dcu-wb-disclosure-duration:var(--dcu-motion-move-duration);--dcu-wb-disclosure-ease:var(--dcu-motion-move-ease);font:14px/20px var(--dsw-font-family)}.dcu-wb-section-label{color:var(--dcu-sidebar-secondary);font:13px/20px var(--dsw-font-family);font-weight:400;letter-spacing:0;padding-left:0}.dcu-wb-section-caret{transition:opacity var(--dcu-wb-disclosure-duration) var(--dcu-wb-disclosure-ease),transform var(--dcu-wb-disclosure-duration) var(--dcu-wb-disclosure-ease)}.dcu-wb-section-head .dcu-wb-section-caret{position:static;left:auto;top:auto;opacity:.78}.dcu-wb-section-body,.dcu-wb-project-body,.dcu-wb-collection-body{display:block;min-height:0;height:auto;overflow:clip;opacity:1;transform:none;visibility:visible}.dcu-wb-section-body[data-open=false],.dcu-wb-project-body[data-open=false],.dcu-wb-collection-body[data-open=false]{display:block;height:0;opacity:0;transform:translateY(-2px);pointer-events:none}.dcu-wb-section-body[data-open=true]:has(.dcu-wb-drop),.dcu-wb-project-body[data-open=true]:has(.dcu-wb-drop),.dcu-wb-collection-body[data-open=true]:has(.dcu-wb-drop){overflow:visible}.dcu-wb-section-body[data-open=true]>div{animation:none}@media (prefers-reduced-motion:reduce){.dcu-wb-section-caret{transition:none}}.dcu-wb-project-title{font-size:var(--dsw-font-size-base);line-height:20px;font-weight:400;color:var(--dcu-sidebar-primary)}.dcu-wb-session-title{font-size:var(--dsw-font-size-base);line-height:20px;font-weight:400;color:var(--dcu-sidebar-secondary)}.dcu-wb-session.dcu-wb-selected .dcu-wb-session-title,.dcu-wb-session:hover .dcu-wb-session-title{color:var(--dcu-sidebar-primary)}.dcu-wb-empty{color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-caption);line-height:18px}`
 

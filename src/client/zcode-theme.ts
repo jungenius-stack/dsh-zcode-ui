@@ -39,13 +39,25 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
   --dcu-motion-exit-duration:120ms;--dcu-motion-exit-ease:cubic-bezier(.4,0,1,1);
   --dcu-motion-press-duration:90ms;--dcu-motion-press-ease:cubic-bezier(.2,0,0,1);
 }
+/* 加载转圈的共享基元（ZCode 原版复刻，2026-10-13）。
+ *
+ * 源 = 本地 ZCode 3.15.1：Spinner 组件用 LoaderIcon + Tailwind animate-spin，
+ * 主题原文 --animate-spin: spin 1s linear infinite、@keyframes spin{to{transform:rotate(360deg)}}
+ * （app bundle CSS 实测）。这里是它的插件侧等价物——1s / linear / 无限，参数不得改：
+ * 不做令牌化是因为它不属于五档「意图」过渡，而是 ZCode 锁定的状态动画常量；
+ * 图标、尺寸、颜色仍由使用处给（ZCode 同模型：Spinner 只接 className）。
+ * 放在主题层（应用级）：侧栏运行中、设置页安装中转圈与将来接入的外来表面共用同一份定义，
+ * 避免「两处同义规则各写一遍、谁被删了都不知道」。 */
+.dcu-spin{animation:dcu-spin 1s linear infinite}
+@keyframes dcu-spin{to{transform:rotate(360deg)}}
 /* 令牌化的副产品：减少动态效果不再需要逐个元素写 transition:none —— 把五档时长一起归零，
    所有消费方自动跟随。各处残留的 transition:none 块保留（它们同时覆盖未令牌化的宿主元素）。 */
 @media (prefers-reduced-motion:reduce){
   :root{--dcu-motion-feedback-duration:0ms;--dcu-motion-move-duration:0ms;--dcu-motion-enter-duration:0ms;--dcu-motion-exit-duration:0ms;--dcu-motion-press-duration:0ms}
   /* 时长归零管不到 infinite 动画——波浪与旋转会继续动。按 ZCode 的「停静止帧」处理：
-     动作归零，但保留「进行中」的可读性（进度停在当前进度，而不是变回 0）。 */
+     动作归零，但保留「进行中」的可读性（进度停在当前进度，而不是变回 0；转圈停在原角度，图标不消失）。 */
   :root:root .dcu-about-progress-fill[data-wave=true]{animation:none;width:28%}
+  :root:root .dcu-spin{animation:none}
 }
 /* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。 */
 .dcu-root,.dcu-settings-page,.dcu-home{

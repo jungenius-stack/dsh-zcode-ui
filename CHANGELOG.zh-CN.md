@@ -4,6 +4,23 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.4.0 - 2026-10-13
+
+### 变更
+
+- **运行中转圈严格复刻本地 ZCode 3.15.1 原版**（替代 1.2.1 的自绘弧）：图标 = `LoaderIcon`（lucide-react 1.17.0，8 芒原版路径，键值与 ZCode 锁定版本逐字一致）；尺寸 = `size-4`（16px，viewBox 24、stroke-width 2、round 线帽/线接）；动画 = ZCode 主题原文 `spin 1s linear infinite`；颜色 = `currentColor`，取侧栏最弱前景档 `--dcu-sidebar-tertiary`（ZCode 用 `text-foreground-subtlest`，其 40% 中性灰在 #f0f0f0 上仅 2.32:1，本仓按侧栏底色重取为 AA 达标值，见 KNOWN-ISSUES §3.1）。复核渲染：8 路径 / 16×16 / 2px 描边 / `rgb(104,104,104)` / `1s linear infinite` 逐项一致。
+- **旋转动画收归主题层共享基元 `.dcu-spin`**：侧栏运行中与设置页安装中共用同一份定义（1s linear infinite），reduced-motion 一处停静止帧（图标停在原角度、不消失）。转圈只走 transform 旋转，不触发布局。
+- **设置页安装中的加载图标从宿主静态弧改为 ZCode 转圈**：原先用的是宿主 `IconLoadingOutlineMedium`（静态弧线、不旋转），现在与侧栏同一枚图标、真的在转。
+- **图标语言统一收尾**：About / Connectors / Schedule 三处残留的宿主图标（16 视箱、1/1.3 描边）全部收归 `zcode-icons`（24 视箱、2 描边），旧的 `host-icons.ts` 桥接模块随之退役删除——"图标唯一来源"从声明变成事实。
+- **皮肤信封补表单控件归一**（扩展性）：`button/input/select/textarea` 的字体不是继承属性（UA 样式表显式设定），原先信封的字体够不到它们——实测裸 `<button>` 在皮肤表面内仍渲染 Arial。现用零特异性 `:where()` 归一成 `font:inherit`：任何作者样式（哪怕一条 `button{}`）都能覆盖我们，只有 UA 会被压过。实测：裸按钮随皮肤 system-ui，插件自己的 `font-family:Georgia` 原样保留。
+
+### 验证
+
+- 新增 `scripts/verify-running-indicator.mjs`：在真实 Chromium 里逐项断言复刻参数（8 路径 / size-4 / 2px / #686868 / 1s linear infinite / 停静止帧 / 格内居中）——"禁止自行再设计"的机器执行版。
+- 新增 `scripts/verify-motion-budget.mjs`：量仍在过渡布局属性的四处动画（转场刻度 ×120 / 页签滑块 / 扩展面板 / 进度条）的单帧成本，断言远低于 120Hz 预算（实测 max 0.2–2.1ms vs 8.33ms），防"把动画重新挂回昂贵布局树"。
+- 断言套件新增：转圈节奏锁死（1s linear infinite + 整圈关键帧 + 两处消费点 + 归零）、信封表单归一（零特异性 + font:inherit）、设置区不得再引宿主图标。
+- 全量门禁：类型 0 错 / vitest 308 过 / 构建通过 / 断言 35 过 0 败 / 布局 14 脚本全过。
+
 ## 1.3.0 - 2026-10-13
 
 ### 变更
