@@ -174,6 +174,22 @@ export function orderByIds<T>(items: readonly T[], ids: readonly string[], idOf:
   })
 }
 
+/**
+ * 置顶会话排前：置顶项按宿主 `pinnedSessionIds` 顺序（最近置顶在前）取前缀，
+ * 其余保持原相对顺序。宿主 API 的语义是「置顶会话排在未置顶之前」（Pin a Session
+ * ahead of unpinned Sessions），本函数就是这条语义在本地顺序上的唯一实现——
+ * 侧栏树与快捷键（上/下一个会话）共用它，避免两处各排各的。
+ * 取消置顶会回到原相对位置（我们没有官方的本地手动顺序覆盖层，见 KNOWN-ISSUES §20）。
+ */
+export function pinnedFirstSessionIds(ids: readonly string[], pinnedSessionIds: readonly string[] | undefined): string[] {
+  if (pinnedSessionIds === undefined || pinnedSessionIds.length === 0) return [...ids]
+  const members = new Set(ids)
+  const front = pinnedSessionIds.filter(id => members.has(id))
+  if (front.length === 0) return [...ids]
+  const frontSet = new Set(front)
+  return [...front, ...ids.filter(id => !frontSet.has(id))]
+}
+
 type SessionMoveExpansionTarget = {
   workspaceId: string
   pinned: boolean

@@ -113,3 +113,33 @@ test('未知的置顶 id 与组内未知 id 被忽略，不影响全序', () => 
   })
   expect(order).toEqual(['s1'])
 })
+
+test('置顶会话排在未置顶之前（最近置顶在前），其余保持原相对顺序', () => {
+  const order = flattenSidebarSessionOrder({
+    workspaces: { items: [ws('w1', ['s1', 's2', 's3'])], pinnedSessionIds: ['s3', 's1'] },
+    sessions: { byId: { s1: task('s1'), s2: task('s2'), s3: task('s3') } },
+    pinnedWorkspaceIds: [],
+    workspaceGroups: [],
+  })
+  expect(order).toEqual(['s3', 's1', 's2'])
+})
+
+test('最近段的置顶同样排前，未知置顶 id 被忽略', () => {
+  const order = flattenSidebarSessionOrder({
+    workspaces: { items: [ws('w1', ['s1'])], pinnedSessionIds: ['r1', 'nope'] },
+    sessions: { byId: { s1: task('s1'), r1: task('r1', 1), r2: task('r2', 2) }, ids: ['s1', 'r1', 'r2'] },
+    pinnedWorkspaceIds: [],
+    workspaceGroups: [],
+  })
+  expect(order).toEqual(['s1', 'r1', 'r2'])
+})
+
+test('未提供 pinnedSessionIds（旧宿主）时顺序与之前完全一致', () => {
+  const order = flattenSidebarSessionOrder({
+    workspaces: { items: [ws('w1', ['s1', 's2'])] },
+    sessions: { byId: { s1: task('s1'), s2: task('s2') } },
+    pinnedWorkspaceIds: [],
+    workspaceGroups: [],
+  })
+  expect(order).toEqual(['s1', 's2'])
+})

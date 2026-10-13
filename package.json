@@ -1,6 +1,6 @@
 {
   "name": "dsh-zcode-ui",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "DSH ZCode UI — 把 DeepSeek Harness Web 的界面换成 ZCode 风格：侧栏、工作区会话树、全局搜索与轮次导航 · A ZCode-styled sidebar, workspace session tree, global search, and turn navigation skin for DSH Web",
   "keywords": [
     "deepseek",

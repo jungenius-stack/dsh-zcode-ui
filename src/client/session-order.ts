@@ -9,7 +9,7 @@
  * 段序：置顶项目 → 项目分组（组内按组员顺序）→ 未分组项目 → 最近。
  * 折叠状态不参与（与 ZCode 相同：折叠不改变任务集合，只改变显示）。
  */
-import { orderByIds, ungroupedSessionIds, visibleSessionIds } from './workspace-browser.ts'
+import { orderByIds, pinnedFirstSessionIds, ungroupedSessionIds, visibleSessionIds } from './workspace-browser.ts'
 import { groupedWorkspaceIds, type WorkspaceGroup } from '../workspace-groups.ts'
 
 type WorkspaceItemLike = { readonly workspaceId: string; readonly sessionIds: readonly string[] }
@@ -27,6 +27,8 @@ export type SessionOrderInput = {
   readonly workspaces: {
     readonly items: readonly WorkspaceItemLike[]
     readonly archivedSessionIds?: readonly string[]
+    /** 宿主置顶集（最近置顶在前）；与侧栏树同源，置顶会话排在未置顶之前。 */
+    readonly pinnedSessionIds?: readonly string[]
   }
   readonly sessions: {
     readonly byId: Readonly<Record<string, SessionRowLike | undefined>>
@@ -39,11 +41,12 @@ export type SessionOrderInput = {
 /** 可见行形状（与 workspace-browser 的 SessionSummary 结构一致；那个类型未导出，这里显式复述）。 */
 type VisibleRow = { id: string; origin?: string | undefined; blank?: boolean | undefined; title?: string | undefined; displayTitle?: string | undefined }
 
-/** 侧栏可见会话的全序：置顶项目 → 分组 → 未分组 → 最近。 */
+/** 侧栏可见会话的全序：置顶项目 → 分组 → 未分组 → 最近；每组内会话再按宿主置顶排前。 */
 export function flattenSidebarSessionOrder(input: SessionOrderInput): string[] {
   const archived = input.workspaces.archivedSessionIds ?? []
+  const pinnedSessions = input.workspaces.pinnedSessionIds
   const byId = input.sessions.byId as Readonly<Record<string, VisibleRow | undefined>>
-  const items = input.workspaces.items.map(workspace => ({ ...workspace, visibleIds: visibleSessionIds(workspace.sessionIds, byId, archived) }))
+  const items = input.workspaces.items.map(workspace => ({ ...workspace, visibleIds: pinnedFirstSessionIds(visibleSessionIds(workspace.sessionIds, byId, archived), pinnedSessions) }))
   const pinned = new Set(input.pinnedWorkspaceIds)
   const pinnedItems = orderByIds(items, input.pinnedWorkspaceIds, workspace => String(workspace.workspaceId))
   const regular = items.filter(workspace => !pinned.has(String(workspace.workspaceId)))
@@ -59,10 +62,10 @@ export function flattenSidebarSessionOrder(input: SessionOrderInput): string[] {
     }
   }
   for (const workspace of ungrouped) order.push(...workspace.visibleIds)
-  // 最近：未分配到任何项目的会话，按最后更新时间降序（同侧栏 recentIds）。
+  // 最近：未分配到任何项目的会话，按最后更新时间降序（同侧栏 recentIds）；置顶同样排前。
   const assigned = input.workspaces.items.flatMap(workspace => workspace.sessionIds.map(id => String(id)))
-  const recent = ungroupedSessionIds(input.sessions.ids ?? Object.keys(input.sessions.byId), byId, assigned, archived)
-    .sort((left, right) => (input.sessions.byId[right]?.updatedAt ?? 0) - (input.sessions.byId[left]?.updatedAt ?? 0))
+  const recent = pinnedFirstSessionIds(ungroupedSessionIds(input.sessions.ids ?? Object.keys(input.sessions.byId), byId, assigned, archived)
+    .sort((left, right) => (input.sessions.byId[right]?.updatedAt ?? 0) - (input.sessions.byId[left]?.updatedAt ?? 0)), pinnedSessions)
   order.push(...recent)
   return order
 }

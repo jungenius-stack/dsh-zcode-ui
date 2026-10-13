@@ -260,7 +260,9 @@ assert.match(workspaceBrowser, /className="dcu-wb-confirm"[^]*sessions\.confirm/
 assert.match(workspaceBrowser, /\.dcu-wb-session:focus-within \.dcu-wb-quick-actions/, '键盘聚焦会话行必须像悬停一样露出快捷操作')
 assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-quick-actions\{opacity:1;pointer-events:auto\}/, '确认态必须常驻显示确认按钮（与 hover 无关）')
 assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dsw-alias-state-error-primary\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用宿主错误色配对（背景 error-primary / 前景 bg-layer-3，同 DSH badge 约定）')
-assert.doesNotMatch(workspaceBrowser, /pinnedSessionIds|setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin|sessions\.(?:pin|unpin|pinned)/, '任务树必须彻底移除会话置顶能力')
+assert.doesNotMatch(workspaceBrowser, /setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin/, '任务树不得本地维护会话置顶（宿主 pinnedSessionIds 是唯一状态源）')
+assert.match(workspaceBrowser, /pinnedFirstSessionIds\(/, '置顶会话必须排在未置顶之前（宿主置顶语义）')
+assert.match(workspaceBrowser, /pinCapable && <SessionPinButton pinned=\{pinnedSet\.has\(id\)\}/, '任务树必须在宿主提供 pin 能力时渲染行首置顶按钮')
 assert.match(workspaceBrowser, /\.dcu-wb-context-anchor\{opacity:0;pointer-events:none\}/, '右键菜单锚点必须隐藏三点图标')
 assert.match(workspaceBrowser, /className="dcu-wb-more dcu-wb-context-anchor"/, '右键菜单必须使用隐藏的三点锚点')
 assert.match(workspaceBrowser, /onContextMenu=\{\(event\) => \{ event\.preventDefault\(\); event\.stopPropagation\(\); dismissTip\(\); setMenu\(\{ id, type: 'session', x: event\.clientX, y: event\.clientY \}\) \}\}/, '右键会话必须按鼠标位置打开菜单')
@@ -268,7 +270,7 @@ assert.match(workspaceBrowser, /SessionState pendingInteraction=\{pendingInterac
 // 2026-10-13：转圈改为 ZCode 原版复刻——动画是主题层共享基元 .dcu-spin，本体在会话树里。
 assert.match(readFileSync(new URL('../src/client/session-tree.tsx', import.meta.url), 'utf8'), /<ZIconLoading size=\{16\} className="dcu-spin"/, '运行状态圈必须使用 ZCode 原版转圈（LoaderIcon + 共享 .dcu-spin 基元）')
 assert.doesNotMatch(workspaceBrowser, /isPinned && <span className="dcu-wb-pin"/, '项目置顶不应显示星标')
-assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-pin\{|\.dcu-wb-pin svg/, '会话置顶标识样式必须一并移除')
+assert.match(workspaceBrowser, /\.dcu-wb-pin\{position:absolute;left:8px;top:50%/, '行首置顶按钮必须落在 16px 行首槽（与运行中转圈同格）')
 assert.doesNotMatch(workspaceBrowser, /IconFullscreenOutline16|openWindow|window\.open/, '桌面端嵌入前不得保留在新窗口打开功能')
 assert.doesNotMatch(client, /as never|as unknown as/, '客户端插槽注册不得绕过官方类型')
 
@@ -311,7 +313,9 @@ assert.match(readFileSync(new URL('../src/client/ChannelBrowser.tsx', import.met
 assert.match(sessionTree, /dcu-wb-quick-actions/, '频道会话必须复用任务树悬停按钮')
 
 assert.match(workspaceBrowser, /dismissTip\(\); setMenu/, '右键打开菜单时必须立刻关闭悬停卡片')
-assert.doesNotMatch(sessionTree, /id: 'pin'/, '频道与定时任务的会话右键菜单不得提供置顶操作')
+assert.match(sessionTree, /options\.pinned === undefined \? \[\] : \[\{ id: 'pin'/, '置顶菜单项必须由调用方声明状态才出现（频道/定时不声明）')
+assert.doesNotMatch(readFileSync(new URL('../src/client/ChannelBrowser.tsx', import.meta.url), 'utf8'), /sessionMenuItems\(t, \{[^}]*pinned/, '频道菜单不得提供置顶项')
+assert.doesNotMatch(readFileSync(new URL('../src/client/ScheduleBrowser.tsx', import.meta.url), 'utf8'), /sessionMenuItems\(t, \{[^}]*pinned/, '定时菜单不得提供置顶项')
 assert.match(sessionTree, /id: 'fork'[\s\S]*ZIconBranch size=\{16\}/, '定时右键继续必须有图标')
 assert.doesNotMatch(workspaceBrowser, /standalonePinnedSessionIds|sectionSessionIds|pinSessionAt/, '置顶区只能置顶项目，不得维护独立会话列表')
 assert.match(workspaceBrowser, /const pinDragActive = workspaceDragId !== undefined/, '置顶区只能在拖动项目时成为落点')

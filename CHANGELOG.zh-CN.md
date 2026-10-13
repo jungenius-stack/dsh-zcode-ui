@@ -4,6 +4,26 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.9.0 - 2026-10-14
+
+### 变更
+
+- **会话置顶接入宿主模型**（审计表 #13 翻案）：宿主 0.2.0-rc.2 起会话置顶是一等模型（`workspaces.pinSession/unpinSession` + 快照 `pinnedSessionIds`，注册表全局、最近置顶在前）。上游 0.2.102 的「移除会话置顶」针对的是本地自维护的第二套模型，不是宿主 registry 级置顶——本版接入后者：
+  - **行首 16px 槽图钉**（对齐 ZCode TaskListItem）：已置顶且槽空闲时**常显**；**悬停/聚焦时接管**行首槽（未读点与运行转圈让位，ZCode hidden 语义）；触屏不接管（与 ZCode 注释一致）；行操作不抢焦（mousedown preventDefault）。
+  - **菜单管理组最前加「置顶会话/取消置顶」**（顺序 pin → rename → archive → unread，ZCode 同序）；只在宿主提供 pin 能力时出现（频道/定时树不呈现）。
+  - **置顶排前**：置顶会话排到所属项目最前（最近置顶在前）；`pinnedFirstSessionIds` 一处实现，侧栏树与快捷键（上/下一个会话）全序共用。取消置顶回到原位（官方有本地顺序覆盖层，我们保持宿主单一顺序源，见 KNOWN-ISSUES §20.2）。
+  - 旧宿主（无 pin API）整条呈现链自动缺席，不虚构能力。
+- **菜单键帽后缀与 aria-keyshortcuts**：新增共享目录桥（`shortcut-catalog.ts`）一次订阅三处消费——行菜单的重命名/归档/继续显示宿主生效键帽（`MenuItem.shortcut` 原生支持）；侧栏搜索/新建按钮（宽/窄两形态）与项目行新建会话按钮标注 `aria-keyshortcuts`。键位一律以宿主目录为真源，用户改键后提示自动跟随。
+
+### 调研记录（无代码改动）
+
+- **composer 域键位**：宿主输入框（Lexical keymap）已拥有 composer 域全部语义（Enter 提交 / Shift+Enter 换行 / Ctrl·Cmd+Enter 加速 / IME 守卫 / Escape 分层与停止快捷键），与 ZCode 契约一致；`ctx.shortcuts.register` 没有 composer 域接入面，插件不应自建第二套输入键位。ZCode 工具条动作在 DSH 由输入工具条菜单承接。结论：维持现状（KNOWN-ISSUES §20.4）。
+
+### 验证
+
+- 集成/单元测试 +7：行交互 spec 3（按钮状态与宿主 API 调用 / 旧宿主降级 / 置顶排序）、菜单 spec 1（置顶项条件与顺序）、全序 spec 3（置顶排前 / 最近段 / 旧宿主恒等）；新目录桥断言文件（接线 ×9）；「禁止置顶」断言改写为「宿主 API 唯一状态源」政策。
+- 全量门禁：类型 0 错 / vitest 全绿 / 构建通过 / 断言 37 过 0 败 / 布局 15 脚本全过。
+
 ## 1.8.0 - 2026-10-14
 
 ### 变更

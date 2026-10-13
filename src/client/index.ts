@@ -3,6 +3,7 @@ import { createNavigationHistory } from './navigation-history.ts'
 import { createWorkspaceShortcutSource } from './workspace-shortcuts.ts'
 import { installSessionNavigationShortcuts } from './session-navigation-shortcuts.ts'
 import { flattenSidebarSessionOrder } from './session-order.ts'
+import { liveShortcutCatalog } from './shortcut-catalog.ts'
 import { readPinnedWorkspaceIds, readWorkspaceGroupsCache } from './pinned-workspaces.ts'
 import { registerWorkspaceDirectoryFlow, WORKSPACE_DIRECTORY_FLOW } from './workspace-directory-flow.ts'
 import { registerAfterOfficialWave } from './official-slot-shadow.ts'
@@ -158,7 +159,10 @@ export function apply(ctx: ClientContext): void {
   const t = ctx.locale.bind(NS)
   ctx.effect(() => observeHeroWidthHandles(t('home.resizeInput')), 'zcode-ui-for-dsh: hero width handles')
   registerInputHistory(ctx)
-  registerSettingsPage(ctx)
+  // 宿主命令目录（一次订阅，三处消费）：设置页的快捷键提示、侧栏按钮 aria-keyshortcuts、
+  // 会话菜单键帽后缀。服务晚启动由桥内部的 ctx.inject 兜住。
+  const shortcutCatalog = liveShortcutCatalog(ctx)
+  registerSettingsPage(ctx, shortcutCatalog)
   registerPluginConfigSection(ctx)
   // Host 与客户端共用 Cordis 的服务名；此处读取的是客户端 RPC 外观，而非 HostConnectionService。
   const connectionService: unknown = ctx.get('connection')
@@ -227,6 +231,7 @@ export function apply(ctx: ClientContext): void {
             newConversationDraft,
             navigationHistory,
             workspaceShortcuts,
+            shortcuts: shortcutCatalog,
             prefillNewConversation: (text: string) => {
               const id = currentSessionId(ctx.sessions.list.getSnapshot())
               const binding = id === undefined ? undefined : ctx.sessions.binding(id as SessionId)
@@ -350,6 +355,16 @@ export function apply(ctx: ClientContext): void {
       moveSession,
       openPath,
       openSession: (sessionId: SessionId) => { openConversation(ctx, ctx.layout, sessionId) },
+      shortcuts: shortcutCatalog,
+      // 宿主会话置顶（registry 级 pinnedSessionIds + pinSession/unpinSession）：
+      // 只在宿主提供这两个方法时注入；旧宿主缺省时整条置顶呈现链自动缺席
+      // （行首按钮、菜单项、置顶排前都不会出现），不虚构能力。
+      ...(typeof (ctx.workspaces as { pinSession?: unknown }).pinSession === 'function' && typeof (ctx.workspaces as { unpinSession?: unknown }).unpinSession === 'function'
+        ? {
+            pinSession: (sessionId: SessionId) => runHostAction('pin', () => ctx.workspaces.pinSession(sessionId)),
+            unpinSession: (sessionId: SessionId) => runHostAction('pin', () => ctx.workspaces.unpinSession(sessionId)),
+          }
+        : {}),
       renameSession,
       renameWorkspace: (workspaceId: WorkspaceId, title: string) => ctx.workspaces.rename(workspaceId, title),
       insertWorkspaceBefore: (workspaceId: WorkspaceId, beforeWorkspaceId?: WorkspaceId) => ctx.workspaces.insertBefore(workspaceId, beforeWorkspaceId),

@@ -29,6 +29,16 @@ export function QuickArchiveIcon() {
   return <ZIconArchive aria-hidden="true" size={16} strokeWidth={1.5} />
 }
 
+/**
+ * 行首置顶按钮（对齐 ZCode TaskListItem 的 pinActionButton：同一枚 16px 图钉兼作
+ * 「已置顶」状态显示与「置顶/取消置顶」操作）。显示时机全部由 CSS 控制（常显 =
+ * 已置顶且行首槽空闲；悬停/聚焦 = 临时接管行首槽），组件只负责属性与事件。
+ * 置顶状态来自宿主（`workspaces.pinnedSessionIds`），本组件不持有任何状态。
+ */
+export function SessionPinButton({ pinned, label, onToggle }: { pinned: boolean; label: string; onToggle: () => void }) {
+  return <button type="button" className="dcu-wb-pin" aria-label={label} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation() }} onClick={(event) => { event.stopPropagation(); onToggle() }}><PinIcon /></button>
+}
+
 export type SessionHoverTip = {
   title: string
   project?: string
@@ -48,15 +58,24 @@ export function SessionHoverCard({ tip, onEnter, onLeave }: { tip: SessionHoverT
   </div>
 }
 
-export function sessionMenuItems(t: TranslateNS<typeof NS>, options: { unread: boolean; path?: string; includePath?: boolean; moveTargets?: readonly { id: string; label: string }[]; canDelete?: boolean }): MenuEntry[] {
-  // 结构对齐 ZCode TaskActionMenuContent：管理组（重命名 → 归档 → 标记未读 → 衍生/去向，
+export function sessionMenuItems(t: TranslateNS<typeof NS>, options: { unread: boolean; path?: string; includePath?: boolean; moveTargets?: readonly { id: string; label: string }[]; canDelete?: boolean; pinned?: boolean; shortcutOf?: (commandId: string) => { keys: readonly string[]; aria?: string | undefined } | undefined }): MenuEntry[] {
+  // 结构对齐 ZCode TaskActionMenuContent：管理组（置顶 → 重命名 → 归档 → 标记未读 → 衍生/去向，
   // 同 ZCode 以「在分屏打开」收尾）‖ 路径与复制组（「打开位置」打头，与 ZCode 的
-  // 「在访达中打开」同位）‖ 删除单列（本产品能力）。会话置顶未迁移，见 KNOWN-ISSUES §16.2。
+  // 「在访达中打开」同位）‖ 删除单列（本产品能力）。
+  // 置顶项只在调用方声明 `pinned` 状态时出现（工作区树声明；频道/定时树不声明——
+  // 置顶是宿主的工作区账户级概念，见 KNOWN-ISSUES §20）。
+  // shortcutOf 由调用方接宿主命令目录（catalog）：有官方命令的动作在行尾显示生效键帽
+  // （ZCode 菜单带快捷键后缀；菜单键位一律以宿主目录为真源，不在本地硬编码）。
+  const shortcut = (commandId: string): { shortcut?: { keys: readonly string[]; aria?: string | undefined } } => {
+    const found = options.shortcutOf?.(commandId)
+    return found === undefined ? {} : { shortcut: found }
+  }
   const items: MenuEntry[] = [
-    { id: 'rename', label: t('sessions.rename'), icon: <ZIconRename size={16} /> },
-    { id: 'archive', label: t('sessions.archive'), icon: <ZIconArchive size={16} /> },
+    ...(options.pinned === undefined ? [] : [{ id: 'pin', label: t(options.pinned ? 'sessions.unpin' : 'sessions.pin'), icon: <PinIcon /> } satisfies MenuEntry]),
+    { id: 'rename', label: t('sessions.rename'), icon: <ZIconRename size={16} />, ...shortcut('session.rename') },
+    { id: 'archive', label: t('sessions.archive'), icon: <ZIconArchive size={16} />, ...shortcut('session.archive') },
     { id: 'unread', label: t(options.unread ? 'sessions.markRead' : 'sessions.markUnread'), icon: options.unread ? <ZIconEyeOff aria-hidden="true" size={16} strokeWidth={1.5} /> : <ZIconEye aria-hidden="true" size={16} strokeWidth={1.5} /> },
-    { id: 'fork', label: t('sessions.fork'), icon: <ZIconBranch size={16} /> },
+    { id: 'fork', label: t('sessions.fork'), icon: <ZIconBranch size={16} />, ...shortcut('session.fork') },
   ]
   if (options.moveTargets !== undefined) {
     items.push({
@@ -115,6 +134,10 @@ export type SessionRowProps = {
   onDragOver?: (event: DragEvent<HTMLDivElement>) => void
   onDrop?: (event: DragEvent<HTMLDivElement>) => void
   time?: string
+  /** 宿主置顶状态（`workspaces.pinnedSessionIds`）；不给 pin 能力的调用方不传。 */
+  pinned?: boolean
+  /** 提供后该行渲染行首置顶按钮（工作区树传；频道/定时树不传）。 */
+  onTogglePin?: () => void
 }
 
 function pendingLabel(kind: PendingInteractionKind, t: TranslateNS<typeof NS>): string {
@@ -156,15 +179,17 @@ export function SessionRow({
   id, title, selected, menuOpen, unread, running, pendingInteraction, t, menuItems,
   onOpen, onMenuChange, onSelectAction, onArchive, onHover, onLeave, onContextMenu, menuPoint,
   subtitle, flat, draggable, dropActive, onDragStart, onDragEnd, onDragOver, onDrop, time,
+  pinned, onTogglePin,
 }: SessionRowProps) {
   // 行内归档两步确认 + 行键盘语义（对齐 ZCode TaskListItem：行可聚焦、Enter/空格打开、
   // 首次点击归档进确认态、Escape / 条目外 pointerdown 取消、二次点击才执行）。
   const archiveConfirm = useArchiveConfirm()
   const confirmingArchive = archiveConfirm.confirmingId === id
   const requestArchive = (): void => { if (archiveConfirm.press(id)) onArchive() }
-  return <div data-dcu-session={id} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}${confirmingArchive ? ' dcu-wb-archive-confirming' : ''}`} role="treeitem" aria-selected={selected} tabIndex={0} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
+  return <div data-dcu-session={id} data-pinned={pinned === true ? 'true' : undefined} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}${confirmingArchive ? ' dcu-wb-archive-confirming' : ''}`} role="treeitem" aria-selected={selected} tabIndex={0} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
     {subtitle !== undefined && subtitle !== '' ? <span className="dcu-wb-session-copy"><SessionRowTitle title={title} /><span className="dcu-wb-session-sub">{subtitle}</span></span> : <SessionRowTitle title={title} />}
     <SessionState pendingInteraction={pendingInteraction} unread={unread} running={running} t={t} />
+    {onTogglePin !== undefined && <SessionPinButton pinned={pinned === true} label={t(pinned === true ? 'sessions.unpin' : 'sessions.pin')} onToggle={onTogglePin} />}
     <SessionTime time={time} />
     <span className="dcu-wb-quick-actions">
       {confirmingArchive

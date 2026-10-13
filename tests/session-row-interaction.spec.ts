@@ -32,7 +32,7 @@ async function renderTree(
   displayTitle: string,
   archiveSession: (id: string) => Promise<void>,
   openSession: (id: string) => void,
-  options: { running?: boolean; unread?: boolean } = {},
+  options: { running?: boolean; unread?: boolean; pinned?: boolean; pinSession?: (id: string) => Promise<void>; unpinSession?: (id: string) => Promise<void> } = {},
 ) {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
   const session = createSession(sessionId, displayTitle, options.running === true)
@@ -48,6 +48,7 @@ async function renderTree(
   const workspaces = {
     baselinesReady: true,
     archivedSessionIds: [],
+    pinnedSessionIds: options.pinned === true ? [session.id] : [],
     items: [{ workspaceId: 'row-workspace', title: '交互测试项目', path: 'D:\\Workspace\\row', sessionIds: [session.id] }],
   }
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ exists: true, pinnedWorkspaceIds: [] }), {
@@ -75,6 +76,7 @@ async function renderTree(
       openPath: async () => {},
       renameWorkspace: async () => {},
       startSession: () => {},
+      ...(options.pinSession === undefined ? {} : { pinSession: (id: string) => options.pinSession!(id), unpinSession: (id: string) => options.unpinSession!(id) }),
     } as never))
     await Promise.resolve()
     await Promise.resolve()
@@ -182,5 +184,90 @@ test('仅在运行中（无未读）的会话在行首状态槽画转圈', async
     expect(row.querySelector('.dcu-wb-unread')).toBeNull()
   } finally {
     await view.dispose()
+  }
+})
+
+test('会话行置顶按钮：状态来自宿主快照、点击调用对应宿主 API', async () => {
+  const pinSession = vi.fn(async () => {})
+  const unpinSession = vi.fn(async () => {})
+  // 未置顶：行无 data-pinned，按钮 aria-label 为置顶，点击调 pinSession。
+  const unpinned = await renderTree('row-pin-a', '未置顶会话', vi.fn(async () => {}), vi.fn(), { pinSession, unpinSession })
+  try {
+    const button = unpinned.row.querySelector<HTMLButtonElement>('.dcu-wb-pin')
+    expect(button).not.toBeNull()
+    expect(unpinned.row.dataset.pinned).toBeUndefined()
+    expect(button!.getAttribute('aria-label')).toBe('sessions.pin')
+    await act(async () => { button!.click() })
+    expect(pinSession).toHaveBeenCalledWith('row-pin-a')
+    expect(unpinSession).not.toHaveBeenCalled()
+  } finally {
+    await unpinned.dispose()
+  }
+  // 已置顶：data-pinned 上到行，按钮 aria-label 为取消置顶，点击调 unpinSession。
+  const pinned = await renderTree('row-pin-b', '已置顶会话', vi.fn(async () => {}), vi.fn(), { pinned: true, pinSession, unpinSession })
+  try {
+    const button = pinned.row.querySelector<HTMLButtonElement>('.dcu-wb-pin')
+    expect(pinned.row.dataset.pinned).toBe('true')
+    expect(button!.getAttribute('aria-label')).toBe('sessions.unpin')
+    await act(async () => { button!.click() })
+    expect(unpinSession).toHaveBeenCalledWith('row-pin-b')
+    expect(pinSession).toHaveBeenCalledTimes(1)
+  } finally {
+    await pinned.dispose()
+  }
+})
+
+test('旧宿主（无 pin 能力）不渲染置顶按钮，行也不带置顶态', async () => {
+  const view = await renderTree('row-pin-c', '无能力会话', vi.fn(async () => {}), vi.fn())
+  try {
+    expect(view.row.querySelector('.dcu-wb-pin')).toBeNull()
+    expect(view.row.dataset.pinned).toBeUndefined()
+  } finally {
+    await view.dispose()
+  }
+})
+
+test('置顶顺序：置顶会话排到项目内最前（与侧栏渲染一致）', async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
+  const sessions = [createSession('row-order-a', '甲'), createSession('row-order-b', '乙'), createSession('row-order-c', '丙')]
+  const state: SessionListState = { ids: sessions.map(row => row.id), byId: Object.fromEntries(sessions.map(row => [row.id, row])), phase: 'ready', projectionsBySession: {} }
+  const workspaces = {
+    baselinesReady: true,
+    archivedSessionIds: [],
+    pinnedSessionIds: ['row-order-c'],
+    items: [{ workspaceId: 'row-workspace', title: '排序项目', path: 'D:\\Workspace\\order', sessionIds: ['row-order-a', 'row-order-b', 'row-order-c'] }],
+  }
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ exists: true, pinnedWorkspaceIds: [] }), { status: 200, headers: { 'content-type': 'application/json' } })))
+  const container = document.createElement('div')
+  document.body.appendChild(container)
+  const root = createRoot(container)
+  await act(async () => {
+    root.render(createElement(CodexWorkspaceBrowser, {
+      openSession: () => {},
+      archiveSession: async () => {},
+      deleteSession: async () => {},
+      forkSession: async () => {},
+      renameSession: async () => {},
+      wide: true,
+      useSessions: (selector: (snapshot: SessionListState) => unknown) => selector(state),
+      useSessionPendingInteraction: useEmptyPendingInteractions,
+      useWorkspaces: (selector: (snapshot: typeof workspaces) => unknown) => selector(workspaces),
+      t,
+      deleteWorkspace: async () => {},
+      insertSessionBefore: async () => {},
+      insertWorkspaceBefore: async () => {},
+      openPath: async () => {},
+      renameWorkspace: async () => {},
+      startSession: () => {},
+    } as never))
+    await Promise.resolve()
+    await Promise.resolve()
+  })
+  try {
+    const ids = [...container.querySelectorAll('[data-dcu-session]')].map(node => (node as HTMLElement).dataset.dcuSession)
+    expect(ids).toEqual(['row-order-c', 'row-order-a', 'row-order-b'])
+  } finally {
+    await act(async () => { root.unmount() })
+    container.remove()
   }
 })

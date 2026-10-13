@@ -958,3 +958,49 @@ ZCode 单例化的动机是「行级菜单挂载会让每行做路径探测/订�
   `tests/session-navigation-shortcuts.assert.ts` 接线断言（现读快照、复用 openConversation、
   偏好缓存同源、静态 inject 禁令）。
 - 全量门禁：类型 0 错 / vitest 全绿 / 构建通过 / 断言 36 过 0 败 / 布局 15 脚本全过。
+
+---
+
+## 20. 2026-10-14 会话置顶接入宿主模型 + 菜单键帽 + composer 域调研（1.9.0）
+
+### 20.1 会话置顶：为什么翻案（#13）
+
+上游 0.2.102 曾「移除会话置顶，仅保留项目置顶作为统一的置顶模型」——那是**本地自维护**年代的
+决策（避免两套并存的置顶）。宿主 0.2.0-rc.2 起，会话置顶是**一等模型**：
+`ctx.workspaces.pinSession/unpinSession` + 快照 `pinnedSessionIds`（注册表全局、最近置顶在前），
+官方 ui-workspace 有全套 UI（菜单项 order 100 / 行按钮 / 失败 toast / 客户端顺序覆盖层）。
+本插件接入的是宿主模型，不是恢复第二套——被移除的 `QuickPinIcon`、本地存储键、自绘图标
+仍被断言反向锁死；`session-tree.assert.ts` 的禁令我行改为「宿主 API 唯一状态源」政策。
+
+### 20.2 呈现取舍（对齐 ZCode TaskListItem 逐项）
+
+| 项 | 实现 | 与 ZCode / 官方的差异 |
+| --- | --- | --- |
+| 行首槽 | 同一枚 16px 图钉：常显（pinned 且槽空闲）或悬停/聚焦接管（未读点/转圈让位） | 无（ZCode 同款：pinAction 替换指示器） |
+| 悬停接管范围 | 仅常规行（有固定 30px 行首槽）；flat/top 行不参与 | 偏差：flat 行无固定槽，接管会导致 padding 跳动（8→30px）；置顶入口走菜单，已置顶走常显 |
+| 触屏 | 不接管（与 ZCode 注释一致：hover:none 只让右侧操作常驻） | 无 |
+| 排序 | 置顶排前（最近置顶在前），`pinnedFirstSessionIds` 一处实现（侧栏树 + 快捷键全序共用） | 偏差：取消置顶回原位。官方有本地手动顺序覆盖层（`sessionOrderByAccount` + reconcile），unpin 不回位；我们没有引入该覆盖层——它牵连整套视图顺序存储与持久化，收益仅是「取消置顶后停在原地」这一显示细节 |
+| 旧宿主 | 无 `pinSession`/`pinnedSessionIds` 时整条呈现链缺席（按钮/菜单项/重排都不出现） | 不虚构能力 |
+| 归档互斥 | 归档会话不进树（不可达），无需额外分支 | 官方另有「pin 与 archive 互斥」的服务端约束 |
+
+### 20.3 菜单键帽与 aria-keyshortcuts
+
+- 新增共享目录桥 `shortcut-catalog.ts`（`liveShortcutCatalog` 从 settings-page-registration
+  提出 + `useShortcutLookup` 钩子）；一次订阅三处消费：设置页、侧栏按钮、行菜单。
+- 行菜单 rename/archive/fork 显示生效键帽（宿主 `MenuItem.shortcut` 原生支持）；
+  搜索（×2 形态）/新建（×2 形态）/项目行新建会话按钮标注 `aria-keyshortcuts`。
+- 键位一律以宿主 catalog 为真源：用户改键后提示自动跟随，本地零硬编码。
+
+### 20.4 composer 域键位调研（无代码改动）
+
+宿主输入框（官方 ui-conversation 的 Lexical keymap，CRITICAL 优先级）已拥有 composer 域全部语义：
+Enter 提交 / Shift+Enter 换行 / Ctrl·Cmd+Enter 加速 / 菜单仲裁 / IME 守卫（isComposing·keyCode 229·
+Safari 组合窗口）/ Escape 分层与停止快捷键。`ctx.shortcuts.register` 面向 window 分发，
+**没有 composer 域接入面**；插件自建等于第二套键盘行为。ZCode 工具条动作（Ctrl+T 等）
+在 DSH 由输入工具条菜单承接。**结论：维持现状，登记为无接入点。**
+
+### 20.5 验证
+
+- 集成测试：行交互 spec +3（按钮状态/API 调用、旧宿主降级、置顶排序）；菜单 spec +1（置顶项）；
+  全序 spec +3（置顶排前/最近段/旧宿主恒等）；目录桥断言文件 +1（接线 ×9）。
+- 全量门禁：类型 0 错 / vitest 全绿 / 构建通过 / 断言 37 过 0 败 / 布局 15 脚本全过。

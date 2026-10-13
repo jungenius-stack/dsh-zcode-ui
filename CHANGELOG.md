@@ -4,6 +4,26 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.9.0 - 2026-10-14
+
+### Changed
+
+- **Session pinning now rides the host model** (audit #13, reversed on new evidence): since 0.2.0-rc.2 the host models pinning as a first-class concept (`workspaces.pinSession/unpinSession` + the `pinnedSessionIds` snapshot — registry-global, most recently pinned first). The upstream 0.2.102 note "removed session pinning" targeted the old locally-maintained second model, not the host's registry-level pins — this release adopts the latter:
+  - **A 16px pin in the leading slot** (aligned with ZCode's TaskListItem): always visible when pinned and the slot is idle, and taking the slot over on hover/focus (the unread dot and the spinner yield, ZCode's hidden semantics); touch devices do not take over (matching ZCode's own comment); the button never steals focus (mousedown preventDefault).
+  - **A Pin/Unpin row in front of the management group** (order pin → rename → archive → unread, same as ZCode); it only appears when the host offers the pin capability (channel/schedule trees do not show it).
+  - **Pinned sessions lead** their account (most recently pinned first); `pinnedFirstSessionIds` is the single implementation shared by the sidebar tree and the keyboard order (previous/next conversation). Unpinning returns the row to its original position (the official UI keeps a local order overlay; this plugin keeps the host as the single order source, see KNOWN-ISSUES §20.2).
+  - Older hosts without the pin API simply do not get the feature — nothing is invented.
+- **Menu keycap suffixes and aria-keyshortcuts**: a new shared catalog bridge (`shortcut-catalog.ts`) subscribes once and feeds three surfaces — the row menu shows the host's effective keycaps on rename/archive/continue (`MenuItem.shortcut` is natively supported), and the sidebar search/new-session buttons (both wide and compact forms) plus the per-project new-session button carry `aria-keyshortcuts`. Keys always come from the host catalog, so user rebinds propagate automatically.
+
+### Research notes (no code change)
+
+- **Composer-domain keys**: the host's input bar (Lexical keymap) already owns the whole composer domain (Enter submits, Shift+Enter newlines, Ctrl·Cmd+Enter accelerated delivery, IME guards, Escape layering and the stop shortcut), matching ZCode's contract; `ctx.shortcuts.register` has no composer-domain surface, and a plugin building its own would be a second keyboard behaviour. ZCode's composer toolbar actions are covered by the input toolbar menus in DSH. Conclusion: leave as-is (KNOWN-ISSUES §20.4).
+
+### Verification
+
+- +7 tests: 3 row-interaction cases (button state and host API calls / old-host degradation / pinned ordering), 1 menu case (pin item condition and order), 3 order-assembly cases (pinned first / recents / old-host identity); a new catalog-bridge assertion file (9 wiring checks); the old "no pinning" assertions rewritten into the "host API is the single source" policy.
+- Full gate: typecheck 0 errors / vitest all green / build clean / assertions 37 passed 0 failed / all 15 layout scripts passed.
+
 ## 1.8.0 - 2026-10-14
 
 ### Changed

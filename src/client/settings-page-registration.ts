@@ -8,6 +8,7 @@ import { createElement } from 'react'
 import { ZIconSettings } from './zcode-icons.tsx'
 import { SettingsDocumentAction } from './SettingsDocumentAction.tsx'
 import { registerAfterOfficialWave } from './official-slot-shadow.ts'
+import { liveShortcutCatalog, type ShortcutCatalogSource } from './shortcut-catalog.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {
@@ -16,26 +17,8 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 }
 
 /** 用更低优先级覆盖设置壳。官方壳仍登记，停用或卸载时撤销本插件登记后恢复。 */
-type ShortcutRow = { id: string; keys: readonly string[]; aria?: string }
-
-/** 快捷键服务可能晚于本插件启动。等到它就绪后再读 catalog，避免注册时一次取值把提示永久丢掉。 */
-const emptyShortcuts: readonly ShortcutRow[] = []
-
-function liveShortcutCatalog(ctx: Context): SettingsSource<ShortcutRow> {
-  const listeners = new Set<() => void>()
-  let catalog: SettingsSource<ShortcutRow> | undefined
-  const notify = (): void => { for (const listener of listeners) listener() }
-  ctx.inject(['shortcuts'], shortcutCtx => {
-    catalog = (shortcutCtx as Context & { shortcuts: { catalog: SettingsSource<ShortcutRow> } }).shortcuts.catalog
-    const unsubscribe = catalog.subscribe(notify)
-    notify()
-    return () => { unsubscribe(); catalog = undefined; notify() }
-  })
-  return {
-    getSnapshot: () => catalog?.getSnapshot() ?? emptyShortcuts,
-    subscribe: listener => { listeners.add(listener); return () => { listeners.delete(listener) } },
-  }
-}
+// 快捷键目录桥已提为共享模块（shortcut-catalog.ts）——设置页、侧栏按钮的
+// aria-keyshortcuts 与行菜单键帽后缀共用同一份目录源与「等服务就绪」逻辑。
 
 function accountLauncherPresence(slots: Context['slots']): { getSnapshot: () => boolean; subscribe: (listener: () => void) => () => void } {
   const read = (): boolean => {
@@ -51,7 +34,7 @@ function accountLauncherPresence(slots: Context['slots']): { getSnapshot: () => 
   }
 }
 
-export function registerSettingsPage(ctx: Context): void {
+export function registerSettingsPage(ctx: Context, shortcutCatalog?: ShortcutCatalogSource): void {
   const t = ctx.locale.bind(NS)
   const declared = (name: string): boolean => {
     const spec = ctx.slots.spec as ((this: unknown, key: string) => unknown) | undefined
@@ -61,7 +44,7 @@ export function registerSettingsPage(ctx: Context): void {
   // Host 和 Client 共享服务名；当前入口读取的是浏览器连接外观。
   const service: unknown = ctx.get('connection')
   const connection = service as ConnectionHandle
-  const shortcuts = liveShortcutCatalog(ctx)
+  const shortcuts = shortcutCatalog ?? liveShortcutCatalog(ctx)
   const source = (name: 'settings.section' | 'settings.onboarding' | 'settings.general.item'): SettingsSource<SettingsRow> => {
     let revision = ''
     let cached: readonly SettingsRow[] = []

@@ -12,13 +12,14 @@ const WORKSPACE_GROUP_ERROR_KEYS: Readonly<Record<WorkspaceGroupErrorCode, Codex
   'order-anchor-missing': 'errors.orderAnchorMissing',
 }
 
-export type HostAction = 'rename' | 'delete' | 'archive' | 'fork'
+export type HostAction = 'rename' | 'delete' | 'archive' | 'fork' | 'pin'
 
 const HOST_ACTION_DEFAULT_KEYS: Readonly<Record<HostAction, CodexUiKey>> = {
   rename: 'sessions.renameFailed',
   delete: 'sessions.deleteFailed',
   archive: 'sessions.archiveFailed',
   fork: 'sessions.forkFailed',
+  pin: 'sessions.pinFailed',
 }
 
 const HOST_ACTION_ERROR_KEYS: Readonly<Record<HostAction, Readonly<Record<string, CodexUiKey>>>> = {
@@ -32,6 +33,7 @@ const HOST_ACTION_ERROR_KEYS: Readonly<Record<HostAction, Readonly<Record<string
     'session/not-found': 'sessions.unknown',
     'session/fork-unavailable': 'sessions.forkUnavailable',
   },
+  pin: { 'session/not-found': 'sessions.unknown' },
 }
 
 const INSTALL_ERROR_KEYS: readonly [RegExp, CodexUiKey][] = [

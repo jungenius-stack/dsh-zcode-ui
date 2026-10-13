@@ -87,7 +87,7 @@
 | 10 | 菜单单例化 | 列表级单例、打开才挂载 | 每行挂 `Menu` 组件 | 已评估（不做）：宿主 Menu 关闭态零渲染（`open && MenuSurface`）、行菜单无每行 RPC——收益趋零，见 KNOWN-ISSUES §18.2 |
 | 11 | 触屏操作常驻 | `(hover:none)` 常驻 | 集合头有常驻，会话行无 | ✅ 1.7.0（coarse 下操作与 ⋯ 常驻、时间让位、几何断言） |
 | 12 | 标题溢出 | mask 渐隐（无省略号） | ellipsis（有断言锁死） | —（有意偏差，登记） |
-| 13 | 会话置顶 | Pin 前置槽 + hover 变按钮 | **无此能力**（断言明确禁止） | —（有意偏差：DSH 无会话置顶模型） |
+| 13 | 会话置顶 | Pin 前置槽 + hover 变按钮 | **已接入宿主置顶**（行首图钉 + 菜单置顶/取消 + 置顶排前） | ✅ 已实施（1.9.0：宿主 0.2.0-rc.2 已有 pinSession/pinnedSessionIds，上游"移除"针对的是本地自维护模型，见 §3） |
 | 14 | 拖拽 | 拖到 workbench | ✅ 有（项目内排序 + 跨项目移动） | — |
 | 15 | 键盘总表 | Cmd+K/B/F/N/… | 官方命令经宿主 `ctx.shortcuts` 分发（侧栏 bridge 已接）；**上/下一个会话原为空白，1.8.0 已补** | ✅ 已实施（1.8.0，详见 §3；命令中心见 §5 结论） |
 
@@ -132,10 +132,50 @@
 4. 服务就绪用 `ctx.inject(['shortcuts'])` 等待（不放进静态 inject：旧宿主无此服务时不得整体拒绝加载）；注册前查 catalog，宿主将来原生支持同名命令时让位。
 5. 验证：`tests/session-order.spec.ts`（12 用例：ZCode 语义逐条 + 全序组装）+ `tests/session-navigation-shortcuts.spec.ts`（7 用例：注册面/键位五端/resolve 语义/让位/服务缺失/卸载清理）+ 接线断言文件。
 
+### 1.9.0（2026-10-14）——会话置顶接入 + 菜单键帽 + composer 域调研
+
+**一、会话置顶（#13 翻案并实施）**：宿主 0.2.0-rc.2 已有一等置顶模型——
+`ctx.workspaces.pinSession/unpinSession` + 快照 `pinnedSessionIds`（注册表全局、最近置顶在前），
+官方 ui-workspace 有全套 UI（菜单 PinSessionMenuItem order 100、行按钮 PinSessionRowButton、
+失败 toast）。上游 0.2.102 的「移除会话置顶」针对的是**本地自维护、与项目置顶并存的第二套模型**，
+不是宿主 registry 级置顶；本批接入的是后者，因此不违背该决策（本插件此前被移除的
+`QuickPinIcon`/本地存储/自绘图标仍然禁止，且断言反向锁死）。
+
+1. 渲染对齐 ZCode TaskListItem：行首 16px 槽放同一枚图钉——**常显**（已置顶且槽空闲）＋
+   **悬停/聚焦时接管**（未读点与转圈让位，ZCode 的 hidden 语义）；触屏与 ZCode 相同不接管
+   （hover:none 只让右侧操作常驻，行首留给状态指示）。
+2. 菜单：管理组最前加「置顶/取消置顶」，顺序 pin → rename → archive → unread（与 ZCode
+   TaskActionMenuContent 一致）；只在宿主提供 pin 能力时出现（频道/定时树不呈现）。
+3. 排序：置顶会话排在所属账户最前（最近置顶在前，`pinnedFirstSessionIds` 一处实现，侧栏树与
+   快捷键全序共用）；快捷键顺序同步。
+4. 取舍（登记 §20）：取消置顶回到原位（官方有本地手动顺序覆盖层，我们保持宿主单一顺序源）；
+   flat/top 行不参与悬停接管（无固定行首槽，避免 padding 跳动），置顶走菜单与常显态；
+   触屏、旧宿主缺省=整条呈现链缺席。
+5. 验证：集成测试新增 3 用例（按钮状态与 API 调用 / 旧宿主降级 / 置顶排序）+ 菜单与全序
+   用例各 1；断言从「禁止置顶」改写为「宿主 API 唯一来源」政策。
+
+**二、菜单键帽后缀与 aria-keyshortcuts**：宿主 `MenuItem.shortcut = {keys, aria}` 原生支持
+键帽显示（官方菜单直传 catalog）。新增共享目录桥 `shortcut-catalog.ts`（`ctx.inject` 等待 +
+`useShortcutLookup`）：行菜单的 rename/archive/fork 显示生效键帽；侧栏搜索/新建按钮（宽/窄
+两种形态）与项目行「新建会话」按钮标注 `aria-keyshortcuts`。键位一律以宿主目录为真源，
+不在本地硬编码。
+
+**三、composer 域键位调研结论（无代码改动）**：DSH 输入框（官方 ui-conversation 的
+Lexical keymap，CRITICAL 优先级）已拥有 composer 域全部语义：Enter 提交 / Shift+Enter 换行 /
+Ctrl·Cmd+Enter 加速投递 / 菜单仲裁（箭头·Escape·Enter）/ IME 组合守卫（isComposing·keyCode 229·
+Safari 组合后窗口）/ Escape 分层与停止快捷键（`installStopShortcut` 走宿主 `Shortcuts` 服务）——
+与 ZCode 的 composer 契约一致。`ctx.shortcuts.register` 面向 window 分发，**没有 composer 域
+接入面**；插件不应自建第二套输入键位（与「不自建命令面板」同一原则）。ZCode 的工具条动作
+（Ctrl+T 档位循环等）在 DSH 由输入工具条菜单承接（本插件 composer-tool-menus 已对接）。
+登记为「无接入点，维持现状」。
+
 ## 4. 待办批次（候选，按价值排序）
 
-1. **菜单快捷键后缀**（新发现）：宿主 `MenuItem.shortcut = {keys, aria}` 原生支持显示键帽（官方菜单已在用 catalog 直传）；本插件菜单可把 `session.rename/archive/fork` 的生效键位显示出来。搜索按钮同理可加 `aria-keyshortcuts`（catalog 已含 `aria`）。
-2. **会话置顶复核**（#13 复查线索）：宿主 workspace 控制器已有 `pinnedSessionIds`（"Pin a Session ahead of unpinned Sessions"，0.2.0-rc.2 起）——此前登记的「DSH 无会话置顶模型」需要重新核对能力面，若宿主已就绪可翻案。
-3. **Composer 域键位**：ZCode 的 `Ctrl+T`（思考档位循环）等在 DSH 由 composer 自己管理，接入前先摸清宿主输入框的键位边界（`stop-shortcut`/`keymap` 模块）。
+1. **宿主目录驱动的更多提示**：`aria-keyshortcuts` 已接入搜索/新建；后续可评估把「刷新/停止」
+   等宿主命令提示接到对应按钮（需逐项对照宿主目录的 id 稳定性）。
+2. **`session.search` 快捷键在搜索对话框内的呈现**：ZCode 搜索框带快捷键提示行；接入前先确认
+   宿主是否有对应组件（否则自绘会引入第二套键帽样式）。
+3. **会话置顶的官方顺序覆盖层评估**：官方 pin 后本地 `sessionOrderByAccount` 覆盖层使 unpin 不回位；
+   若未来确认这是用户可感知的差异，再评估引入（当前维持宿主单一顺序源）。
 
-审计表各项已全部处置：✅ 已实施（#1-#7、#9、#11、#15）或已登记（#8/#12/#13/#14 有意偏差，#10 评估不做）。
+审计表各项已全部处置：✅ 已实施（#1-#7、#9、#11、#13、#15）或已登记（#8/#12/#14 有意偏差，#10 评估不做）。

@@ -17,7 +17,12 @@ assert.doesNotMatch(tree, /function PinIcon\(\)\s*\{\s*return <svg/, '项目置�
 assert.match(tree, /function QuickArchiveIcon\(\)[^]*ZIconArchive[^]*size=\{16\}[^]*strokeWidth=\{1\.5\}/, '悬浮归档图标必须使用 16px、1.5px 线宽')
 assert.match(tree, /dcu-wb-quick-actions[\s\S]*?<QuickArchiveIcon \/>/, '共用会话行的悬浮归档操作必须使用独立的 Lucide 描边图标')
 assert.match(tree, /id: 'archive'[\s\S]*?ZIconArchive size=\{16\}/, '菜单归档图标必须继续使用标准 16px 尺寸')
-assert.doesNotMatch(tree, /QuickPinIcon|\bonPin\b|pinned: boolean|id: 'pin'|sessions\.(?:pin|unpin|pinned)/, '共用会话行与菜单必须彻底移除置顶能力')
+// 2026-10-14：会话置顶接入宿主模型（workspaces.pinSession / pinnedSessionIds）。
+// 上游 0.2.102 移除的是「本地自维护、与项目置顶并存的第二套置顶」；宿主 registry 级
+// 置顶不是那一套——状态唯一来自宿主快照，本地存储与自绘图标仍然禁止。
+assert.doesNotMatch(tree, /QuickPinIcon|SESSION_PINS_STORAGE_KEY|setPinnedSessionIds/, '会话置顶不得回到本地自维护模型（宿主 API 之外不得有第二份状态）')
+assert.match(tree, /export function SessionPinButton[^]*<PinIcon \/>/, '行首置顶按钮必须复用统一图钉图标（不得自绘）')
+assert.match(tree, /id: 'pin', label: t\(options\.pinned \? 'sessions\.unpin' : 'sessions\.pin'\)/, '共用菜单的置顶项必须随状态给出置顶/取消置顶文案')
 assert.match(tree, /import \{[^}]*ZIconEye[^}]*ZIconEyeOff[^}]*\} from '\.\/zcode-icons\.tsx'/, '共用菜单必须经统一图标入口取眼睛图标')
 assert.match(tree, /id: 'unread'[\s\S]*options\.unread \? <ZIconEyeOff[^>]*\/> : <ZIconEye[^>]*\/>/, '标记为已读必须使用闭眼图标，标记为未读必须使用睁眼图标')
 assert.match(tree, /id: 'fork'[\s\S]*ZIconBranch/, '共用菜单继续必须有图标')
@@ -26,7 +31,10 @@ assert.match(workspace, /sessionMenuItems\(t, \{[\s\S]*?includePath: true,[\s\S]
 assert.match(channel, /moveSession === undefined \|\| workspaces === undefined \? undefined[\s\S]*?sessionMenuItems\(t, \{ unread, moveTargets, canDelete \}\)/, '频道必须复用共用会话菜单，并在旧宿主缺少移动能力时隐藏项目子菜单')
 assert.match(schedule, /moveSession === undefined \? undefined[\s\S]*?sessionMenuItems\(t, \{ unread, moveTargets, canDelete \}\)/, '定时必须复用共用会话菜单，并在旧宿主缺少移动能力时隐藏项目子菜单')
 for (const source of [workspace, channel, schedule]) {
-  assert.doesNotMatch(source, /pinnedSessionIds|setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin|sessions\.(?:pin|unpin|pinned)/, '三棵会话树都不得维护或展示会话置顶')
+  assert.doesNotMatch(source, /setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin/, '三棵会话树都不得本地维护会话置顶（宿主快照 pinnedSessionIds 是唯一状态源）')
+}
+for (const source of [channel, schedule]) {
+  assert.doesNotMatch(source, /pinned=|onTogglePin|pinSession/, '频道与定时树不得呈现或调用会话置顶（宿主置顶是工作区账户级概念，仅任务树接入）')
 }
 assert.match(channel, /<SessionRow /, '频道必须复用共用会话行')
 assert.match(schedule, /<SessionRow /, '定时必须复用共用会话行')
@@ -134,10 +142,13 @@ assert.match(workspace, /\.dcu-wb-session\{[^}]*padding-left:30px/, '会话标�
 assert.match(workspace, /\.dcu-wb-running\{position:absolute;left:8px;top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '运行指示器占位必须与项目文件夹同一 16×20 格子')
 // 2026-10-13：转圈本体改为 ZCode 原版 LoaderIcon（size-4=16px），不再是自绘 12px 圆环。
 assert.match(workspace, /\.dcu-wb-running svg\{display:block;width:16px;height:16px/, '转圈本体必须是 16px 的 LoaderIcon，居中画在文件夹格子里')
-assert.match(workspace, /\.dcu-wb-session-flat:has\(\.dcu-wb-running,.dcu-wb-unread\),\s*\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{padding-left:30px\}/, '无项目缩进的会话必须为行首状态槽（转圈或未读点）让出与项目标题对齐的位置')
-assert.doesNotMatch(workspace, /\.dcu-wb-session:hover \.dcu-wb-running/, '运行指示器在左侧，悬停快捷操作不得再把它藏起来')
+assert.match(workspace, /\.dcu-wb-session-flat\[data-pinned=true\]:not\(:has\(\.dcu-wb-pending\)\),[^]*?\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{padding-left:30px\}/, '无项目缩进的会话必须为行首槽（置顶常显、转圈或未读点）让出与项目标题对齐的位置')
+assert.match(workspace, /\.dcu-wb-pin\{position:absolute;left:8px;top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '置顶按钮必须占运行转圈同一 16×20 行首格')
+assert.match(workspace, /\.dcu-wb-session\[data-pinned=true\]:not\(:has\(\.dcu-wb-unread\)\):not\(:has\(\.dcu-wb-running\)\):not\(:has\(\.dcu-wb-pending\)\) \.dcu-wb-pin\{display:grid\}/, '已置顶且行首槽空闲时常显图钉（ZCode showPinnedState 语义）')
+assert.match(workspace, /:not\(\.dcu-wb-session-flat\):not\(\.dcu-wb-session-top\):hover \.dcu-wb-pin[^}]*display:grid/, '常规行悬停时置顶按钮接管行首槽（ZCode pinAction 语义）')
+assert.match(workspace, /:hover \.dcu-wb-unread,[^}]*visibility:hidden/, '悬停接管时未读点为置顶按钮让位（ZCode hidden 语义）')
+assert.match(workspace, /:not\(\.dcu-wb-session-flat\):not\(\.dcu-wb-session-top\):hover \.dcu-wb-running/, '转圈让位限定于有固定行首槽的常规行（flat/top 行不参与接管，避免文字跳动）')
 assert.match(workspace, /\.dcu-wb-session:hover \.dcu-wb-pending,[^}]*visibility:hidden/, '悬浮快捷操作出现时必须隐藏右侧待处理与时间，避免重叠')
-assert.doesNotMatch(workspace, /\.dcu-wb-session:hover \.dcu-wb-unread/, '未读点居于行首状态槽，不得再随悬停隐藏（对齐 ZCode 状态槽常显）')
 assert.doesNotMatch(workspace, /:has\(\.dcu-wb-unread\) \.dcu-wb-session-time/, '右侧时间不得再为未读点让位（未读已居行首槽）')
 assert.match(workspace, /completedBackgroundSessionIds\(previous, next, selectedId\)/, '后台会话结束时必须自动标为未读')
 assert.match(sessionManager, /previous\[id\] === true && running !== true && id !== currentSessionId/, '当前打开会话结束时不得自动标未读')
