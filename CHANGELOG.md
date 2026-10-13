@@ -4,6 +4,14 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.2.1 - 2026-10-13
+
+### Changed
+
+- **The "running" indicator rebuilt**: the old version coloured only the top edge (the rotation was almost invisible) and 0.8s is too slow for a 12px icon. It is now a faint full track plus a bright 270° arc — the whole ring at 22%, with the right/bottom/left edges at full strength, gap at the top. Both the rotation direction and "in progress" read at a glance. Animation 0.8s → 0.6s.
+- The stroke stays 2px: Chrome rounds a `1.5px` border down to `1px` (measured at DPR 1 and 2), and 1px is too light on a 12px circle next to 14px session titles. The refinement comes from arc length and track/arc contrast, not stroke weight.
+- Still a pure `transform` animation (compositor), so no added frame cost; under `prefers-reduced-motion` the arc **holds still rather than disappearing** — motion zeroed, information kept.
+
 ## 1.2.0 - 2026-10-13
 
 ### Added

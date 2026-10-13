@@ -4,6 +4,14 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.2.1 - 2026-10-13
+
+### Changed
+
+- **运行中指示器重做**：原版只有顶部一小段有色（旋转几乎看不出来）、0.8s 对 12px 图标太慢。现改为「淡轨道 + 270° 亮弧」：整圈 22% 淡色打底，右/下/左三条边满色成弧，缺口留在正上方——旋转方向和"正在跑"都一眼可辨。动画 0.8s → 0.6s。
+- 描边仍为 2px：实测 Chrome 会把 `1.5px` 这类小数字框取整成 `1px`（DPR 1 与 2 均如此），1px 在 12px 圆上太轻、压不住旁边 14px 的会话标题。提升靠弧长与轨道/弧的明度对比，不靠描边。
+- 仍是纯 `transform` 动画（合成层），不增加帧成本；`prefers-reduced-motion` 下弧**静止但不消失**——动作归零、信息保留。
+
 ## 1.2.0 - 2026-10-13
 
 ### 新增
