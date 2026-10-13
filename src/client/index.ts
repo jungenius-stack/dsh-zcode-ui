@@ -51,6 +51,8 @@ import { HostActionError, type HostAction, UserFacingError } from './user-error.
 import { finishSessionMove, requestSessionMove, sessionMoveErrorKey, SessionMoveRequestError } from './session-move.ts'
 import { hasArchiveSessionDelete } from './archive-session-delete.ts'
 import { installSkin, SKIN_VERSION } from './zcode-skin.ts'
+import { installThemeStyle, syncZCodeTheme } from './zcode-theme.ts'
+import { observeHostAnchors } from './host-anchor-contract.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {
@@ -140,6 +142,12 @@ export function apply(ctx: ClientContext): void {
   // ZCode 皮肤：把 Zai 双色板写进 DSH 的 host 令牌层（--dsw-*），官方区域随之换肤；
   // 插件自有的侧栏/工作区树/设置页布局层由各组件内的 dcu 样式表负责，两层同源。
   ctx.effect(() => installSkin(), 'zcode-ui-for-dsh: skin stylesheet')
+  // 主题层是**应用级**的，不能挂在侧栏组件上：消费 :root 动效令牌的不只有侧栏，
+  // 还有会话区的轮次导航与页签滑块。挂在侧栏上时，侧栏一旦不挂载，那两处会静默失去过渡。
+  ctx.effect(() => installThemeStyle(), 'zcode-ui-for-dsh: theme stylesheet')
+  ctx.effect(() => syncZCodeTheme(), 'zcode-ui-for-dsh: theme mirror')
+  // 上游哈希类名锚点的存在性自检：改名时响亮报警，而不是让界面悄悄少一块。
+  ctx.effect(() => observeHostAnchors(), 'zcode-ui-for-dsh: host anchor sentinel')
   ctx.logger.info('dsh-zcode-ui: ZCode skin v%s installed', SKIN_VERSION)
   const t = ctx.locale.bind(NS)
   ctx.effect(() => observeHeroWidthHandles(t('home.resizeInput')), 'zcode-ui-for-dsh: hero width handles')

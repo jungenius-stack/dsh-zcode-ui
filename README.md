@@ -29,7 +29,9 @@
 
 DSH ZCode UI repaints the DSH Web interface in ZCode's (Zhipu / Zai) visual language: the sidebar, the workspace session tree, the header search, and the composer all adopt ZCode geometry, palette, and iconography — in both light and dark themes.
 
-Nothing else changes. The plugin is a **pure presentation layer**: it does not touch conversations, workspaces, settings, or any data path. Everything still flows through DSH's own `SlotRegistry` slots and `ctx` public services.
+**The skin itself changes nothing else.** Everything it draws flows through DSH's own `SlotRegistry` slots and `ctx` public services, and it never writes conversation records.
+
+One thing worth stating plainly, because the paragraph above used to overstate it: this package is a fork of [`dsh-codex-ui`](https://github.com/MichengAI/dsh-codex-ui) and **also carries upstream's non-visual features** — a dependency panel that can run `pnpm` and rewrite `node_modules`, session moves between workspaces, and "open in file manager". They are inherited rather than written here, and they are what the About page exposes. You can simply not use them, but they do ship in this package. See [Scope and permissions](#scope-and-permissions).
 
 ## What you get
 
@@ -64,10 +66,25 @@ Collapsed rail — icon-only, with tooltips on hover:
 
 This fork keeps upstream's interaction scaffolding and data layer, and adds:
 
-- **The ZCode skin itself** — 174 `--dsw-*` tokens per theme (light and dark) plus 18 structural tokens, 192 unique token names in total. Every token consumed anywhere in `src/` is covered by the maps; the `token-coverage` assertion fails the build if that ever stops being true.
+- **The ZCode skin itself** — 174 `--dsw-*` tokens per theme (light and dark) plus 21 structural tokens, 195 unique token names in total. Every token consumed anywhere in `src/` is covered by the maps; the `token-coverage` assertion fails the build if that ever stops being true.
 - **Theme single-source-of-truth** — the host attribute is the only signal. No `prefers-color-scheme` fallback, which used to split the sidebar and the content area when the host was light but the OS was dark.
 - **Fixes found by looking at the real interface**, not by reading code: session hover card trimmed to the title only, send button rendered in the real primary colour (`--dcu-primary` is now defined at `:root` so the composer — which lives outside `.dcu-root` — can resolve it), a "back to conversation" entry when a global panel is open, self-drawn sidebar separator lines removed, marquee title clipping, footer separation, and shorter empty-state cards.
 - **A verification stack that actually runs on this machine** — see [Verification](#verification). Upstream's browser-based layout scripts had never been executed here before (the Chromium binary was missing), which is how five stale assertions stayed hidden.
+
+## Scope and permissions
+
+A skin should not need a permissions conversation. This one does, because it is a fork and inherited more than visuals. Being explicit is cheaper than being trusted by accident.
+
+| Capability | Reachable from | Touches |
+| --- | --- | --- |
+| Recolour the UI | always, on install | DSH's `--dsw-*` token layer and this plugin's own stylesheets. No data. |
+| Sidebar / session tree / search | always, on install | Renders through official slots. Reads session and workspace lists; never writes conversation records. |
+| Dependency panel | the About page, on click | Runs `pnpm`, rewrites `node_modules` and `pnpm-workspace.yaml` in the active workspace. |
+| Move session to workspace | the session context menu | Rewrites that session's artifact files. |
+| Open in file manager | file path menus | Opens the OS file manager. Read-only. |
+| Five REST endpoints | the plugin's own UI only | Serves the four features above; authenticated per session. |
+
+Everything in the lower four rows is **inherited from [`dsh-codex-ui`](https://github.com/MichengAI/dsh-codex-ui)** and is also exposed on the About page inside DSH. If you only want the skin, nothing here runs unless you click it.
 
 ## Requirements
 
@@ -144,7 +161,9 @@ Once DSH Web is reloaded, the left navigation is rendered by this plugin.
 Check that the profile you installed into is the one actually running DSH Web, then restart DSH Web and hard-refresh the browser (`Ctrl+Shift+R`). `dsh --profile web --dump-config` should list `zcode-ui`. If that profile's `cordis.patch.yml` still carries `disabled: true` for `ui-sidebar` or `ui-settings-general`, delete those rows and reload.
 
 **Does it touch my conversations, workspaces, or files?**
-No. It is presentation-only: it recolours the interface through DSH's `--dsw-*` token layer and renders the sidebar through official slots and public services. It never writes conversation records, and removing a project from the sidebar does not delete its folder.
+Not by itself. The skin only recolours the interface through DSH's `--dsw-*` token layer and renders the sidebar through official slots and public services. It never writes conversation records, and removing a project from the sidebar does not delete its folder.
+
+Two inherited features *do* touch files, but only when you explicitly use them: the dependency panel runs `pnpm` and can rewrite `node_modules`, and "move session to workspace" rewrites that session's artifacts. See [Scope and permissions](#scope-and-permissions).
 
 **Can I use it next to other DSH plugins?**
 Yes. It coexists with the other plugins in your profile. Note that four interface issues reported from real use turned out to belong to the cost-meter and context-pilot plugins rather than this one — they are documented in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).

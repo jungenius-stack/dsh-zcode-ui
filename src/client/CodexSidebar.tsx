@@ -7,7 +7,6 @@ import {
   ZIconBack, ZIconCollapse, ZIconChevronRight, ZIconConnectors, ZIconExperts, ZIconExtensions,
   ZIconNewTask, ZIconPlugins, ZIconSchedule, ZIconSearch, ZIconSkills, ZIconAssistant,
 } from './zcode-icons.tsx'
-import { ZCODE_THEME_STYLE, syncZCodeTheme } from './zcode-theme.ts'
 import { auditForeignFooterContent } from './foreign-content-contract.ts'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
@@ -285,7 +284,6 @@ export function CodexSidebar({ workspaceShortcuts, navigationHistory, globalPane
   const panelActive = activePanelId !== null && activePanelId !== ''
   const panelButtons = (wide: boolean) => selectPanel === undefined ? null : <GlobalPanelButtons panels={topPanels} activeId={activePanelId} wide={wide} selectPanel={selectPanel} renderIcon={(id, active) => renderSlot('sidebar.panellist', { size: 16, active }, { only: id })} />
   const compact = collapsed || width < 80
-  useEffect(() => syncZCodeTheme(), [])
   // 外来内容契约哨兵：页脚出现 cm-* 元素但契约锚点缺失时响亮报警，见 foreign-content-contract.ts。
   useEffect(() => {
     const footer = footRef.current
@@ -452,7 +450,6 @@ export function CodexSidebar({ workspaceShortcuts, navigationHistory, globalPane
 
   return <aside className={`dcu-root${visualCompact ? ' dcu-compact' : ''}${collapsing ? ' dcu-collapsing' : ''}`} aria-label={t('sidebar.label')}>
     <style>{stylesheet}</style>
-    <style>{ZCODE_THEME_STYLE}</style>
     {navigationHistory && <DesktopNavigationControls history={navigationHistory} t={t} />}
     <style>{NEW_CONVERSATION_STYLE}</style>
     <style>{COMPOSER_TOOL_MENU_STYLE}</style>

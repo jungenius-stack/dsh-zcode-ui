@@ -64,6 +64,35 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
 `
 
 /**
+ * 把主题样式表挂到 `document.head`。
+ *
+ * 此前这份样式表由 `CodexSidebar.tsx` 用 `<style>{ZCODE_THEME_STYLE}</style>` 注入，
+ * 于是**主题层的生命周期被侧栏组件绑架**：侧栏不挂载时，`:root` 上的动效令牌
+ * （`--dcu-motion-*`）与 `--dcu-primary` 都不存在，而消费它们的并不只有侧栏——
+ * `TurnNavigator` 与 `conversation-header` 在会话区，`settings-page` 是 portal 到 body 的。
+ * 那两处会静默退化成"没有过渡"，且没有任何报错。
+ *
+ * 主题是**应用级**的东西，应当与 `installSkin()` 同层注册（见 `index.ts` 的 `ctx.effect`）。
+ * 用标记属性保证幂等：重复调用不会插入第二份样式表。
+ *
+ * @returns dispose 函数（移除本插件插入的那份样式表）。
+ */
+export function installThemeStyle(): () => void {
+  if (typeof document === 'undefined') return () => {}
+  const TAG_ID = 'dsh-zcode-ui-theme'
+  let tag = document.querySelector<HTMLStyleElement>(`style[data-plugin-css="${TAG_ID}"]`)
+  if (tag === null) {
+    tag = document.createElement('style')
+    tag.setAttribute('data-plugin-css', TAG_ID)
+    tag.textContent = ZCODE_THEME_STYLE
+    document.head.appendChild(tag)
+  }
+  return () => {
+    tag?.remove()
+  }
+}
+
+/**
  * 把宿主暗色属性镜像为 ZCode 的 theme-zai-* class。
  * 返回 dispose；宿主用 MutationObserver 监听 body 属性。
  * 宿主属性是已解析主题的唯一真源（宿主自身处于 system 档时也由宿主解析后再落属性），

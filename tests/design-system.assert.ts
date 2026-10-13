@@ -128,3 +128,50 @@ assert.match(
   /button\[class\$=_primary\]\{[^}]*transition:background-color var\(--dcu-motion-feedback-duration\)[^}]*transform var\(--dcu-motion-press-duration\)/,
   '发送键的底色与按压必须分别取反馈档与按压档令牌',
 )
+
+// ── 8. 宿主锚点契约：登记全部、自检可确定的那部分 ─────────────────────────────
+// 上游哈希类名改了不会报错，界面只是悄悄少一块（详见 docs/ZCODE-DESIGN.md §12）。
+// 这里强制「源码里出现的每个锚点都必须登记」——新增锚点的人必须显式回答一次
+// 「它能不能自检」，而不是默默加一个没人盯着的选择器。
+const anchorContract = read('host-anchor-contract.ts')
+const bareName = (selector: string): string | undefined => selector.match(/(_[A-Za-z][A-Za-z0-9]*)/)?.[1]
+
+const ANCHOR_IN_SOURCE = /\[class[*^$|]?=?("|')?(_[A-Za-z][A-Za-z0-9]*)/g
+const anchorsInSource = new Set<string>()
+for (const { name, text } of clientFiles) {
+  if (name === 'host-anchor-contract.ts') continue
+  for (const match of text.matchAll(ANCHOR_IN_SOURCE)) anchorsInSource.add(match[2])
+}
+
+const checkedAnchors = new Set(
+  [...anchorContract.matchAll(/'(?=\[class)([^']+)'/g)].map(match => bareName(match[1])).filter((v): v is string => v !== undefined),
+)
+const uncheckedAnchors = new Set(
+  [...anchorContract.matchAll(/\{ anchor: '(_[A-Za-z][A-Za-z0-9]*)'/g)].map(match => match[1]),
+)
+
+assert.ok(checkedAnchors.size >= 4, `运行时自检的锚点太少（${checkedAnchors.size} 个），契约形同虚设`)
+assert.ok(uncheckedAnchors.size >= 4, `未自检锚点清单应有登记（当前 ${uncheckedAnchors.size} 个）`)
+
+const unregistered = [...anchorsInSource].filter(anchor => !checkedAnchors.has(anchor) && !uncheckedAnchors.has(anchor)).sort()
+assert.deepEqual(
+  unregistered,
+  [],
+  `源码里出现了未登记的宿主锚点：${unregistered.join(', ')}。`
+  + ' 请加入 HOST_ANCHOR_GROUPS（前置条件可确定、要自检）或 UNCHECKED_HOST_ANCHORS（前置条件不确定、仅登记）',
+)
+
+// 清单里登记了但源码已不再使用的锚点（改名或删除后的残留），提示清理。
+const staleInventory = [...checkedAnchors, ...uncheckedAnchors].filter(anchor => !anchorsInSource.has(anchor)).sort()
+assert.deepEqual(staleInventory, [], `锚点清单里有源码已不再使用的条目：${staleInventory.join(', ')}`)
+
+// 哨兵必须真的接在应用层（挂在组件上会随组件卸载而失效）。
+const clientIndex = read('index.ts')
+assert.match(clientIndex, /observeHostAnchors\(\)/, '宿主锚点哨兵必须以应用级 effect 注册在 index.ts')
+assert.match(clientIndex, /installThemeStyle\(\)/, '主题样式表必须由 index.ts 注入——挂在侧栏组件上会让会话区的动效令牌随侧栏卸载而消失')
+assert.match(clientIndex, /syncZCodeTheme\(\)/, '主题镜像必须以应用级 effect 注册在 index.ts')
+assert.doesNotMatch(
+  sidebar,
+  /syncZCodeTheme|ZCODE_THEME_STYLE/,
+  '侧栏不得再承担主题职责（它只是主题的消费者之一，会话区的轮次导航与页签滑块同样依赖 :root 令牌）',
+)

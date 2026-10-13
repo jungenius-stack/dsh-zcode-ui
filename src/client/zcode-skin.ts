@@ -46,10 +46,16 @@ const DARK_SELECTOR = ':root:root body[data-ds-dark-theme]'
 /**
  * 令牌之外的少量结构修正。
  *
- * 刻意只做一件事：`color-scheme`。原因是本皮肤走**令牌优先**策略，
+ * 刻意只做一件事：`color-scheme`。原因是**本皮肤层**走令牌优先策略，
  * 不针对 DSH 的类名写规则——DSH 的组件样式是 CSS Module 哈希名
  * （形如 `._8HJdBW_group`），任何按类名写的覆盖都会在下次上游构建时
  * 静默失效，属于典型的「看着能用、升级即坏」。
+ *
+ * **边界说明（避免误读）**：这条纪律约束的是**皮肤层**（本文件）。插件的
+ * **宿主集成层**无法回避哈希类名——要把新建会话页的排版、输入壳的发送键、
+ * 工作区行接上去，只能按上游的块名定位（`[class*="_composerHero"]` 等 18 处）。
+ * 那些锚点由 `host-anchor-contract.ts` 做存在性自检，缺失即报警；
+ * 换句话说：**皮肤层不碰哈希类名，集成层必须碰，但碰了就得有人盯着。**
  *
  * 同样刻意**不**覆盖 `:focus-visible` 的 outline：DSH 用
  * `html[data-input-modality=pointer] body :focus-visible{outline-color:#0000}`

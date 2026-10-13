@@ -8,6 +8,11 @@ Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://g
 
 ### Added
 
+- `src/client/host-anchor-contract.ts` — every upstream CSS-Module hash-class anchor this plugin depends on (18 of them, across 6 files) is now registered; the six whose preconditions are knowable are checked at runtime and warn loudly if they stop resolving. A renamed upstream class used to mean the interface quietly lost a piece with nothing in the console.
+- `installThemeStyle()` — the theme stylesheet is now injected at application level.
+- The gate now reports **"undecided"** instead of "passed" when a step exits non-zero but its output contains no recognised failure lines.
+- README: a **Scope and permissions** section — six rows listing what this package can reach and what it touches.
+
 - **Display tiers in the type scale.** `--dsw-font-size-title` (20px), `--dsw-font-size-headline` (22px) and `--dsw-font-size-display` (34px), all derived from the base with `calc()`. These three values previously lived as registered exceptions in `docs/ZCODE-DESIGN.md` §3.2; adopting them verbatim means the migration changes nothing visually — it turns "we broke the rule here" into "the rule covers this".
 - **Motion tokens by intent.** `feedback` 120ms, `move` 180ms, `enter` 160ms, `exit` 120ms, `press` 90ms. The previous uniform `180ms ease-out` was consistent but not *designed* — appearing, moving and disappearing at one speed reads as "no motion design". None of the new curves overshoot, so ZCode's "avoid springy animations" still holds. Reduced-motion is now a single token override rather than per-element `transition:none` rules.
 - `src/client/foreign-content-contract.ts` — a three-rule contract for third-party UI inside the sidebar (no text darker than `secondary`, no opaque card surface, must degrade in the collapsed rail), plus a runtime sentinel that warns loudly when the contract's anchor class names disappear.
@@ -15,6 +20,10 @@ Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://g
 - `scripts/verify-a11y-and-overflow.mjs` — contrast (WCAG 2.1 AA, both themes), suggestion-card truncation, and collapsed-rail overflow as automated checks. Wired into `gate` and `test:layout`, which now runs 12 browser scripts instead of 11.
 
 ### Changed
+
+- **The theme layer is no longer bound to the sidebar component.** `ZCODE_THEME_STYLE` and `syncZCodeTheme()` used to live on `CodexSidebar`; they are now application-level effects in `index.ts`. The sidebar is one consumer of `:root` motion tokens, not the only one — the conversation-area turn navigator and tab slider depend on them too, and would have silently lost their transitions if the sidebar ever failed to mount.
+- README no longer claims to be a "pure presentation layer". The **skin** is presentation-only, but the **package** also carries upstream's dependency installer (runs `pnpm`, can rewrite `node_modules`), session moves, and open-in-file-manager. That is now stated up front rather than left for the reader to infer from the word "skin".
+- Token counts corrected: 21 structural tokens, 195 unique names (was 18 / 192).
 
 - **`11px` normalised to `12px`** in four places. `11px` was an orphan between `xs` (10px) and `sm` (12px); adding a tier for it would have legitimised the orphan. This is a deliberate, small visual change.
 - Collection group header weight `600` → `400`, matching the sidebar's established convention (its titles and labels are deliberately 400 and assertions enforce that). Grouping is now carried by the disclosure caret, indentation and luminance.
@@ -31,6 +40,8 @@ Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://g
 - Log prefixes unified to `[dsh-zcode-ui]`.
 
 ### Fixed
+
+- **Two false-green paths in `scripts/gate.mjs`.** Both the assertion suite and vitest were treated as passing whenever no failure lines could be parsed from the output. A crash (EPERM, OOM, a changed summary format) exits non-zero with no parsable failures, so the gate printed "vitest: all passed" while vitest had never actually run. Both steps now have an explicit *undecided* branch that blocks the gate.
 
 - Un-sanitised screenshots are gone from the entire git history. They had only been deleted from the working tree, so they stayed downloadable by commit SHA — including through commit numbers quoted in the docs, which are now referenced by description instead.
 

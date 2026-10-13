@@ -66,6 +66,9 @@ const assertions = run(['tests/run-assertions.mjs'], 'run-assertions')
 const failedAsserts = (/已失败：(.+)/.exec(assertions.output)?.[1] ?? '')
   .split('、').map(name => name.trim()).filter(Boolean)
 const newAssertFailures = failedAsserts.filter(name => !KNOWN_RED_ASSERT.includes(name))
+// 无法判定：进程非零退出，但没能从输出里解析出失败清单（脚本本身崩了、被信号杀掉、或汇总格式变了）。
+// 此时 failedAsserts 为空会被读成「0 项失败」——必须显式拦下，否则崩溃会被当成通过。
+const assertUndecided = !assertions.ok && failedAsserts.length === 0
 const assertedGreen = KNOWN_RED_ASSERT.filter(name => !failedAsserts.includes(name))
 
 console.log('\n== 3/4 vitest（tests/**/*.spec.ts）==')
@@ -75,6 +78,9 @@ const vitestEnvBroken = /Cannot find native binding|different Team IDs/.test(vit
 const vitestFailedFiles = [...new Set([...vitest.output.matchAll(/^\s*FAIL\s+(tests\/\S+\.spec\.ts)/gm)].map(match => match[1]))]
 const newVitestFailures = vitestFailedFiles.filter(file => !KNOWN_RED_VITEST_FILES.includes(file))
 const vitestGreen = KNOWN_RED_VITEST_FILES.filter(file => !vitestFailedFiles.includes(file))
+// 同上一处：EPERM / OOM / 配置报错等**未列入白名单**的启动崩溃，进程非零退出但解析不到 FAIL 文件，
+// 原先会直接落到「全部通过」分支（实测过：沙箱不让写 node_modules 时触发 EPERM，汇总行照打「全部通过」）。
+const vitestUndecided = !vitest.ok && !vitestEnvBroken && vitestFailedFiles.length === 0
 
 console.log('\n== 4/4 真浏览器布局检查 ==')
 const redLayout = new Set(KNOWN_RED_LAYOUT.map(entry => entry.script))
@@ -91,16 +97,20 @@ for (const file of vitestGreen) console.log(`      ↑ 已转绿：请从 script
 
 console.log('\n== 汇总 ==')
 console.log(`类型检查：${typecheck.ok ? '通过' : '失败'}`)
-console.log(`断言套件：已登记失败 ${failedAsserts.length} 项，新增失败 ${newAssertFailures.length} 项`)
+console.log(assertUndecided
+  ? '断言套件：**无法判定**——进程非零退出但没有解析到失败清单，请手动跑 `node tests/run-assertions.mjs` 看真实原因'
+  : `断言套件：已登记失败 ${failedAsserts.length} 项，新增失败 ${newAssertFailures.length} 项`)
 console.log(vitestEnvBroken
   ? 'vitest：**环境错误**——当前 Node 加载不了 rolldown 原生绑定，见 docs/KNOWN-ISSUES.md §5（不要把 DSH 自带 Node 24 放到 PATH 前面）'
-  : vitestFailedFiles.length === 0
-    ? 'vitest：全部通过'
-    : `vitest：${vitestFailedFiles.length} 个文件失败（已登记 ${vitestFailedFiles.filter(file => KNOWN_RED_VITEST_FILES.includes(file)).length} 个）/ 新增 ${newVitestFailures.length} 个`)
+  : vitestUndecided
+    ? 'vitest：**无法判定**——进程非零退出但没有解析到失败文件，请手动跑 `npm run test:unit` 看真实原因'
+    : vitestFailedFiles.length === 0
+      ? 'vitest：全部通过'
+      : `vitest：${vitestFailedFiles.length} 个文件失败（已登记 ${vitestFailedFiles.filter(file => KNOWN_RED_VITEST_FILES.includes(file)).length} 个）/ 新增 ${newVitestFailures.length} 个`)
 console.log(`布局检查：${layoutPassed} 通过 / ${KNOWN_RED_LAYOUT.length} 已登记红项 / ${newLayoutFailures.length} 新增失败（共 ${LAYOUT.length} 项）`)
 console.log('未纳入本档：三个需要活宿主的脚本（verify-compat-host / verify-settings-exit / verify-session-features-host）—— 它们由重型档 npm run gate:host 覆盖，见 docs/KNOWN-ISSUES.md §10.3')
 
-const blocked = !typecheck.ok || vitestEnvBroken || newAssertFailures.length > 0
+const blocked = !typecheck.ok || vitestEnvBroken || assertUndecided || vitestUndecided || newAssertFailures.length > 0
   || newVitestFailures.length > 0 || newLayoutFailures.length > 0
 if (blocked) {
   if (newAssertFailures.length > 0) console.log(`\n新增断言失败（门禁拦截）：${newAssertFailures.join('、')}`)
