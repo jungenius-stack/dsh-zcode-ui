@@ -4,6 +4,7 @@ import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import { act, createElement, type ReactNode } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { CodexWorkspaceBrowser } from '../src/client/CodexWorkspaceBrowser.tsx'
+import { SESSION_UNREAD_STORAGE_KEY } from '../src/client/session-manager.ts'
 import type { PendingInteractionSnapshot, UseSessionPendingInteraction } from '../src/client/session-pending.ts'
 
 const createRoot = (createRequire(import.meta.url)('react-dom/client') as {
@@ -14,11 +15,11 @@ const t = (key: string): string => key
 const EMPTY_PENDING_INTERACTIONS: PendingInteractionSnapshot = new Map()
 const useEmptyPendingInteractions: UseSessionPendingInteraction = selector => selector(EMPTY_PENDING_INTERACTIONS)
 
-function createSession(id: string, displayTitle: string): SessionSummary {
+function createSession(id: string, displayTitle: string, running = false): SessionSummary {
   return {
     id: id as SessionId,
     displayTitle,
-    running: false,
+    running,
     blank: false,
     updatedAt: Date.parse('2026-09-01T00:00:00.000Z'),
     retainedBy: {},
@@ -31,9 +32,12 @@ async function renderTree(
   displayTitle: string,
   archiveSession: (id: string) => Promise<void>,
   openSession: (id: string) => void,
+  options: { running?: boolean; unread?: boolean } = {},
 ) {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
-  const session = createSession(sessionId, displayTitle)
+  const session = createSession(sessionId, displayTitle, options.running === true)
+  // 未读来自本地存储（组件用 useState 初始化只读一次，必须在挂载前种好）。
+  if (options.unread === true) window.localStorage.setItem(SESSION_UNREAD_STORAGE_KEY, JSON.stringify({ version: 1, ids: [sessionId] }))
   const state: SessionListState = {
     ids: [session.id],
     byId: { [session.id]: session },
@@ -154,6 +158,28 @@ test('会话行可聚焦，Enter 与空格打开会话；行内按钮上的 Ente
     const innerButton = row.querySelector<HTMLElement>('.dcu-wb-quick-actions button')!
     await act(async () => { innerButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
     expect(openSession).toHaveBeenCalledTimes(2)
+  } finally {
+    await view.dispose()
+  }
+})
+
+test('状态槽优先级：未读优先于运行中（同一时刻行首只出一个指示）', async () => {
+  const view = await renderTree('row-slot', '状态槽会话', vi.fn(async () => {}), vi.fn(), { running: true, unread: true })
+  try {
+    const { row } = view
+    expect(row.querySelector('.dcu-wb-unread')).not.toBeNull()
+    expect(row.querySelector('.dcu-wb-running')).toBeNull()
+  } finally {
+    await view.dispose()
+  }
+})
+
+test('仅在运行中（无未读）的会话在行首状态槽画转圈', async () => {
+  const view = await renderTree('row-spin', '运行中会话', vi.fn(async () => {}), vi.fn(), { running: true })
+  try {
+    const { row } = view
+    expect(row.querySelector('.dcu-wb-running')).not.toBeNull()
+    expect(row.querySelector('.dcu-wb-unread')).toBeNull()
   } finally {
     await view.dispose()
   }

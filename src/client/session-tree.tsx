@@ -127,6 +127,9 @@ function pendingLabel(kind: PendingInteractionKind, t: TranslateNS<typeof NS>): 
 }
 
 export function SessionState({ pendingInteraction, unread, running, t }: Pick<SessionRowProps, 'pendingInteraction' | 'unread' | 'running' | 't'>) {
+  // 状态指示互斥渲染、按优先级取最高（对齐 ZCode TaskListItem 的前置状态槽）：
+  // 待处理胶囊（右侧）＞ 未读点（行首 16px 槽）＞ 运行中转圈（行首 16px 槽）。
+  // 未读与运行中共用同一个行首槽位，同一时刻只出现一个。
   if (pendingInteraction !== undefined) {
     const label = pendingLabel(pendingInteraction, t)
     return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction} aria-label={label}><span className="dcu-wb-pending-dot" aria-hidden="true" /><span className="dcu-wb-pending-label">{label}</span></span>

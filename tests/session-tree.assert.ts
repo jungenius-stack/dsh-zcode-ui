@@ -134,9 +134,11 @@ assert.match(workspace, /\.dcu-wb-session\{[^}]*padding-left:30px/, '会话标�
 assert.match(workspace, /\.dcu-wb-running\{position:absolute;left:8px;top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '运行指示器占位必须与项目文件夹同一 16×20 格子')
 // 2026-10-13：转圈本体改为 ZCode 原版 LoaderIcon（size-4=16px），不再是自绘 12px 圆环。
 assert.match(workspace, /\.dcu-wb-running svg\{display:block;width:16px;height:16px/, '转圈本体必须是 16px 的 LoaderIcon，居中画在文件夹格子里')
-assert.match(workspace, /\.dcu-wb-session-flat:has\(\.dcu-wb-running\),\s*\.dcu-wb-session-top:has\(\.dcu-wb-running\)\{padding-left:30px\}/, '无项目缩进的运行会话必须给左侧转圈让出与项目标题对齐的位置')
+assert.match(workspace, /\.dcu-wb-session-flat:has\(\.dcu-wb-running,.dcu-wb-unread\),\s*\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{padding-left:30px\}/, '无项目缩进的会话必须为行首状态槽（转圈或未读点）让出与项目标题对齐的位置')
 assert.doesNotMatch(workspace, /\.dcu-wb-session:hover \.dcu-wb-running/, '运行指示器在左侧，悬停快捷操作不得再把它藏起来')
-assert.match(workspace, /\.dcu-wb-session:hover \.dcu-wb-pending,[^}]*visibility:hidden/, '悬浮快捷操作出现时必须隐藏右侧待处理和未读，避免重叠')
+assert.match(workspace, /\.dcu-wb-session:hover \.dcu-wb-pending,[^}]*visibility:hidden/, '悬浮快捷操作出现时必须隐藏右侧待处理与时间，避免重叠')
+assert.doesNotMatch(workspace, /\.dcu-wb-session:hover \.dcu-wb-unread/, '未读点居于行首状态槽，不得再随悬停隐藏（对齐 ZCode 状态槽常显）')
+assert.doesNotMatch(workspace, /:has\(\.dcu-wb-unread\) \.dcu-wb-session-time/, '右侧时间不得再为未读点让位（未读已居行首槽）')
 assert.match(workspace, /completedBackgroundSessionIds\(previous, next, selectedId\)/, '后台会话结束时必须自动标为未读')
 assert.match(sessionManager, /previous\[id\] === true && running !== true && id !== currentSessionId/, '当前打开会话结束时不得自动标未读')
 

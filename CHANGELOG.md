@@ -4,6 +4,20 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.6.0 - 2026-10-14
+
+### Changed
+
+- **Status slot merged (ZCode's leading slot)**: the unread dot moves from the trailing area (next to the time) into the leading 16px status slot, sharing it with the running spinner — exactly one indicator at a time, priority `pending chip (trailing) > unread dot > running spinner` (the same order as ZCode TaskListItem's error/unread/loading chain; DSH has no task-failure state, so there is no error rung and none is invented). The dot goes 7px → 6px (ZCode's `h-1.5`) and centres in the leading cell (left:13px).
+- **The unread dot is no longer hidden on hover**: now that it lives in the leading slot it no longer overlaps the quick actions, restoring ZCode's "status slot always visible" semantics (the old hiding was a temporary constraint against overlapping the archive button).
+- Layout follow-ups: the trailing time no longer yields to the unread dot (the `:has(.dcu-wb-unread)` right/padding corrections are gone); rows without project indent (flat/top) now reserve the 30px leading slot when an unread dot appears, same as for the spinner.
+
+### Verification
+
+- `tests/session-row-interaction.spec.ts` gains two cases: ① unread + running renders only the unread dot (mutually exclusive priority); ② a running-only session draws the spinner in the leading slot.
+- Assertions updated: the dot's geometry (leading slot, 13px/6px), the flat/top reservation selector, the hover-hide list narrowed (the dot must not be hidden any more), and the trailing time no longer yielding.
+- Full gate: typecheck 0 errors / vitest 314 passed / build clean / assertions 35 passed 0 failed / all 14 layout scripts passed.
+
 ## 1.5.0 - 2026-10-13
 
 ### Changed

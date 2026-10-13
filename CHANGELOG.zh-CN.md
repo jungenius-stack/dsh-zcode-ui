@@ -4,6 +4,20 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.6.0 - 2026-10-14
+
+### 变更
+
+- **状态槽合并（对齐 ZCode 前置状态槽）**：未读点从右侧（时间旁）迁入行首 16px 状态槽，与运行中转圈同槽——同一时刻行首只出现一个指示，优先级 `待处理胶囊（右侧）＞ 未读点 ＞ 运行中转圈`（与 ZCode `TaskListItem` 的 error/unread/loading 三元链同序；DSH 无任务失败态，error 档无对应、不虚构）。点径 7px→6px（ZCode `h-1.5` 同径）、居中于行首槽（left:13px）。
+- **未读点不再随悬停隐藏**：迁入行首槽后与右侧快捷操作不再重叠，恢复 ZCode 的「状态槽常显」语义（此前隐藏是为避免与归档按钮重叠的临时约束）。
+- 连带布局：右侧时间不再为未读点让位（去掉 `:has(.dcu-wb-unread)` 的 right/padding 修正）；无项目缩进的会话行（flat/top）出现未读点时同样为行首槽预留 30px。
+
+### 验证
+
+- `tests/session-row-interaction.spec.ts` 新增两用例：① 同时未读+运行中时只出未读点（优先级互斥）；② 仅运行中的会话在行首槽画转圈。
+- 断言更新：未读点几何（行首槽 13px/6px）、flat/top 预留选择器、悬停隐藏清单收窄（未读点不得再被隐藏）、右侧时间不得再为未读让位。
+- 全量门禁：类型 0 错 / vitest 314 过 / 构建通过 / 断言 35 过 0 败 / 布局 14 脚本全过。
+
 ## 1.5.0 - 2026-10-13
 
 ### 变更
