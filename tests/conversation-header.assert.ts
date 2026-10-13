@@ -43,7 +43,7 @@ assert.match(header, /min-height:var\(--dcu-header-height,34px\)[^}]*padding-top
 assert.match(header, /header:has\(\[data-dcu-inline-tabs\]\):after\{display:none;content:none\}/, '紧凑顶栏必须移除宿主分割线')
 assert.doesNotMatch(header, /padding-top:0/, '顶栏控件不得再次贴到窗口上边缘')
 assert.match(header, /header:has\(\[data-dcu-inline-tabs\]\)\{[^}]*border-bottom:0/, '紧凑顶栏必须彻底移除宿主底部分割线')
-assert.match(header, /\[data-dcu-inline-tabs\]\{box-sizing:border-box;[^}]*gap:0[^}]*height:28px[^}]*border:1px[^}]*border-radius:8px/, '方案 1 外框必须是包含边框在内的 28px 分段控件')
+assert.match(header, /\[data-dcu-inline-tabs\]\{box-sizing:border-box;[^}]*gap:0[^}]*height:28px[^}]*border:1px[^}]*border-radius:var\(--dsw-radius-lg\)/, '方案 1 外框必须是包含边框在内的 28px 分段控件')
 assert.match(header, /\[data-dcu-tab-slider\]\{[^}]*height:26px/, '分段滑块必须适配 28px 外框的内部高度')
 assert.match(header, /\[role=tab\]\{[^}]*height:26px[^}]*padding:3px 10px/, '分段页签必须适配 28px 外框的内部高度')
 assert.match(header, /\[role=tab\]\+\[role=tab\]\{border-left:1px/, '分段控件内部必须保留轻量分隔')

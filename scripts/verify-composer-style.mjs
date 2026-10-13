@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
+import { fixtureTokenStyle } from './fixture-tokens.mjs'
 
 const require = createRequire(import.meta.url)
 const host = readFileSync(require.resolve('@deepseek-ai/dsh-client-ui-conversation/client'), 'utf8')
@@ -12,6 +13,9 @@ const skin = readFileSync('src/client/CodexSidebar.tsx', 'utf8').match(/const st
 // 主题层必须一并注入：发送键底色用 var(--dcu-primary)，真实应用里由 zcode-theme 全局注入，
 // 只注入皮肤样式会让该 var() 解析失败（正是 docs/KNOWN-ISSUES.md §8 那个真问题的成因）。
 const theme = readFileSync('src/client/zcode-theme.ts', 'utf8').match(/export const ZCODE_THEME_STYLE = `([\s\S]*?)`/)?.[1]
+// 令牌层同样必须注入：输入壳与搜索弹窗的圆角已改用 var(--dsw-radius-2xl)，而它定义在
+// zcode-tokens.ts（不在主题层）。夹具缺令牌时 var() 解析失败、圆角回退，断言会误报。
+// 这正是 docs/KNOWN-ISSUES.md §6.1「合成页面缺令牌」那一类，统一走共享夹具避免复发。
 assert.ok(css && classes && skin && theme, '宿主输入框锚点或主题样式变化，需要重新核对适配')
 const c = JSON.parse(classes)
 const browser = await chromium.launch({ headless: true })
@@ -22,6 +26,7 @@ try {
     await page.setContent(`<style>*{box-sizing:border-box}body{margin:0;--dsh-chat-content-width:720px;--dsh-composer-text-max-height:240px;--dsw-specific-input-major:#fff;--dsw-alias-bg-base:${dark ? '#181818' : '#fff'};--dsw-alias-bg-layer-2:#242424;--dsw-alias-label-primary:${dark ? '#ddd' : '#262626'};--dsw-alias-label-secondary:#777}</style><main data-conversation-scroll><div class="${c.root}"><div data-composer-card class="${c.card}"><div data-input-scroll class="${c.scroll}"><div class="${c.grow}"><div data-lexical-editor="true" contenteditable="true" class="${c.input}" aria-label="消息"><p><br></p></div><div data-composer-placeholder class="${c.placeholder}">输入消息</div></div></div><div class="${c.row}"><div class="${c.tools}"><button class="${c.add}">+</button><div class="${c.modes}"><button>权限</button></div></div><div class="${c.trailing}"><button class="${c.primary}" aria-label="发送">↑</button></div></div></div></div></main>`)
     await page.addStyleTag({ content: JSON.parse(css) })
     await page.addStyleTag({ content: skin })
+    await page.addStyleTag({ content: fixtureTokenStyle() })
     await page.addStyleTag({ content: theme })
     await page.evaluate(dark => document.body.toggleAttribute('data-ds-dark-theme', dark), dark)
     const measure = () => page.locator('[data-composer-card]').evaluate(el => {
@@ -29,11 +34,14 @@ try {
       const button = el.querySelector('button[aria-label="发送"]'), bs = getComputedStyle(button)
       return { height: b.height, radius: s.borderRadius, shadow: s.boxShadow, background: s.backgroundColor, overflow: document.documentElement.scrollWidth > innerWidth, button: button.getBoundingClientRect().height, transform: bs.transform }
     })
+    // 合成页首帧可能仍在过渡中，读到中间值会偶发失败（实测到过 translateY(-2px) 与 28.0000038）。
+    // 只消除读取竞态，不削弱断言：位移若真的存在，settle 之后照样能测到。
+    await page.waitForTimeout(150)
     const before = await measure()
-    assert.equal(before.height, 92, '空态由 8px 顶部、44px 编辑区、4px 间距、28px 工具栏和 8px 底部自然撑高')
+    assert.ok(Math.abs(before.height - 92) < 0.5, '空态由 8px 顶部、44px 编辑区、4px 间距、28px 工具栏和 8px 底部自然撑高')
     // 2026-10-12 由 Codex 口径（superellipse 25px / 20px）更新为 ZCode 的 16px 圆角（实测）。
     assert.equal(before.radius, '16px', 'ZCode 输入壳圆角为 16px')
-    assert.equal(before.button, 28)
+    assert.ok(Math.abs(before.button - 28) < 0.5, '发送键宽度必须为 28px（rect 浮点值，用容差比较）')
     assert.equal(before.transform, 'none')
     assert.equal(before.overflow, false)
     assert.equal(before.shadow.includes('inset'), dark)

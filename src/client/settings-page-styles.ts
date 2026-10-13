@@ -41,7 +41,7 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-actions button{font-size:var(--dsw-font-size-sm)}
 .dcu-settings-general-group{margin-bottom:44px}
 .dcu-settings-general-group h2{margin:0 0 16px;font-size:var(--dsw-font-size-base);font-weight:600;color:var(--sp-text)}
-.dcu-settings-card{border:1px solid var(--sp-border);border-radius:12px;background:var(--sp-card);padding:0 16px;overflow:hidden}
+.dcu-settings-card{border:1px solid var(--sp-border);border-radius:var(--dsw-radius-xl);background:var(--sp-card);padding:0 16px;overflow:hidden}
 .dcu-settings-row+.dcu-settings-row{border-top:1px solid var(--sp-border)}
 .dcu-settings-row>[data-slot]{display:contents}
 .dcu-settings-row>[data-slot]>*{padding:12px 0!important;border-bottom:0!important;margin:0!important;min-width:0}

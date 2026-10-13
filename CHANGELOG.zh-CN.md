@@ -4,7 +4,35 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
-## 1.1.0 - 2026-10-13
+## 1.2.0 - 2026-10-13
+
+### 新增
+
+- `--dsw-radius-2xl: 16px`（白名单大圆角：主输入壳 / 会话状态浮层 / Toast / 品牌底盘）与 `--dsw-radius-full: 999px`——此前 16px 与胶囊圆角都是字面量。
+- 外来内容契约第 4 条：**数据可视化的语义色允许保留**（且只限于填充本身）。当前实例为计费插件峰值条 `.cm-peak-segment.cm-peak-high` 的 `rgb(255,152,0)`——压成中性等于抹掉「现在是不是峰值」这个信息。
+- 契约与设计文档同步：`foreign-content-contract.ts` 三条 → 四条，`ZCODE-DESIGN.md` §10.2 同步。
+- `tests/design-system.assert.ts` 新增模板串截断守卫（对**抽取结果**校验前中部标记 + 尾标记，只查前中部会漏掉尾部截断）。
+- `KNOWN-ISSUES.md` §13：设计审计结论登记（与代码改动分开）。含明暗撕裂六组实验、破版归属清单 6 项、两条「不得当规范抄」的上游事实、loading/error 态空白、独立复核记录。
+
+### 变更
+
+- **离标度圆角全部收归标度**：`18px / 10px / 9px / 7px / 3px / 1px / 99px` 改为 `var(--dsw-radius-*)`。其中 6 处真的改了像素（工具菜单 18→12、建议卡 10→12、关于页外链 7→8、连接器框 10→12、轮次刻度 1→2、页签滑块 7→6），另 9 处令牌值等于原字面量（零视觉变化）。实机已逐个量过。
+- **`--dsw-radius-panel` 保留并改为 12px**——它**不是**死令牌，而是对**宿主**令牌的覆盖：宿主 `@deepseek-ai/dsh-client-ui-theme` 在 `:root` 定义 `28px`，被 Modal、设置面板、反馈弹窗、浮动面板与 `calc(var(--dsw-radius-panel) - 4px)` 的缩放角消费。删掉它会让这些表面回落到 28px（实机 `getComputedStyle` 已确认）。这是 `--dsw-*` 是**共享命名空间**、不是私有变量的直接证据。
+- **reduced-motion 从「只归零时长」补成「停静止帧」**：时长归零管不到 `infinite` 动画，进度波浪与运行中旋转此前仍在跑。现把波浪停在 28%（保留「进行中」可读性）。
+- 主区工具菜单暗色底 `#292929`（离板灰）→ ZCode 菜单色 `#2b2b2b`；并清掉 4 处「令牌已定义、兜底永不生效」的死兜底。
+- `SKIN_VERSION` 与 `package.json` 对齐（v1.1.0 发漏了内部版本串，HEAD 上停在 1.0.0）。
+
+### 修复
+
+- **圆角断言由「值白名单」改为「棘轮」**：原断言只锁「值 ∈ 允许集」，把 `var(--dsw-radius-full)` 改回 `999px` 照样全绿——假断言。现按「文件:值 → 次数」登记存量，未登记的字面量一律红。反向测试：改回 `999px` 立刻报错。
+- `scripts/verify-composer-style.mjs` 用 `getBoundingClientRect()` 浮点值做严格相等（实测拿到 `28.000003814698`），且首帧可能读到过渡中间值 → 改为容差比较。
+- `scripts/verify-composer-tools.mjs` 的期望值随菜单外观更新（18px→12px、`#292929`→`#2b2b2b`），错误信息说明了判据来源。
+
+### 移除
+
+- **主区嵌入面的容器边界规则（写过并撤回）**：`:root:root [data-slot="main"] iframe{border-radius/border/background}` 经像素比对证明**没有任何可见效果**——有/无圆角的 44×44 角部裁图仅差 50 个像素，且差值是一级抗锯齿（`(254,254,254)` vs `(255,255,255)`），因为裁角露出的父层底色与面板同为近白；且宿主在 iframe 上写行内样式锁死 border/background。结论：皮肤层面不存在有效手段，已连同规则、测试、断言一并撤回，责任方登记为宿主/该插件。
+
+
 
 ### 新增
 

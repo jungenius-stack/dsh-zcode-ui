@@ -29,7 +29,7 @@
 import { renderTokenBlock, ZCODE_DARK, ZCODE_LIGHT, ZCODE_STRUCTURAL } from './zcode-tokens.ts'
 
 /** 皮肤版本；改动令牌口径时递增，便于排查线上残留。 */
-export const SKIN_VERSION = '1.0.0'
+export const SKIN_VERSION = '1.2.0'
 
 /** 注入到 `<html>` 上的标记属性，用于确认皮肤已激活。 */
 export const SKIN_ATTRIBUTE = 'data-dsh-zcode-skin'

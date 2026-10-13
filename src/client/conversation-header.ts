@@ -20,22 +20,22 @@ header:has([data-dcu-inline-tabs]):after{display:none;content:none}
 header:has([data-dcu-inline-tabs]) [class*="titleRow"],header:has([data-dcu-inline-tabs]) [class*="titleCluster"]{display:contents}
 header:has([data-dcu-inline-tabs]) [class*="crumbs"]{order:1;flex:0 1 auto;min-width:0}
 header:has([data-dcu-inline-tabs]) [class*="headerActions"]{order:2;flex:none}
-header [data-dcu-inline-tabs]{box-sizing:border-box;order:3;flex:none;display:flex;align-items:center;gap:0;margin:0 0 0 auto;padding:0;height:28px;position:relative;z-index:1;overflow:hidden;border:1px solid var(--dsw-alias-border-subtle);border-radius:8px;background:var(--dsw-alias-background-secondary)}
+header [data-dcu-inline-tabs]{box-sizing:border-box;order:3;flex:none;display:flex;align-items:center;gap:0;margin:0 0 0 auto;padding:0;height:28px;position:relative;z-index:1;overflow:hidden;border:1px solid var(--dsw-alias-border-subtle);border-radius:var(--dsw-radius-lg);background:var(--dsw-alias-background-secondary)}
 header:has([data-dcu-inline-tabs]) [class*="headerUtilities"]{order:4;flex:none}
 /* 新版角落插槽被 display:contents 摊平后，需要独立排序并撤销嵌套布局的边距补偿。 */
 header:has([data-dcu-inline-tabs]) [data-conversation-header-corner]{order:5;flex:none;margin-left:0;margin-right:0}
-header [data-dcu-tab-slider]{position:absolute;left:0;top:0;height:26px;border-radius:7px;background:color-mix(in srgb,var(--dsw-alias-button-info-fill,#4c8dff) 18%,transparent);pointer-events:none;z-index:0;opacity:0;transform:translateX(0);width:0;transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),width var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),opacity var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+header [data-dcu-tab-slider]{position:absolute;left:0;top:0;height:26px;border-radius:var(--dsw-radius-md);background:color-mix(in srgb,var(--dsw-alias-button-info-fill) 18%,transparent);pointer-events:none;z-index:0;opacity:0;transform:translateX(0);width:0;transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),width var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),opacity var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 /* 顶栏统一使用 34px 控件带：与宿主扩展常用的 top:3px + 28px 图标按钮同心。
    better-sidebar 0.18.0 收起时会把开关组改到 14px（按官方 padding-top:12px 算），
    这里只在紧凑顶栏存在时扣回 3px，不搬 DOM、不跟展开/收起跳动。 */
 body[data-dsh-sidebar-collapsed]:has([data-dcu-inline-tabs]) [data-dsh-toggle-cluster]{top:calc(3px + env(safe-area-inset-top))}
 body[data-dsh-sidebar-collapsed][data-dsh-title-bar-compat]:has([data-dcu-inline-tabs]) [data-dsh-toggle-cluster]{top:calc(var(--dsh-title-bar-strip, 40px) + 3px)}
 header [data-dcu-inline-tabs] [role=tab]{box-sizing:border-box;position:relative;z-index:1;height:26px;padding:3px 10px;margin:0;line-height:20px;color:var(--dsw-alias-label-tertiary);border:0;box-shadow:none;background:transparent;font-size:var(--dsw-font-size-caption);white-space:nowrap}
-header [data-dcu-inline-tabs] [role=tab][aria-selected=true],header [data-dcu-inline-tabs] [role=tab][data-state=active]{color:var(--dsw-alias-button-info-fill,#4c8dff);font-weight:500}
+header [data-dcu-inline-tabs] [role=tab][aria-selected=true],header [data-dcu-inline-tabs] [role=tab][data-state=active]{color:var(--dsw-alias-button-info-fill);font-weight:500}
 header [data-dcu-inline-tabs] [role=tab]+[role=tab]{border-left:1px solid var(--dsw-alias-border-subtle)}
 header [data-dcu-inline-tabs] [role=tab]:after,header [data-dcu-inline-tabs] [role=tab]:before{display:none!important;content:none!important;background:transparent!important;height:0!important}
-header [data-dcu-inline-tabs] [role=tab]:focus-visible{outline:2px solid var(--dsw-alias-button-info-fill,#4c8dff);outline-offset:-2px}
-header [data-dcu-title-folder],header [data-dcu-title-more]{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,currentColor);display:inline-grid;place-items:center;padding:0;cursor:pointer;border-radius:4px}
+header [data-dcu-inline-tabs] [role=tab]:focus-visible{outline:2px solid var(--dsw-alias-button-info-fill);outline-offset:-2px}
+header [data-dcu-title-folder],header [data-dcu-title-more]{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,currentColor);display:inline-grid;place-items:center;padding:0;cursor:pointer;border-radius:var(--dsw-radius-sm)}
 header [data-dcu-title-folder]{width:16px;height:20px}
 header [data-dcu-title-more]{width:20px;height:20px}
 header [data-dcu-title-folder]:hover,header [data-dcu-title-more]:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,currentColor)}

@@ -41,6 +41,9 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
    所有消费方自动跟随。各处残留的 transition:none 块保留（它们同时覆盖未令牌化的宿主元素）。 */
 @media (prefers-reduced-motion:reduce){
   :root{--dcu-motion-feedback-duration:0ms;--dcu-motion-move-duration:0ms;--dcu-motion-enter-duration:0ms;--dcu-motion-exit-duration:0ms;--dcu-motion-press-duration:0ms}
+  /* 时长归零管不到 infinite 动画——波浪与旋转会继续动。按 ZCode 的「停静止帧」处理：
+     动作归零，但保留「进行中」的可读性（进度停在当前进度，而不是变回 0）。 */
+  :root:root .dcu-about-progress-fill[data-wave=true]{animation:none;width:28%}
 }
 /* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。 */
 .dcu-root,.dcu-settings-page,.dcu-home{

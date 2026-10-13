@@ -476,7 +476,17 @@ export const ZCODE_STRUCTURAL: TokenMap = {
   '--dsw-radius-md': '6px',
   '--dsw-radius-lg': '8px',
   '--dsw-radius-xl': '12px',
-  '--dsw-radius-panel': '10px',
+  // ⚠ 这不是自家私有令牌，而是对**宿主**令牌的覆盖：宿主在 :root 定义
+  //   --dsw-radius-panel:28px，被 Modal（对话框）、设置面板、反馈弹窗、浮动面板、
+  //   以及会话区 calc(var(--dsw-radius-panel) - 4px) 的缩放角消费。
+  //   本插件用 :root:root（(0,2,0)）压过宿主 :root（(0,1,0)），删掉这一行 = 上述表面
+  //   全部回落到 28px（也是"宿主圆角命名空间被整体接管"的同一个机制，见 KNOWN-ISSUES）。
+  //   取值 12px（一级容器）而非宿主的 28px：与卡片/控件同一语言，且相对上一版 10px 只 +2px。
+  '--dsw-radius-panel': '12px',
+  // 白名单大圆角（宪章仅允许：主聊天输入壳 / 会话状态浮层 / Toast / 品牌图标底盘）
+  '--dsw-radius-2xl': '16px',
+  // 胶囊：round-full 是「刻意的胶囊或圆形」，不因组件类型获得
+  '--dsw-radius-full': '999px',
 
   // ZCode 阴影阶梯（--dsw-shadow-lv1..3 的 ZCode 等价强度）
   '--dsw-shadow-lv1': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',

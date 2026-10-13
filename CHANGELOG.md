@@ -4,7 +4,35 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
-## 1.1.0 - 2026-10-13
+## 1.2.0 - 2026-10-13
+
+### Added
+
+- `--dsw-radius-2xl: 16px` (whitelisted large radius: main composer shell, session status surface, toast, brand plate) and `--dsw-radius-full: 999px` — 16px and pill radii were previously raw literals.
+- A fourth rule in the foreign-content contract: **data-visualisation semantic colours are allowed**, limited to the fill itself. Current case: the cost meter's `.cm-peak-segment.cm-peak-high` fill (`rgb(255,152,0)`) — neutralising it would erase "is this peak time or not".
+- The contract and design doc move from three rules to four (`foreign-content-contract.ts`, `ZCODE-DESIGN.md` §10.2).
+- A template-literal truncation guard in `tests/design-system.assert.ts` that validates the **extracted result** (head *and* tail markers) — checking only the head misses tail truncation.
+- `KNOWN-ISSUES.md` §13: design-audit conclusions, kept separate from the code changes. Includes the six light/dark-tearing experiments, a six-item breakage attribution list, two upstream facts that must not be copied as spec, the loading/error blanks, and an independent re-verification record.
+
+### Changed
+
+- **Off-scale radii pulled back onto the scale**: `18px / 10px / 9px / 7px / 3px / 1px / 99px` now go through `var(--dsw-radius-*)`. Six of them really changed pixels (tool menu 18→12, suggestion cards 10→12, About links 7→8, connector frame 10→12, turn ticks 1→2, tab slider 7→6); the other nine had a token value identical to the literal (no visual change). Every one was measured on the live interface.
+- **`--dsw-radius-panel` is kept, and set to 12px** — it is *not* a dead token but an **override of a host token**: the host `@deepseek-ai/dsh-client-ui-theme` defines `28px` at `:root`, consumed by Modal, the settings panel, the feedback dialog, floating panels, and `calc(var(--dsw-radius-panel) - 4px)` corners. Deleting it drops those surfaces back to 28px (confirmed via `getComputedStyle`). This is direct evidence that `--dsw-*` is a **shared namespace**, not a private one.
+- **`prefers-reduced-motion` extended from "zero the durations" to "hold the still frame"**: duration zeroing does not stop `infinite` animations, so the progress wave and the running spinner kept moving. The wave now holds at 28% (keeping "in progress" readable).
+- The main-area tool menu's dark background moves from `#292929` (off-palette grey) to ZCode's menu colour `#2b2b2b`; four dead fallbacks removed (token defined, fallback never reachable).
+- `SKIN_VERSION` realigned with `package.json` (v1.1.0 shipped with the internal version string still at 1.0.0).
+
+### Fixed
+
+- **The radius assertion changed from a whitelist to a ratchet**: the old assertion only checked "value ∈ allowed set", so changing `var(--dsw-radius-full)` back to `999px` stayed green — a false assertion. It now registers `file:value → count` and fails on any unregistered literal. Reverse-tested: reverting to `999px` fails immediately.
+- `scripts/verify-composer-style.mjs` compared `getBoundingClientRect()` floats with strict equality (measured `28.000003814698`), and the first frame could read a mid-transition value → now uses tolerance comparison.
+- `scripts/verify-composer-tools.mjs` expectations updated to match the menu's new appearance (18px→12px, `#292929`→`#2b2b2b`), with the rationale stated in the error message.
+
+### Removed
+
+- **The main-area embed container rule (written, then withdrawn)**: `:root:root [data-slot="main"] iframe{border-radius/border/background}` was proven by pixel comparison to have **no visible effect** — a 44×44 corner crop differs by only 50 pixels between having and not having the radius, and that difference is single-level anti-aliasing (`(254,254,254)` vs `(255,255,255)`), because the parent layer revealed by the cut corner is the same near-white as the panel. The host also writes inline styles on the iframe locking border/background. Conclusion: no effective lever exists at the skin layer; rule, test and assertion were withdrawn together, with responsibility registered to the host / that plugin.
+
+
 
 ### Added
 
