@@ -1,6 +1,7 @@
 /** 默认输出独立验收脚本；--run 在无截图的 Chromium 中执行，供本地与 CI 共用。 */
 import { readFileSync } from 'node:fs'
 import ts from 'typescript'
+import { fixtureTokenStyle } from './fixture-tokens.mjs'
 
 const source = readFileSync('src/client/CodexWorkspaceBrowser.tsx', 'utf8')
 const names = new Set(['stylesheet', 'runningStyles', 'typographyStyles', 'collectionLayoutStyles'])
@@ -172,12 +173,9 @@ const verify = async () => {
   }
   return results
 }
-// zcode-tokens.ts 的字号令牌必须一并注入：P1-1 起工作区样式改用 var(--dsw-font-size-*)，
-// 合成页面若缺这些令牌，font-size 会解析失败并回退成继承值——曾据此误报「空状态字体不统一」。
-const tokenSource = readFileSync('src/client/zcode-tokens.ts', 'utf8')
-const tokens = [...tokenSource.matchAll(/'(--dsw-[a-z0-9-]+)':\s*'([^']*)'/g)].map(([, name, value]) => `${name}:${value}`)
-if (tokens.length === 0) throw new Error('未从 zcode-tokens.ts 提取到任何 --dsw-* 令牌')
-const tokenStyles = `:root{${tokens.join(';')}}`
+// 令牌块改由共享模块提供（scripts/fixture-tokens.mjs）：此前每个脚本各抄一份提取逻辑，
+// 新增令牌时总有脚本漏掉，导致断言量到「看起来合理但错误」的值。
+const tokenStyles = fixtureTokenStyle()
 const bootStyles = JSON.stringify(tokenStyles + styles.join('\n') + '\nbody{margin:0;font-family:Arial;background:#ddd}h3{font-size:13px}.dark{--dcu-sidebar-primary:#b9bab9;--dcu-sidebar-secondary:#909191;--dcu-sidebar-tertiary:#707874;--dcu-sidebar-hover:#303432;background:#1d2120;color:#b9bab9}.light{--dcu-sidebar-primary:#303432;--dcu-sidebar-secondary:#606563;--dcu-sidebar-tertiary:#767e7a;--dcu-sidebar-hover:#dfe8e5;background:#eef7f5;color:#303432}.dcu-wb{--dsw-alias-state-business-primary:#69a7ff}')
 const script = `(async()=>{document.head.innerHTML='<meta charset="utf-8">';const style=document.createElement('style');style.textContent=${bootStyles} ;document.head.append(style);${implementation};return (${verify.toString()})();})()`
 const verifyReducedTitle = () => {

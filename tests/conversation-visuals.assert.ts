@@ -91,10 +91,11 @@ assert.match(sidebar, /const SidebarSearch = forwardRef/, '搜索状态必须隔
 assert.match(sidebar, /useDeferredValue\(query\)/, '搜索过滤必须让输入更新优先，避免大量会话时阻塞键入')
 assert.match(sidebar, /SIDEBAR_COLLAPSE_SETTLE_MS = 500/, '收缩时必须先淡出宽态，再切换窄轨，避免内容突变')
 assert.match(sidebar, /width:var\(--dcu-sidebar-expanded-width,240px\)/, '宽态内容必须保持展开宽度，避免宿主动画把文字挤成竖排')
-// 2026-10-12 更新：动效统一到 ZCode 的 150–200ms ease-out（原 Codex 为 500ms 弹簧曲线）。
-assert.match(sidebar, /dcu-sidebar-expanded-in 180ms ease-out/, '侧栏展开必须立即使用合成层淡入动画')
+// 2026-10-13 更新：动效改为按意图分档的令牌（见 docs/ZCODE-DESIGN.md §7.1）。
+// 断言不再锁死 180ms/ease-out 这类字面量，而是锁「用哪一档意图」——数值可调，意图不可改。
+assert.match(sidebar, /dcu-sidebar-expanded-in var\(--dcu-motion-enter-duration\) var\(--dcu-motion-enter-ease\)/, '侧栏展开是「内容出现」，必须使用进入档曲线（减速收尾）')
 assert.match(sidebar, /\.dcu-compact-shell\{display:none;width:56px\}/, '窄轨必须固定为 56px 并锚定左侧，不能在正在变化的宿主列中居中漂移')
-assert.match(sidebar, /dcu-search-dialog-in 180ms ease-out/, '搜索弹窗必须保留轻量淡入缩放动画')
+assert.match(sidebar, /dcu-search-dialog-in var\(--dcu-motion-enter-duration\) var\(--dcu-motion-enter-ease\)/, '搜索弹窗是「内容出现」，必须使用进入档曲线')
 assert.doesNotMatch(sidebar, /transition:none!important/, '不得再关闭宿主侧栏的宽度动画')
 assert.match(theme, /--dcu-sidebar-background:#f0f0f0/, '浅色侧栏必须使用 Zai ZCode 的 #f0f0f0 中性灰背景')
 assert.match(theme, /--dcu-sidebar-background:#161616/, '暗色侧栏必须使用 Zai ZCode 的 #161616 背景')
@@ -120,7 +121,7 @@ assert.match(theme, /--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#8888
 // 因此不再断言"导航必须更淡"，改为断言主菜单的字重与取色（意图：常规字重、不用主标题色）。
 assert.match(sidebar, /\.dcu-menu button[^}]*color:var\(--dcu-sidebar-primary\)[^}]*font-weight:400/, '主导航必须使用 ZCode 的常规字重与语义文字色')
 assert.match(sidebar, /\.dcu-extension-items button\{[^}]*font-size:var\(--dsw-font-size-caption\);font-weight:400/, '扩展二级导航必须比父级更淡更小，形成缩进层级')
-assert.match(sidebar, /\.dcu-extension-panel\{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows 180ms ease-out,opacity 160ms ease-out/, '扩展子项必须使用连续的高度和透明度动画')
+assert.match(sidebar, /\.dcu-extension-panel\{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\),opacity var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/, '扩展面板可开可合，属位置变化，必须使用移动档曲线')
 assert.match(sidebar, /\.dcu-extension-panel\[data-open=false\]\{grid-template-rows:0fr;opacity:0;pointer-events:none\}/, '收缩的扩展面板必须禁止鼠标命中')
 assert.match(sidebar, /\.dcu-extensions-group:hover \.dcu-extension-default-icon,[^{]*\{opacity:0/, '扩展分组悬停时必须隐藏左侧扩展图标')
 assert.match(sidebar, /\.dcu-extensions-group:hover \.dcu-extension-state-arrow/, '扩展分组悬停时必须在左侧图标位显示状态箭头')
@@ -162,4 +163,4 @@ assert.ok(tickMarkSize(3, 2, false).width > tickMarkSize(5, 2, false).width, '�
 assert.ok(tickMarkSize(2, 5, true).width < 8, '悬停其他条时，原来的选中刻度必须收回去')
 assert.match(navigator, /data-hovering/, '轨道悬停时必须进入仅高亮悬停条的状态')
 assert.match(navigator, /\[data-hovering=true\] \.dcu-turn-link\[aria-current=true\]/, '悬停时不得继续强调原来的选中刻度')
-assert.match(navigator, /transition:width 180ms ease-out/, '刻度长短切换必须使用 ZCode 的 180ms ease-out 缓动')
+assert.match(navigator, /transition:width var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/, '刻度长短切换属尺寸变化，必须使用移动档曲线')

@@ -163,8 +163,8 @@ Four layers, all runnable locally. `npm run gate` chains them (~55s) and the `pr
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
 | Unit / integration | `npm run test:unit` | 47 files, 311 tests |
-| Contract assertions | `node tests/run-assertions.mjs` | 37 scripts — 34 pass, 3 intentionally skipped |
-| Real-browser layout | `npm run test:layout` | 11 Chromium scripts measuring real geometry and interaction |
+| Contract assertions | `node tests/run-assertions.mjs` | 38 scripts — 35 pass, 3 intentionally skipped |
+| Real-browser layout | `npm run test:layout` | 12 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
 `npm run gate:host` is the heavy tier: it packs the plugin, installs it into an isolated `DSH_HOME`, starts a real `dsh web`, and runs three live-host scripts (about 1–2 minutes). Use it when you touch slots, injection, or the install flow.
 

@@ -497,6 +497,18 @@ export const ZCODE_STRUCTURAL: TokenMap = {
   // 基准，不动根字号，且图标/间距/圆角不随字号缩放。
   // 这里用 calc 相对 --dsw-font-size-base 表达，保留「改一处即可整体缩放」的性质。
   // 2xs(9px) 一并纳入以保持刻度完整，但 ZCode 限定其仅用于图表坐标轴，界面不消费。
+  //
+  // ── 展示档（2026-10-13 补）──────────────────────────────────────────────
+  // ZCode 的七档刻度只覆盖界面排版（10–18px），页面级大字（设置页标题、关于页主标题、
+  // 新建页 hero）此前落在刻度外，靠 §3.2 的「例外登记」存活。例外会繁殖：一处「暂不
+  // 归并」会变成后来人照抄的借口。这里把三档补成制度，值与原例外**逐一对齐**（20/22/34px），
+  // 因此这次收归不产生任何视觉变化，只是把「破例」变成「有据」。
+  //
+  // 与界面档的分界：display/headline/title 只用于页面标题与 hero，不得进入列表、
+  // 控件或行内文本——它们是「版面」层级，不是「界面」层级。
+  '--dsw-font-size-display': 'calc(var(--dsw-font-size-base) + 20px)',
+  '--dsw-font-size-headline': 'calc(var(--dsw-font-size-base) + 8px)',
+  '--dsw-font-size-title': 'calc(var(--dsw-font-size-base) + 6px)',
   '--dsw-font-size-base': '14px',
   '--dsw-font-size-xl': 'calc(var(--dsw-font-size-base) + 4px)',
   '--dsw-font-size-lg': 'calc(var(--dsw-font-size-base) + 2px)',

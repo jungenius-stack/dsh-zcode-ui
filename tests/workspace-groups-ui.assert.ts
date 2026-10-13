@@ -79,7 +79,10 @@ assert.match(browser, /setCreateGroupOpen\(false\); setGroupTitleDraft\(''\); se
 assert.doesNotMatch(browser, /type MenuState = \{ id: string; type: 'workspace' \| 'session' \| 'group'/, '菜单状态不得保留未使用的分组类型')
 assert.doesNotMatch(browser, /if \(dragged !== undefined\) \{[^\n]*if \(dragged === undefined\) return/, '项目放下处理不得保留不可达判断')
 assert.match(locales, /'workspace\.projects': '项目'/, '侧栏必须沿用项目标题')
-assert.match(locales, /'workspace\.empty': '暂无项目'/, '项目空态必须描述项目而不是会话')
+// 2026-10-13 起空态文案改为「状态 + 下一步」（见 tests/design-system.assert.ts 的签名细节）。
+// 断言改为锁意图：必须说项目、不得说会话——不再锁死具体措辞，否则文案一改就红，等于把文案钉死。
+assert.match(locales, /'workspace\.empty': '[^']*项目[^']*'/, '项目空态必须描述项目而不是会话')
+assert.doesNotMatch(locales, /'workspace\.empty': '[^']*会话[^']*'/, '项目空态不得描述会话')
 assert.match(locales, /'workspace\.moveToGroup': '移动到分组'/, '分组操作必须提供中文文案')
 
 console.log('✓ workspace group UI assertions passed')

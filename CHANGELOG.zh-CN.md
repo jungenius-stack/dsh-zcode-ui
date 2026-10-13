@@ -4,14 +4,23 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
-## 未发布
+## 1.1.0 - 2026-10-13
 
 ### 新增
 
+- **字号刻度补三档展示档。** `--dsw-font-size-title`(20px)、`--dsw-font-size-headline`(22px)、`--dsw-font-size-display`(34px)，均由基准以 `calc()` 推导。这三个值此前是 `docs/ZCODE-DESIGN.md` §3.2 里登记的「刻度外例外」；按原值收归后**没有任何视觉变化**——它把「我们在这里破了规矩」变成「规矩本来就覆盖这里」。
+- **动效改为按意图分档的令牌。** 反馈 120ms、移动 180ms、进入 160ms、退出 120ms、按压 90ms。原先统一的 `180ms ease-out` 是一致，但不是**设计过**——出现、移动、消失同速，读起来是「没做动效」。新曲线均无过冲，不违反 ZCode「避免弹簧感」。减少动态效果也从「逐个元素写 `transition:none`」变成令牌层一处归零。
+- `src/client/foreign-content-contract.ts` —— 第三方内容在侧栏内的三条契约（文字色不得高于 `secondary`、不得自带不透明卡片底、折叠态必须可降级），以及一个运行时哨兵：契约锚点类名消失时响亮报警。
+- `tests/design-system.assert.ts` —— 设计系统本身进入断言覆盖：字号刻度、动效意图、外来内容锚点、签名细节。
 - `scripts/verify-a11y-and-overflow.mjs` —— 把可读性与溢出变成自动判据：对比度（WCAG 2.1 AA，明暗两套）、建议卡标签是否被截断、折叠轨是否横向溢出。已接入 `gate` 与 `test:layout`，真机脚本由 11 个增至 12 个。
 
 ### 变更
 
+- **`11px` 归一为 `12px`**（4 处）。`11px` 是夹在 `xs`(10px) 与 `sm`(12px) 之间的孤值，为它补一档等于把孤值合法化。这是一次有意的小幅视觉变更。
+- 工作区分组标题字重 `600` → `400`，与侧栏既有约定一致（其标题与标签有意保持 400，且有断言守护）。分组层级改由披露箭头、缩进与明度表达。
+- 连接器标题字重 `650` → `600`——`650` 在本系统里别处不存在。
+- `tests/conversation-visuals.assert.ts` 的动效断言改为断言**使用哪一档意图**，不再锁死时长；调整数值不会误报，改动意图则会立刻变红。
+- 空状态改为说明「下一步做什么」，而不只是「这里没有东西」：`workspace.empty`、`workspace.recentEmpty`、`search.empty`、`settings.noResults`。
 - **侧栏文字色阶按侧栏底色重新取值。** ZCode 的 `foreground-subtle` / `foreground-subtlest` 是叠在**白底**上推导的，落到侧栏 `#f0f0f0` 上实测只有 3.93:1 与 2.32:1。现：亮色 secondary `#777777` → `#5c5c5c`（5.87:1）、tertiary `#9f9f9f` → `#686868`（4.89:1）；暗色 tertiary `#4f4f4f` → `#828282`（4.82:1）。
 - 选中态底色改为中性（`#efefef` / `#3a3a3a`），不再用 ZCode 的蓝色 accent，与侧栏自身的选中语言一致。
 - 新建会话页的建议卡标签改为两行显示，不再在 1440px 下被切断在半词处。

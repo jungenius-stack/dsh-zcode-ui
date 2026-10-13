@@ -163,8 +163,8 @@ dsh --profile web --dump-config
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元 / 集成 | `npm run test:unit` | 47 个文件、311 个用例 |
-| 契约断言 | `node tests/run-assertions.mjs` | 37 个脚本——34 通过、3 个有意跳过 |
-| 真机布局 | `npm run test:layout` | 11 个 Chromium 脚本，量真实几何与交互 |
+| 契约断言 | `node tests/run-assertions.mjs` | 38 个脚本——35 通过、3 个有意跳过 |
+| 真机布局 | `npm run test:layout` | 12 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。
 

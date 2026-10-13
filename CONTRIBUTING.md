@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元/集成 | `npm run test:unit`（或 `node node_modules/vitest/vitest.mjs run`） | 47 文件 / 311 用例 |
-| 断言套件 | `node tests/run-assertions.mjs` | 源码级契约断言，34 通过 / 3 显式跳过 |
+| 断言套件 | `node tests/run-assertions.mjs` | 源码级契约断言，35 通过 / 3 显式跳过（含 `design-system.assert.ts`：字号刻度、动效意图、外来内容契约） |
 | 真机布局 | `npm run test:layout` | 12 个 Chromium 脚本，量真实几何与交互（含可读性与溢出：对比度 ≥4.5:1、标签不得截断、折叠轨不得横向溢出） |
 | **快速门禁（推荐）** | `npm run gate` | 上面四层串成一条，约 55 秒 |
 
@@ -58,3 +58,22 @@ CLI 默认取 DSH 桌面版 App 内的那份，可用 `DCU_DSH_BIN` 覆盖；版
    该值确实是设计意图才写进断言。
 2. **设计变更要登记**：与设计文档矛盾、或本 fork 有意改掉的（例如导航层级、毛玻璃降级、
    任务频道页签形态、文件夹图标语义），登记到 `docs/KNOWN-ISSUES.md` §3.1，而不是伪装成"必须如此"。
+
+## 版本号规则
+
+本仓库遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)，按**插件对外的可见契约**
+判定段位，而不是按改动行数：
+
+| 段位 | 何时 +1 | 本插件的判定依据 |
+| --- | --- | --- |
+| **MAJOR** | 破坏性变更 | 安装 id、包名、插槽名、内部 REST 命名空间（`/api/dsh-codex-ui/*`）发生改变；或移除已被消费的 `--dcu-*` / `--dsw-*` 令牌 |
+| **MINOR** | 向后兼容地新增 | 新增令牌、新增断言、新增门禁、新增可见的界面元素或交互 |
+| **PATCH** | 向后兼容地修复 | 只改数值、文案或样式，不新增也不移除任何能力 |
+
+**两个容易判错的边界**：
+
+- **纯视觉调整（改色值、字重、动效时长）算 PATCH**——能力没变，只是取值变了。
+- **新增一档令牌算 MINOR**——即使当前只有本插件在消费它，下游也可能已经写进自己的样式。
+
+发布时同步三处：`package.json` 的 `version`、`CHANGELOG.md` 与 `CHANGELOG.zh-CN.md`
+的版本标题，以及 `git tag -a v<version>`。三处不一致会让使用者无法判断自己装的是哪一版。

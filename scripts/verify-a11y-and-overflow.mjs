@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
+import { fixtureTokenStyle } from './fixture-tokens.mjs'
 
 const pick = (file, name) => readFileSync(file, 'utf8').match(new RegExp('(?:export )?const ' + name + ' = `([\\s\\S]*?)`'))?.[1]
 const sheets = [
@@ -19,7 +20,7 @@ const sheets = [
   pick('src/client/new-conversation-style.ts', 'NEW_CONVERSATION_STYLE'),
 ]
 assert.ok(sheets.every(Boolean), '必须能取到全部样式表（变量名被改时此断言会失败）')
-const css = sheets.join('\n')
+const css = fixtureTokenStyle() + '\n' + sheets.join('\n')
 
 // 建议卡文案取自 locales.ts 的英文表（同一 key 的最后一次出现即 en）
 const locales = readFileSync('src/client/locales.ts', 'utf8')

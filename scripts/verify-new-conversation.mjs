@@ -7,6 +7,7 @@ import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { tsImport } from 'tsx/esm/api'
 import ts from 'typescript'
+import { fixtureTokenStyle } from './fixture-tokens.mjs'
 
 const require = createRequire(import.meta.url)
 const { createElement } = require('react')
@@ -48,6 +49,9 @@ try {
       <div class="${r.heroWorkspaceRow}"><button class="${h.workspace}"><span class="${h.workspaceLabel}">我的工作区</span></button><button>专家预设</button></div>
       <div class="${i.root} ${i.hero}"><div data-composer-card class="${i.card}"><div data-input-scroll class="${i.scroll}"><div class="${i.grow}"><div data-lexical-editor="true" contenteditable="true" class="${i.input}"><p><br></p></div></div></div><div class="${i.row}"><div class="${i.tools}"><button class="${i.add}">+</button></div><div class="${i.trailing}"><button class="${i.primary}">↑</button></div></div></div></div>
       </div><div id="metrics">耗时 2.4秒 · 费用 ¥0.030<br>输入 19.7K tok · 输出 161 tok</div></div></div></div></div></div>`)
+    // 令牌必须一并注入：hero 字号自 2026-10-13 起走 var(--dsw-font-size-display)，
+    // 合成页面缺令牌会让 font-size 静默回退成继承值（曾量到 16px 而误判）。
+    await page.addStyleTag({ content: fixtureTokenStyle() })
     for (const m of modules) await page.addStyleTag({ content: m.css })
     await page.addStyleTag({ content: skin })
     await page.evaluate(dark => document.body.toggleAttribute('data-ds-dark-theme', dark), dark)
@@ -55,7 +59,9 @@ try {
     const logoBox = await page.locator(`.${h.fish}`).boundingBox()
     assert.ok(logoBox && Math.abs(logoBox.width - 46) < .1, '真实 LOGO 宽度必须为 46px')
     assert.ok(Math.abs(logoBox.height - 46 * fishDimensions.height / fishDimensions.width) < .1, 'LOGO 必须保持宿主原始比例')
-    assert.equal(await page.locator(`.${h.headlineText}`).evaluate(node => getComputedStyle(node).fontSize), '34px', '标题必须继承 34px 字号')
+    const displayToken = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--dsw-font-size-display').trim())
+    assert.ok(displayToken.length > 0, '合成页面必须注入 --dsw-font-size-display，否则 font-size 会静默回退（见 scripts/fixture-tokens.mjs）')
+    assert.equal(await page.locator(`.${h.headlineText}`).evaluate(node => getComputedStyle(node).fontSize), '34px', 'hero 标题必须解析到展示档字号（基准 14px + 20px）')
     const geometry = () => page.evaluate(() => {
       const box = selector => { const b = document.querySelector(selector).getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height, bottom: b.bottom } }
       return { hero: box('[class*="_composerHero"]>:first-child'), guide: box('[class*="_composerHero"]>:first-child>[class$="_stack"]'), card: box('[data-composer-card]'), title: box('[class$="_headline"]'), workspace: box('[class*="_heroWorkspaceRow"]'), metrics: box('#metrics'), overflow: document.documentElement.scrollWidth > innerWidth }

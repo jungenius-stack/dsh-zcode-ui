@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import ts from 'typescript'
 import { chromium } from 'playwright'
+import { fixtureTokenStyle } from './fixture-tokens.mjs'
 
 const source = readFileSync('src/client/CodexSidebar.tsx', 'utf8')
 const stylesheet = source.match(/const stylesheet = `([\s\S]*?)`/)?.[1]
@@ -62,6 +63,7 @@ try {
   }
   const page = await browser.newPage()
   await page.setContent('<style>*{box-sizing:border-box}</style><div id="frame" style="display:grid;height:700px;grid-template-columns:320px minmax(0px, 1fr) 0px"><div style="min-width:0;overflow:hidden"><aside class="dcu-root"><div class="dcu-expanded-shell"><nav class="dcu-menu"><button>扩展管理专家技能插件连接器</button></nav></div><div class="dcu-foot">设置与账户余额</div></aside></div><main></main><div></div><div data-side="sidebar"></div></div>')
+  await page.addStyleTag({ content: fixtureTokenStyle() })
   await page.addStyleTag({ content: stylesheet })
   await page.addScriptTag({ content: implementation })
   const result = await page.evaluate(async () => {
@@ -129,8 +131,8 @@ try {
     assert.equal(sample.foot, sample.expected, `动画中页脚被压窄：${JSON.stringify(sample)}`)
   }
   for (const { start, target, values, duration } of result.motion) {
-    // 2026-10-12 由 0.5s 更新为 0.18s：P1-2 把动效统一到 ZCode 的 150–200ms ease-out
-    //（CodexSidebar.tsx 现为 `transition:grid-template-columns 180ms ease-out`）。
+    // 2026-10-13 起时长取自「移动」档令牌（--dcu-motion-move-*，当前 180ms）。
+    // 合成页面必须注入令牌块，否则整条 transition 失效、时长量到 0s（见 scripts/fixture-tokens.mjs）。
     // 中间帧与终态断言不变，仍然要求动画可见且收敛。
     assert.equal(duration, '0.18s', '侧栏宽度必须使用 ZCode 规定的 180ms 过渡')
     assert.ok(values.filter(value => value > Math.min(start, target) + 1 && value < Math.max(start, target) - 1).length >= 3, '展开和收起都必须有多个中间帧')
