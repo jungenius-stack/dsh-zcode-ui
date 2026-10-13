@@ -254,7 +254,12 @@ assert.match(workspaceBrowser, /\.dcu-wb-project-head\{height:32px/, '项目文�
 assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*min-height:32px/, '会话胶囊必须与项目文件夹保持相同高度')
 assert.match(workspaceBrowser, /\.dcu-wb-project-body>\.dcu-wb-session:first-child,\.dcu-wb-project-body>\.dcu-wb-nochat:first-child\{margin-top:4px\}/, '项目与首个会话或空态之间必须保留层级间距')
 assert.match(workspaceBrowser, /\.dcu-wb-nochat\{padding:1px 8px 5px 30px\}/, '空聊天必须完整声明四边间距，避免依赖旧样式补齐')
-assert.match(workspaceBrowser, /dcu-wb-quick-actions"><button[^]*<QuickArchiveIcon \/>/, '会话悬停快捷操作必须保留 Codex 风格的归档图标')
+assert.match(workspaceBrowser, /dcu-wb-quick-actions">\{archiveConfirm[^]*<QuickArchiveIcon \/>/, '会话悬停快捷操作必须保留 ZCode 风格的归档图标（确认态切换为确认按钮）')
+assert.match(workspaceBrowser, /className="dcu-wb-confirm"[^]*sessions\.confirm/, '两步确认必须渲染带确认文案的确认按钮')
+// 2026-10-13 ZCode 对齐：键盘聚焦与悬停同权——均露出快捷操作并让元信息让位。
+assert.match(workspaceBrowser, /\.dcu-wb-session:focus-within \.dcu-wb-quick-actions/, '键盘聚焦会话行必须像悬停一样露出快捷操作')
+assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-quick-actions\{opacity:1;pointer-events:auto\}/, '确认态必须常驻显示确认按钮（与 hover 无关）')
+assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dsw-alias-state-error-primary\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用宿主错误色配对（背景 error-primary / 前景 bg-layer-3，同 DSH badge 约定）')
 assert.doesNotMatch(workspaceBrowser, /pinnedSessionIds|setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin|sessions\.(?:pin|unpin|pinned)/, '任务树必须彻底移除会话置顶能力')
 assert.match(workspaceBrowser, /\.dcu-wb-context-anchor\{opacity:0;pointer-events:none\}/, '右键菜单锚点必须隐藏三点图标')
 assert.match(workspaceBrowser, /className="dcu-wb-more dcu-wb-context-anchor"/, '右键菜单必须使用隐藏的三点锚点')

@@ -139,3 +139,15 @@ assert.doesNotMatch(workspace, /\.dcu-wb-session:hover \.dcu-wb-running/, '运�
 assert.match(workspace, /\.dcu-wb-session:hover \.dcu-wb-pending,[^}]*visibility:hidden/, '悬浮快捷操作出现时必须隐藏右侧待处理和未读，避免重叠')
 assert.match(workspace, /completedBackgroundSessionIds\(previous, next, selectedId\)/, '后台会话结束时必须自动标为未读')
 assert.match(sessionManager, /previous\[id\] === true && running !== true && id !== currentSessionId/, '当前打开会话结束时不得自动标未读')
+
+// ── 2026-10-13：会话行交互对齐 ZCode TaskListItem（第一批）────────────────────
+const archiveConfirm = readFileSync(new URL('../src/client/archive-confirm.ts', import.meta.url), 'utf8')
+assert.match(tree, /useArchiveConfirm\(\)/, '共用会话行必须复用两步确认 hook（ZCode 同款交互）')
+assert.match(tree, /role="treeitem" aria-selected=\{selected\} tabIndex=\{0\}/, '共用会话行必须可聚焦（键盘可达）')
+assert.match(tree, /onKeyDown=\{\(event\) => \{ if \(event\.target !== event\.currentTarget\) return; if \(event\.key === 'Enter' \|\| event\.key === ' '\)/, '共用会话行必须支持 Enter/空格打开，且不吞行内按钮事件')
+assert.match(workspace, /archiveConfirm\.confirmingId === id/, '任务树会话行必须接入确认态样式与按钮切换')
+assert.match(workspace, /tabIndex=\{0\} onKeyDown=\{\(event\) => \{ if \(event\.target !== event\.currentTarget\) return; if \(event\.key === 'Enter' \|\| event\.key === ' '\)/, '任务树会话行必须可聚焦并支持 Enter/空格打开')
+assert.match(workspace, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-session-time/, '确认态必须让右侧时间让位给确认按钮')
+assert.match(archiveConfirm, /event\.key === 'Escape'/, '归档确认必须支持 Escape 取消')
+assert.match(archiveConfirm, /addEventListener\('pointerdown', cancelOnPointerDown, true\)/, '归档确认必须监听条目外 pointerdown 取消')
+assert.match(archiveConfirm, /closest\('\[data-dcu-session\]'\)/, '确认态取消必须按条目边界判断，而不是按 DOM 深度')

@@ -4,6 +4,25 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.5.0 - 2026-10-13
+
+### 变更
+
+- **会话行交互对齐 ZCode TaskListItem（第一批）**。本轮开始按「操作 UI 逻辑」整套对齐本地 ZCode 3.15.1——不是抄图标，而是把交互模型、行为契约与键盘路径移植过来（学习过程与完整差距审计见新增的 [docs/ZCODE-INTERACTION-PARITY.md](docs/ZCODE-INTERACTION-PARITY.md)）：
+  - **行键盘可达**：会话行 `tabIndex=0`，`Enter`/空格打开；行内按钮上的 Enter 不会误触发行打开（`event.target === event.currentTarget` 守卫）——三棵树（任务树 / 频道 / 定时）经共享 `SessionRow` 统一获得。
+  - **聚焦与悬停同权**（ZCode 的 focusActionsVisible 语义）：`:focus-within` 时快捷操作露出、右侧元信息（时间 / 未读 / 待处理）让位——键盘用户不再被排除在快捷操作之外。
+  - **归档两步确认**：行内归档从「单击直接执行」改为 ZCode 同款两步确认——首击进入确认态（错误色「确认」按钮、常驻显示），`Escape` 取消，条目外 `pointerdown` 取消，**鼠标离开不取消**，二次点击才执行。共享实现 `archive-confirm.ts`，三棵树一套。
+  - **行操作按钮不抢焦**：mousedown/pointerdown `preventDefault + stopPropagation`（ZCode `TaskRowActionButton` 同款）。
+  - **右键菜单顺序对齐**：重命名 → 归档 → 标记未读（原为 重命名 → 未读 → 归档）。
+- 确认按钮配色采用宿主错误色配对（背景 `--dsw-alias-state-error-primary` / 前景 `--dsw-alias-bg-layer-3`，与 DSH 自身 badge 约定一致），圆角走 `--dsw-radius-md` 令牌。
+
+### 验证
+
+- 新增 `tests/session-row-interaction.spec.ts`：① 首击进确认态不执行 / Escape 取消 / 二次点击恰好执行一次；② 确认态按条目边界取消（条目内 pointerdown 不取消、条目外取消）；③ 行键盘语义（tabIndex、Enter/空格打开、行内按钮上的 Enter 不冒泡触发行打开）。
+- `tests/channel-archive.integration.spec.ts` 的归档辅助函数升级为两步（行为变更的连带验证）。
+- 断言新增 13 条：两步确认 hook 复用、行聚焦与 Enter 守卫、确认态常驻显示与时间让位、Escape / 外点取消、错误色配对、菜单顺序。
+- 全量门禁：类型 0 错 / vitest 312 过 / 构建通过 / 断言 35 过 0 败 / 布局 14 脚本全过。
+
 ## 1.4.0 - 2026-10-13
 
 ### 变更

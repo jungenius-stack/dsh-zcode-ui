@@ -43,7 +43,11 @@ async function setup(fail = false) {
     archive: async () => {
       const button = container.querySelector<HTMLButtonElement>('button[aria-label="sessions.archive"]')
       expect(button).not.toBeNull()
+      // 行内归档为两步确认（对齐 ZCode）：首次点击进入确认态，点确认按钮才真正执行。
       await act(async () => { button!.click() })
+      const confirm = container.querySelector<HTMLButtonElement>('.dcu-wb-confirm')
+      expect(confirm).not.toBeNull()
+      await act(async () => { confirm!.click() })
     },
     dispose: async () => { await act(async () => { root.unmount() }); container.remove() },
   }

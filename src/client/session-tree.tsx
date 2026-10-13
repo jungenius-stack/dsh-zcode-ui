@@ -19,6 +19,7 @@ import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import { NS } from './locales.ts'
 import type { PendingInteractionKind } from './session-pending.ts'
 import { sessionTitleLine } from './session-title-scroll.ts'
+import { useArchiveConfirm } from './archive-confirm.ts'
 
 export function PinIcon() {
   return <ZIconPin aria-hidden="true" size={16} strokeWidth={1.5} />
@@ -50,8 +51,9 @@ export function SessionHoverCard({ tip, onEnter, onLeave }: { tip: SessionHoverT
 export function sessionMenuItems(t: TranslateNS<typeof NS>, options: { unread: boolean; path?: string; includePath?: boolean; moveTargets?: readonly { id: string; label: string }[]; canDelete?: boolean }): MenuEntry[] {
   const items: MenuEntry[] = [
     { id: 'rename', label: t('sessions.rename'), icon: <ZIconRename size={16} /> },
-    { id: 'unread', label: t(options.unread ? 'sessions.markRead' : 'sessions.markUnread'), icon: options.unread ? <ZIconEyeOff aria-hidden="true" size={16} strokeWidth={1.5} /> : <ZIconEye aria-hidden="true" size={16} strokeWidth={1.5} /> },
+    // 顺序对齐 ZCode TaskActionMenuContent：重命名 → 归档 → 标记未读。
     { id: 'archive', label: t('sessions.archive'), icon: <ZIconArchive size={16} /> },
+    { id: 'unread', label: t(options.unread ? 'sessions.markRead' : 'sessions.markUnread'), icon: options.unread ? <ZIconEyeOff aria-hidden="true" size={16} strokeWidth={1.5} /> : <ZIconEye aria-hidden="true" size={16} strokeWidth={1.5} /> },
     { type: 'separator', id: 'main-separator' },
     { id: 'fork', label: t('sessions.fork'), icon: <ZIconBranch size={16} /> },
   ]
@@ -153,12 +155,19 @@ export function SessionRow({
   onOpen, onMenuChange, onSelectAction, onArchive, onHover, onLeave, onContextMenu, menuPoint,
   subtitle, flat, draggable, dropActive, onDragStart, onDragEnd, onDragOver, onDrop, time,
 }: SessionRowProps) {
-  return <div data-dcu-session={id} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}`} role="treeitem" aria-selected={selected} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
+  // 行内归档两步确认 + 行键盘语义（对齐 ZCode TaskListItem：行可聚焦、Enter/空格打开、
+  // 首次点击归档进确认态、Escape / 条目外 pointerdown 取消、二次点击才执行）。
+  const archiveConfirm = useArchiveConfirm()
+  const confirmingArchive = archiveConfirm.confirmingId === id
+  const requestArchive = (): void => { if (archiveConfirm.press(id)) onArchive() }
+  return <div data-dcu-session={id} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}${confirmingArchive ? ' dcu-wb-archive-confirming' : ''}`} role="treeitem" aria-selected={selected} tabIndex={0} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
     {subtitle !== undefined && subtitle !== '' ? <span className="dcu-wb-session-copy"><SessionRowTitle title={title} /><span className="dcu-wb-session-sub">{subtitle}</span></span> : <SessionRowTitle title={title} />}
     <SessionState pendingInteraction={pendingInteraction} unread={unread} running={running} t={t} />
     <SessionTime time={time} />
     <span className="dcu-wb-quick-actions">
-      <button type="button" className="dcu-wb-more" aria-label={t('sessions.archive')} onClick={(event) => { event.stopPropagation(); onArchive() }}><QuickArchiveIcon /></button>
+      {confirmingArchive
+        ? <button type="button" className="dcu-wb-confirm" onMouseDown={(event) => { event.preventDefault(); event.stopPropagation() }} onClick={(event) => { event.stopPropagation(); requestArchive() }}>{t('sessions.confirm')}</button>
+        : <button type="button" className="dcu-wb-more" aria-label={t('sessions.archive')} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation() }} onClick={(event) => { event.stopPropagation(); requestArchive() }}><QuickArchiveIcon /></button>}
     </span>
     <span className="dcu-wb-actions">
       <Menu open={menuOpen} onClose={() => { onMenuChange(false) }} items={menuItems} onSelect={onSelectAction} portal dense compact getAnchorRect={menuPoint === undefined ? undefined : () => pointerMenuRect(menuPoint.x, menuPoint.y)} anchor={<button type="button" className="dcu-wb-more dcu-wb-context-anchor" aria-label={t('sessions.actions', { name: title })} onClick={(event) => { event.stopPropagation(); onMenuChange(!menuOpen) }}><ZIconMore size={16} /></button>} />

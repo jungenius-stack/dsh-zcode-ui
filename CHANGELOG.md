@@ -4,6 +4,25 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.5.0 - 2026-10-13
+
+### Changed
+
+- **Session-row interaction aligned with ZCode's TaskListItem (first batch)**. This begins the wholesale alignment of the *operation UI logic* with the local ZCode 3.15.1 — not icon-copying, but transplanting the interaction model, behaviour contracts and keyboard paths (the study and full gap audit live in the new [docs/ZCODE-INTERACTION-PARITY.md](docs/ZCODE-INTERACTION-PARITY.md)):
+  - **Rows are now keyboard-reachable**: `tabIndex=0`, opened with `Enter`/Space, guarded by `event.target === event.currentTarget` so Enter on an inner button never triggers the row — shared across all three trees (tasks / channels / schedules) via `SessionRow`.
+  - **Focus is on par with hover** (ZCode's `focusActionsVisible` semantics): `:focus-within` reveals the quick actions and yields the right-hand metadata (time / unread / pending), so keyboard users are no longer shut out of the shortcuts.
+  - **Two-step archive confirm**: inline archive no longer fires on a single click; it now matches ZCode — the first press enters a confirm state (an error-coloured "Confirm" button that stays visible), `Escape` cancels, a pointerdown outside the row cancels, leaving with the mouse does *not* cancel, and only the second press archives. Shared implementation in `archive-confirm.ts`.
+  - **Row action buttons no longer steal focus**: mousedown/pointerdown `preventDefault + stopPropagation` (same as ZCode's `TaskRowActionButton`).
+  - **Context-menu order aligned**: rename → archive → mark unread (previously rename → unread → archive).
+- The confirm button uses the host's error pairing (background `--dsw-alias-state-error-primary` / foreground `--dsw-alias-bg-layer-3`, matching DSH's own badges) and the `--dsw-radius-md` token.
+
+### Verification
+
+- New `tests/session-row-interaction.spec.ts`: ① first press enters confirm without executing / Escape cancels / the second press executes exactly once; ② cancellation respects the row boundary (pointerdown inside does not cancel, outside does); ③ keyboard semantics (tabIndex, Enter/Space open, Enter on an inner button does not open the row).
+- `tests/channel-archive.integration.spec.ts`'s archive helper upgraded to the two-step flow (the behavioural change carried into its verification).
+- 13 new assertions: the shared confirm hook, row focus + Enter guard, the persistent confirm state yielding the time, Escape / outside cancellation, the error-colour pairing, and the menu order.
+- Full gate: typecheck 0 errors / vitest 312 passed / build clean / assertions 35 passed 0 failed / all 14 layout scripts passed.
+
 ## 1.4.0 - 2026-10-13
 
 ### Changed

@@ -837,3 +837,29 @@ About / Connectors / Schedule 三处残留宿主图标（16 视箱、1/1.3 描�
 仍渲染 Arial——外来插件的裸控件会脱离皮肤字体。修法：零特异性 `:where()` 归一为
 `font:inherit`；任何作者样式（含插件哈希类）都能覆盖我们、只有 UA 被压过。
 实测：裸按钮随皮肤 system-ui；插件自己的 `font-family:Georgia` 原样保留。
+
+---
+
+## 16. 2026-10-13 会话行交互对齐 ZCode 第一批（1.5.0；行为清单与完整审计另见 docs/ZCODE-INTERACTION-PARITY.md）
+
+### 16.1 本轮对齐了什么（对应审计表 #1-#5）
+
+- **行键盘可达**：会话行 `tabIndex=0` + `Enter`/空格打开（`event.target === event.currentTarget` 守卫），三棵树经共享 `SessionRow` 统一；
+- **聚焦与悬停同权**：`:focus-within` 露出快捷操作并让元信息（时间/未读/待处理）让位；
+- **归档两步确认**（共享 `archive-confirm.ts`）：首击进确认态（错误色「确认」按钮常驻）、`Escape` 取消、条目外 `pointerdown` 取消、鼠标离开不取消、二次点击执行。条目边界用 `data-dcu-session` 祖先判断，不按 DOM 深度；
+- **行操作按钮 mousedown `preventDefault`**（不抢焦、不触发行选择，ZCode `TaskRowActionButton` 同款）；
+- **菜单顺序**：重命名 → 归档 → 标记未读（对齐 ZCode `TaskActionMenuContent` 的行操作次序）。
+
+### 16.2 有意偏差登记（不是缺失，是有理由的不迁移）
+
+| 项 | ZCode | 本仓 | 理由 |
+| --- | --- | --- | --- |
+| 会话置顶 | 行首 Pin，hover 变取消置顶按钮 | 无此能力 | DSH 无会话置顶模型；`tests/session-tree.assert.ts` 有禁止断言（此前明确决策） |
+| 菜单图标 | 任务菜单纯文本行 | 带图标菜单 | 本仓既定视觉语言 + 既有断言锁死；操作集合与分组已对齐 |
+| 标题溢出 | mask 渐隐 | 省略号 | 跑马灯移除后的既定决策（断言锁死） |
+| 未读点位置 | 行首状态槽（错误>未读>运行中 单一槽） | 运行中在左、未读在右 | 合并槽位牵动行布局与多条断言，列入下一批（parity 文档 §4） |
+
+### 16.3 验证
+
+- 新集成测试 `tests/session-row-interaction.spec.ts` 三用例（确认流 / 取消边界 / 键盘语义）；频道归档测试升级为两步；断言新增 13 条。
+- 全量门禁：类型 0 错 / vitest 312 过（47 文件）/ 构建通过 / 断言 35 过 0 败 / 布局 14 脚本全过。
