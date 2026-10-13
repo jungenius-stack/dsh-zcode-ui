@@ -34,6 +34,8 @@ const LAYOUT = [
   ['scripts/verify-sidebar-transition.mjs', []],
   ['scripts/verify-sidebar-expand-control.mjs', []],
   ['scripts/verify-sidebar-titlebar.mjs', []],
+  ['scripts/verify-running-indicator.mjs', []],
+  ['scripts/verify-motion-budget.mjs', []],
   ['scripts/verify-composer-style.mjs', []],
   ['scripts/verify-new-conversation.mjs', []],
   ['scripts/verify-composer-tools.mjs', []],
