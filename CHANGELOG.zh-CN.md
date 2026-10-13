@@ -4,6 +4,23 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.8.0 - 2026-10-14
+
+### 变更
+
+- **上/下一个会话键盘命令**（审计表 #15，ZCode 对齐收尾）：宿主命令体系里原本没有「切换相邻会话」这对命令（ZCode 有 `previousConversation`/`nextConversation`），本版注册 `session.previous` / `session.next` 补齐，并接入宿主命令服务——用户在宿主快捷键体系里看到、改键、分发全部走官方通道：
+  - 键位对齐 ZCode：桌面 `Cmd/Ctrl+Shift+[` 与 `Cmd/Ctrl+Shift+]`；web 端 `primary+shift+[` 是浏览器标签页切换，按官方同类做法退到 `primary+alt`；
+  - **顺序 = 侧栏所见全序**（置顶项目 → 分组 → 未分组 → 最近），与侧栏树共享同一批可见性/排序助手；置顶与分组偏好从本地缓存现读，触发时取最新快照；
+  - **边界语义逐字移植 ZCode**：去重滤空、到边不循环（返回 blocked 而非绕回另一端）、当前会话不在列表时（如停首页）previous 取末位 / next 取首位；
+  - 服务就绪用 `ctx.inject(['shortcuts'])` 等待（不放进静态 inject：旧宿主没有该服务时不得整体拒绝加载插件）；注册前查 catalog，宿主将来若原生支持同名命令则自动让位。
+- 调研结论（详见 docs/ZCODE-INTERACTION-PARITY.md §3）：DSH 没有 ZCode 式「命令中心」——DSH 的 `Cmd+K` 是会话搜索（已在 1.5.0 前由影子桥接进本插件搜索界面），按现状承接、不自建命令面板。
+
+### 验证
+
+- 新增 `tests/session-order.spec.ts`（12 用例）：ZCode 邻接语义逐条（中间/边界/单项/空表/不在列表回退/去重滤空）+ 全序组装（置顶/分组/未分组/最近/归档过滤/未知 id 忽略）。
+- 新增 `tests/session-navigation-shortcuts.spec.ts`（7 用例）：注册面（五端键位、regions、modals）、resolve 语义（handled 才执行 run、blocked 理由、模态防御）、宿主同名让位、服务缺失不炸、卸载清理。
+- 新增 `tests/session-navigation-shortcuts.assert.ts`：接线断言（现读快照、复用 openConversation、偏好缓存同源、静态 inject 禁令）。
+
 ## 1.7.0 - 2026-10-14
 
 ### 变更

@@ -1,6 +1,9 @@
 import { openConversation, openConversationWithDraft, selectGlobalPanel } from './session-navigation.ts'
 import { createNavigationHistory } from './navigation-history.ts'
 import { createWorkspaceShortcutSource } from './workspace-shortcuts.ts'
+import { installSessionNavigationShortcuts } from './session-navigation-shortcuts.ts'
+import { flattenSidebarSessionOrder } from './session-order.ts'
+import { readPinnedWorkspaceIds, readWorkspaceGroupsCache } from './pinned-workspaces.ts'
 import { registerWorkspaceDirectoryFlow, WORKSPACE_DIRECTORY_FLOW } from './workspace-directory-flow.ts'
 import { registerAfterOfficialWave } from './official-slot-shadow.ts'
 import {
@@ -178,6 +181,20 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => () => { navigationHistory.dispose() }, 'zcode-ui-for-dsh: navigation history')
   const workspaceShortcuts = createWorkspaceShortcutSource(ctx.slots)
   ctx.effect(() => () => { workspaceShortcuts.dispose() }, 'zcode-ui-for-dsh: workspace shortcuts')
+  // 键盘：上/下一个会话（对齐 ZCode，宿主命令表没有这一对）。
+  // 顺序现读快照 + 本地偏好缓存（与侧栏树同一批助手计算），当期会话取打开中的那个。
+  const shortcutStorage = browserStorage()
+  installSessionNavigationShortcuts(ctx, {
+    t: key => t(key),
+    readOrder: () => flattenSidebarSessionOrder({
+      workspaces: ctx.workspaces.list.getSnapshot(),
+      sessions: ctx.sessions.list.getSnapshot(),
+      pinnedWorkspaceIds: readPinnedWorkspaceIds(shortcutStorage),
+      workspaceGroups: readWorkspaceGroupsCache(shortcutStorage).workspaceGroups,
+    }),
+    currentId: () => currentSessionId(ctx.sessions.list.getSnapshot()),
+    openSession: sessionId => { openConversation(ctx, ctx.layout, sessionId) },
+  })
   registerWorkspaceDirectoryFlow(ctx)
   const ownSidebarChildren = {
     'sidebar.panellist': { kind: 'list' as const, scope: 'root' as const },

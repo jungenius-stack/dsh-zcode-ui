@@ -89,7 +89,7 @@
 | 12 | 标题溢出 | mask 渐隐（无省略号） | ellipsis（有断言锁死） | —（有意偏差，登记） |
 | 13 | 会话置顶 | Pin 前置槽 + hover 变按钮 | **无此能力**（断言明确禁止） | —（有意偏差：DSH 无会话置顶模型） |
 | 14 | 拖拽 | 拖到 workbench | ✅ 有（项目内排序 + 跨项目移动） | — |
-| 15 | 键盘总表 | Cmd+K/B/F/N/… | 侧栏 bridge 了官方 workspace 快捷键；其余未接 | ⏳ 调研宿主 slots 后评估 |
+| 15 | 键盘总表 | Cmd+K/B/F/N/… | 官方命令经宿主 `ctx.shortcuts` 分发（侧栏 bridge 已接）；**上/下一个会话原为空白，1.8.0 已补** | ✅ 已实施（1.8.0，详见 §3；命令中心见 §5 结论） |
 
 ## 3. 已实施批次
 
@@ -115,8 +115,27 @@
 2. 触屏（`pointer:coarse`）：快捷归档与 ⋯ 菜单锚点常驻（ZCode `hover:none` 同原则）、时间右移 60px 让位、待处理胶囊占位时门控关闭；新增几何验证脚本（边界盒互不重叠 + 桌面语义回归）。
 3. 决策：菜单单例化（#10）评估为不做（宿主 Menu 关闭态零渲染、无每行 RPC，收益趋零）。
 
+### 1.8.0（2026-10-14）——键盘命令接入（#15）
+
+**调研结论（宿主命令体系全貌）**：
+
+1. 宿主有一等命令服务 `ctx.shortcuts`：`register({id, label, aliases, defaults{desktop:macos/windows/linux + web:macos/windows}, regions, modals, resolve})`；`resolve` 返回 `handled+run` 或 `blocked+reason`；`catalog` 是活的可订阅目录（条目 `{id, keys, aria}`，可直接喂给宿主菜单的 `shortcut` 属性与 `aria-keyshortcuts`）。
+2. 官方已注册九条：`session.new`(⌘N) / `session.search`(⌘K) / `session.rename`(⌘⌥G) / `session.fork`(⌘⌥F) / `session.archive`(⌘⇧A) / `workspace.add`(⌘O) / `settings.open`(⌘,) / `sidebar.left.toggle`(⌘B)（另有 composer 域若干）。web 端官方对浏览器占用的组合统一退到 `primary+alt`。
+3. **「命令中心」在 DSH 没有对应物**：ZCode 的 `Cmd+K` 是命令中心（quick pick），DSH 的 `Cmd+K` 是 `session.search`（会话搜索）。本插件已通过影子桥把 `session.search` 的请求接进自己的搜索界面——语义不同、入口位置相同，按现状承接，不自建命令面板（宿主没有命令面板基础设施，造一个等于另起一套键盘体系）。
+4. **「上/下一个会话」宿主完全空白**：ZCode 有 `previousConversation`/`nextConversation`（⌘⇧[ / ⌘⇧]），DSH 无。本批按 ZCode 语义补齐。
+
+**实施**（`session-order.ts` + `session-navigation-shortcuts.ts`）：
+
+1. `session.previous` / `session.next` 注册进宿主命令服务：桌面 `primary+shift+[ / ]`；web 端 `primary+shift+[` 是浏览器标签页切换，让位为 `primary+alt`（官方同款补偿）；`regions: [page, editable]`、`modals: []`、模态防御与官方 rename 相同。
+2. **顺序 = 侧栏所见全序**（置顶项目 → 分组 → 未分组 → 最近），与侧栏树共享同一批助手（`visibleSessionIds`/`ungroupedSessionIds`/`orderByIds`/`groupedWorkspaceIds`）；偏好（置顶/分组）从本地缓存现读，触发时取最新快照。
+3. **边界语义逐字移植 ZCode** `resolveQuickPickConversationNavigation`：去重滤空、不循环（到边返回 null → `blocked`）、当前会话不在列表时 previous 取末位 / next 取首位。
+4. 服务就绪用 `ctx.inject(['shortcuts'])` 等待（不放进静态 inject：旧宿主无此服务时不得整体拒绝加载）；注册前查 catalog，宿主将来原生支持同名命令时让位。
+5. 验证：`tests/session-order.spec.ts`（12 用例：ZCode 语义逐条 + 全序组装）+ `tests/session-navigation-shortcuts.spec.ts`（7 用例：注册面/键位五端/resolve 语义/让位/服务缺失/卸载清理）+ 接线断言文件。
+
 ## 4. 待办批次（候选，按价值排序）
 
-1. **键盘能力调研**（#15）：宿主命令中心（`Cmd/Ctrl+K`）/ 上下会话切换（`Cmd/Ctrl+Shift+[ ]`）的可接入点——需先摸清宿主 slots 与快捷键桥的边界再定做法。
+1. **菜单快捷键后缀**（新发现）：宿主 `MenuItem.shortcut = {keys, aria}` 原生支持显示键帽（官方菜单已在用 catalog 直传）；本插件菜单可把 `session.rename/archive/fork` 的生效键位显示出来。搜索按钮同理可加 `aria-keyshortcuts`（catalog 已含 `aria`）。
+2. **会话置顶复核**（#13 复查线索）：宿主 workspace 控制器已有 `pinnedSessionIds`（"Pin a Session ahead of unpinned Sessions"，0.2.0-rc.2 起）——此前登记的「DSH 无会话置顶模型」需要重新核对能力面，若宿主已就绪可翻案。
+3. **Composer 域键位**：ZCode 的 `Ctrl+T`（思考档位循环）等在 DSH 由 composer 自己管理，接入前先摸清宿主输入框的键位边界（`stop-shortcut`/`keymap` 模块）。
 
-审计表其余各项已全部处置：✅ 已实施（#1-#7、#9、#11）或已登记（#8/#12/#13/#14 有意偏差，#10 评估不做）。
+审计表各项已全部处置：✅ 已实施（#1-#7、#9、#11、#15）或已登记（#8/#12/#13/#14 有意偏差，#10 评估不做）。

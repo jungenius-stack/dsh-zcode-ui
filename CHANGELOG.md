@@ -4,6 +4,23 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.8.0 - 2026-10-14
+
+### Changed
+
+- **Previous/next conversation keyboard commands** (audit #15, closing the ZCode parity pass): the host command system had no adjacent-conversation pair (ZCode has `previousConversation`/`nextConversation`), so this release registers `session.previous` / `session.next` into the host command service — discovery, rebinding and dispatch all ride the official channel:
+  - Keys aligned with ZCode: desktop `Cmd/Ctrl+Shift+[` and `Cmd/Ctrl+Shift+]`; on web `primary+shift+[` belongs to the browser's tab switching, so it steps aside to `primary+alt`, the same compensation the official commands use;
+  - **Order = the sidebar's visible order** (pinned projects → groups → ungrouped → recent), sharing the sidebar tree's own visibility/ordering helpers; pin and group preferences are read fresh from the local cache at trigger time;
+  - **Boundary semantics ported verbatim from ZCode**: dedupe and drop empties, no wrap (the boundary returns blocked rather than looping around), and when the current conversation is not in the list (e.g. sitting on the home view) previous takes the last row and next takes the first;
+  - Readiness is awaited via `ctx.inject(['shortcuts'])` (deliberately not a static inject: older hosts without the service must not refuse to load the plugin at all); the catalog is checked first so a future native command of the same id automatically wins.
+- Research conclusion (see docs/ZCODE-INTERACTION-PARITY.md §3): DSH has no ZCode-style "command center" — `Cmd+K` in DSH is session search (already bridged into this plugin's own search UI), so it is adopted as-is rather than building a second keyboard universe.
+
+### Verification
+
+- New `tests/session-order.spec.ts` (12 cases): the ZCode adjacency semantics case by case (middle / boundaries / single / empty / not-in-list fallback / dedupe-and-drop) plus full order assembly (pinned / groups / ungrouped / recent / archive filtering / unknown ids ignored).
+- New `tests/session-navigation-shortcuts.spec.ts` (7 cases): registration surface (five-platform bindings, regions, modals), resolve semantics (run only on handled, blocked reasons, modal defence), deferring to a native same-id command, tolerance of a missing service, and unload cleanup.
+- New `tests/session-navigation-shortcuts.assert.ts`: wiring assertions (fresh snapshots, reuse of `openConversation`, same preference cache as the tree, static-inject prohibition).
+
 ## 1.7.0 - 2026-10-14
 
 ### Changed

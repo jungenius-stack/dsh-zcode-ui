@@ -917,3 +917,44 @@ ZCode 单例化的动机是「行级菜单挂载会让每行做路径探测/订�
   门禁钩子（gate.mjs）与 package.json test:layout 同步。
 - 菜单结构断言更新（spec 全序列 + settings-integration.assert）。
 - 全量门禁：类型 0 错 / vitest 314 过 / 构建通过 / 断言 35 过 0 败 / 布局 15 脚本全过。
+
+---
+
+## 19. 2026-10-14 键盘命令接入：上/下一个会话（1.8.0；对齐清单见 docs/ZCODE-INTERACTION-PARITY.md #15 与 §3）
+
+### 19.1 宿主命令体系（本机取证，全部来自宿主包源码与 bundle）
+
+- 服务面：`ctx.shortcuts.register({id, label, aliases, defaults, regions, modals, resolve})` +
+  可订阅 `catalog`（条目 `{id, keys, aria}`）。`resolve` 返回 `{status:'handled', run}` 或
+  `{status:'blocked', reason}`；`regions: ['page','editable'(,'terminal')]`、`modals: [允许生效的模态 id]`。
+- 官方九条：session.new / session.search / session.rename / session.fork / session.archive /
+  workspace.add / settings.open / sidebar.left.toggle（+ composer 域）。
+  **没有 prev/next 会话**——本版补齐。
+- 「命令中心」：DSH 无此物。ZCode 的 Cmd+K 是命令面板，DSH 的 Cmd+K 是 session.search
+  （已由影子桥接进本插件搜索）。不自建面板：宿主没有命令面板基础设施，造一个等于另起一套键盘体系。
+
+### 19.2 实施取舍
+
+| 项 | 决定 | 理由 |
+| --- | --- | --- |
+| web 键位 | `primary+alt` 而非 `primary+shift` | `Cmd+Shift+[ / ]` 是浏览器标签页切换；官方对浏览器占用的组合一律退 primary+alt（取证：官方五条命令的 web 分支） |
+| 服务就绪 | `ctx.inject(['shortcuts'])` 延迟注册 | 服务可能晚于插件启动（settings-page-registration 的 liveShortcutCatalog 同因）；**不进静态 inject**——旧宿主无该服务时不得整体拒绝加载插件 |
+| 同名让位 | 注册前查 catalog，已是同名 id 则跳过 | 宿主将来原生支持 prev/next 时自动让位，不制造重复 id |
+| 顺序来源 | 侧栏全序（置顶→分组→未分组→最近），偏好读本地缓存 | 与侧栏树共用 visibleSessionIds/ungroupedSessionIds/orderByIds/groupedWorkspaceIds；缓存由侧栏在每次变更与 hydration 后写入，触发时现读 |
+| 边界语义 | ZCode `resolveQuickPickConversationNavigation` 逐字移植 | 不循环、到边 blocked、当前不在列表时 prev 取末位 / next 取首位 |
+
+### 19.3 已知边界（登记）
+
+- **web 端 primary+alt 是启发式**：官方同样用它回避浏览器占用，但浏览器未来改动可能再撞；
+  桌面端（Electron）为权威键位。
+- **顺序与渲染的同步窗口**：偏好缓存由侧栏组件写入；侧栏从未挂载过的极端首启窗口内，
+  导航按"无置顶无分组"的默认序工作（与缓存缺失时的侧栏首帧一致）。
+- **catalog 让位检查发生在激活期一次**：宿主在之后才注册同名命令的竞态未覆盖（宿主核心先于第三方插件激活，实际不可达）。
+
+### 19.4 验证
+
+- `tests/session-order.spec.ts` 12 用例（邻接语义逐条 + 全序组装）；
+  `tests/session-navigation-shortcuts.spec.ts` 7 用例（注册面/resolve/让位/服务缺失/卸载）；
+  `tests/session-navigation-shortcuts.assert.ts` 接线断言（现读快照、复用 openConversation、
+  偏好缓存同源、静态 inject 禁令）。
+- 全量门禁：类型 0 错 / vitest 全绿 / 构建通过 / 断言 36 过 0 败 / 布局 15 脚本全过。
