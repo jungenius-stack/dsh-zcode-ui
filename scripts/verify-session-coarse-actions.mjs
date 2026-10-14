@@ -1,10 +1,12 @@
 /**
- * 触屏（pointer:coarse）会话行操作常驻 —— 几何与可见性验证（2026-10-14）。
+ * 触屏（pointer:coarse）会话行操作 —— 几何与可见性验证（2026-10-14，1.11.0 改单一入口）。
  *
  * ZCode TaskListItem：`(hover:none)`（触屏）时操作按钮常驻（isHoverNone →
  * shouldMountWorkspaceTaskActions）——「触屏必须能看到操作」。
- * 本仓同一原则：快捷归档与 ⋯ 菜单锚点常驻；因时间/操作均为绝对定位，本脚本用
- * **边界盒**断言三者互不重叠（触屏下时间右移至 60px 让位）；待处理胶囊占位时除外。
+ * 本仓同一原则，但 1.11.0 起收窄为**单一入口**：触屏只保留 ⋯ 菜单锚点常驻，
+ * 快捷归档退场（归档走菜单；两个 44px 常驻位曾把 240px 侧栏的标题压到 54px）。
+ * 因时间/操作均为绝对定位，本脚本用**边界盒**断言互不重叠（触屏下时间右移让位）；
+ * 待处理胶囊占位时除外（胶囊本身是行动号召）。
  * 桌面（非触屏）的悬停/聚焦揭示语义不得受影响（回归保护）。
  */
 import { readFileSync } from 'node:fs'
@@ -32,7 +34,9 @@ async function measure(browser, { touch, pending }) {
   try {
     const page = await context.newPage()
     await page.setContent(rowHtml(pending))
-    await page.addStyleTag({ content: fixtureTokenStyle() })
+    // 本夹具只测几何（位置/尺寸/显隐），不测颜色；显式传 'light' 是为了一旦将来
+    // 有人在这里加颜色断言，不会 silently 拿到暗色令牌（fixture-tokens 的 modality 契约）。
+    await page.addStyleTag({ content: fixtureTokenStyle('light') })
     await page.addStyleTag({ content: fixtureThemeStyle() })
     await page.addStyleTag({ content: stylesheet[1] })
     return await page.evaluate(() => {
@@ -65,25 +69,24 @@ async function measure(browser, { touch, pending }) {
 
 const browser = await chromium.launch({ headless: true })
 try {
-  // 1) 触屏 + 无待处理：两个操作常驻、时间左移让位、边界盒互不重叠
+  // 1) 触屏 + 无待处理：**单一入口**（⋯ 常驻），快捷归档退场，时间左移让位
+  //    1.10.0 曾让两个按钮都常驻且 44×44：预留 156px，240px 侧栏内容宽只剩 84px、
+  //    标题元素实测仅 54px（KNOWN-ISSUES §21.2 记的是内容宽口径）。
+  //    1.11.0 改为触屏只留 ⋯ 一个入口：归档移进菜单，多一次点击；
+  //    同一夹具实测预留降到 120px、标题元素回到 90px（行首还要让 30px 状态槽）。
   const coarse = await measure(browser, { touch: true, pending: false })
   assert.equal(coarse.coarse, true, '触屏上下文的 (pointer:coarse) 必须命中（夹具前提）')
-  assert.equal(coarse.quick.opacity, '1', '触屏下快捷归档必须常驻（ZCode hover:none 同原则）')
-  assert.equal(coarse.quick.pointerEvents, 'auto', '触屏下快捷归档必须可点')
+  assert.equal(coarse.quick.display, 'none', '触屏下快捷归档必须退场（单一入口原则，归档走菜单）')
   assert.equal(coarse.anchor.opacity, '1', '触屏下 ⋯ 菜单锚点必须常驻')
   assert.equal(coarse.anchor.pointerEvents, 'auto', '触屏下 ⋯ 菜单锚点必须可点')
-  assert.equal(coarse.rowPadRight, '156px', '有时间的会话行必须为「时间 + 两个 44px 操作」预留 156px')
-  assert.equal(coarse.quick.gapRight, 8, '快捷归档固定在最右侧 8px')
-  assert.equal(coarse.anchor.gapRight, 56, '⋯ 菜单锚点固定在右侧 56px')
-  assert.equal(coarse.time.gapRight, 104, '触屏下时间必须左移到 104px 为操作让位')
+  assert.equal(coarse.rowPadRight, '120px', '有时间的会话行必须为「时间 + 一个 44px 操作」预留 120px')
+  assert.equal(coarse.anchor.gapRight, 8, '⋯ 菜单锚点固定在右侧 8px')
+  assert.equal(coarse.time.gapRight, 56, '触屏下时间必须左移到 56px 为操作让位')
   assert.ok(coarse.time.right <= coarse.anchor.left, '时间与 ⋯ 不得重叠')
-  assert.ok(coarse.anchor.right <= coarse.quick.left, '⋯ 与快捷归档不得重叠')
-  assert.ok(coarse.title.gapRight >= 154, '标题必须为「时间 + 操作」整段让位（padding-right 156px）')
+  assert.ok(coarse.title.gapRight >= 118, '标题必须为「时间 + 操作」整段让位（padding-right 120px）')
 
   // 1b) 触屏目标尺寸：WCAG 2.2 AA 2.5.8 要求 ≥24×24，触屏惯例是 44×44。
-  //     2026-10-14 前会话行只有 32px 高、行内按钮 20×20——放宽规则只写给了集合头。
   assert.ok(coarse.rowHeight >= 44, `触屏下会话行高必须 ≥44px，实测 ${coarse.rowHeight}px`)
-  assert.ok(coarse.quick.width >= 44 && coarse.quick.height >= 44, `触屏下快捷归档目标必须 ≥44×44，实测 ${coarse.quick.width}×${coarse.quick.height}`)
   assert.ok(coarse.anchor.width >= 44 && coarse.anchor.height >= 44, `触屏下 ⋯ 锚点目标必须 ≥44×44，实测 ${coarse.anchor.width}×${coarse.anchor.height}`)
 
   // 2) 触屏 + 待处理胶囊：胶囊本身是行动号召，操作不得常驻与它抢位
@@ -97,7 +100,7 @@ try {
   assert.equal(desktop.quick.opacity, '0', '桌面下快捷归档必须等待悬停/聚焦（不得常驻）')
   assert.equal(desktop.anchor.opacity, '0', '桌面下 ⋯ 锚点必须保持隐藏（菜单经右键唤出）')
 
-  console.log('✓ 触屏会话行：操作常驻、目标 ≥44×44、时间让位 104px、三者几何互不重叠；桌面揭示语义未受影响')
+  console.log('✓ 触屏会话行：单一操作入口（⋯ 44×44）、快捷归档退场、时间让位 56px、标题预留 120px（240px 夹具实测标题元素 90px，1.10.0 双入口时为 54px）；桌面揭示语义未受影响')
 } finally {
   await browser.close()
 }

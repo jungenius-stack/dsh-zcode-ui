@@ -50,10 +50,17 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
 :root{
   --dcu-state-success-text:#176c31;--dcu-state-error-text:#b3261e;--dcu-state-warn-text:#8a4b00;
   --dcu-state-error-fill:#e03131;--dcu-state-error-fill-hover:#c52b2b;
+  /* 浮层三件套同样挂在 :root：工具菜单与 Git 弹窗经 portal 渲染到 body，不在
+     .dcu-root / .dcu-settings-page / .dcu-home 任一侧栏作用域内，挂在作用域上，
+     var() 会解析失败并静默走字面量回退（与 --dcu-primary、--dcu-state-* 同因）。 */
+  --dcu-tip-bg:#ffffff;--dcu-tip-border:rgba(13,13,13,.1);--dcu-tip-shadow:0 8px 24px rgba(13,13,13,.12);
 }
 body[data-ds-dark-theme],.theme-zai-dark{
   --dcu-state-success-text:#46bf72;--dcu-state-error-text:#ff5c5c;--dcu-state-warn-text:#ff8a30;
   --dcu-state-error-fill:#ff5c5c;--dcu-state-error-fill-hover:#ff7070;
+  /* 浮层三件套（底色/描边/投影）也在暗色下重取：它们挂在 :root 而不是侧栏作用域，
+     是为了让 portal 到 body 的浮层（工具菜单、Git 弹窗）也拿得到——见上面亮色那段的说明。 */
+  --dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);--dcu-tip-shadow:0 8px 24px rgba(0,0,0,.4);
 }
 /* ── 动效令牌 ─────────────────────────────────────────────────────────────
    2026-10-13 起：原先全站收敛为「180ms ease-out」一条曲线。那是一致，但没有意图——
@@ -85,6 +92,23 @@ body[data-ds-dark-theme],.theme-zai-dark{
  * 放在主题层（应用级）：侧栏运行中、设置页安装中转圈与将来接入的外来表面共用同一份定义，
  * 避免「两处同义规则各写一遍、谁被删了都不知道」。 */
 .dcu-spin{animation:dcu-spin 1s linear infinite}
+
+/* 三态外壳（loading / error / empty）——2026-10-14 补上这块此前完全空白的规范
+   （docs/KNOWN-ISSUES.md §13.6 自登记：本仓「无统一规范、无断言」）。
+   设计决定：
+   · **一个外壳只换语义色**，不换容器几何——同一处信息换个状态不该跳版。
+   · **错误态不铺 destructive 底色**。语义靠①文字用 --dcu-state-error-text（≥4.5:1）、
+     ②容器带 role="alert"、③表单控件用 aria-invalid 边框表达。铺 12% 色调底是
+     此前 .dcu-wb-error 的做法，在 240px 窄栏里是一整块刺眼的红，且与 §10.2 契约
+     第 4 条「语义色只约束填充，不得用于文字/整块背景」相抵触。
+   · 图标由使用处给（ZCode 同模型：Spinner 只接 className），外壳只管间距与文字。
+   放主题层（应用级）：侧栏 / 频道 / 定时 / 行内操作 / 弹窗都要用，避免各抄一份。 */
+.dcu-state,.dcu-wb-error{display:block;padding:8px 10px;border-radius:var(--dsw-radius-lg);font-size:var(--dsw-font-size-sm);line-height:20px;color:var(--dcu-sidebar-secondary)}
+.dcu-state--error,.dcu-wb-error{color:var(--dcu-state-error-text)}
+.dcu-state--empty{color:var(--dcu-sidebar-tertiary)}
+/* 需要图标位时用这个修饰符：外壳变 flex，图标位固定 16px、随文字色。 */
+.dcu-state--with-icon{display:flex;align-items:flex-start;gap:8px}
+.dcu-state--with-icon>.dcu-state-icon{flex:none;width:16px;height:16px;margin-top:2px;color:inherit}
 @keyframes dcu-spin{to{transform:rotate(360deg)}}
 /* 令牌化的副产品：减少动态效果不再需要逐个元素写 transition:none —— 把五档时长一起归零，
    所有消费方自动跟随。各处残留的 transition:none 块保留（它们同时覆盖未令牌化的宿主元素）。 */
@@ -100,8 +124,7 @@ body[data-ds-dark-theme],.theme-zai-dark{
   --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#5c5c5c;
   --dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252;
   --dcu-sidebar-hover:rgba(13,13,13,.05);--dcu-sidebar-selected:rgba(13,13,13,.05);
-  --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-tip-bg:#ffffff;--dcu-tip-border:rgba(13,13,13,.1);
-  --dcu-tip-shadow:0 8px 24px rgba(13,13,13,.12);--dcu-focus:#0b7fff;
+  --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-focus:#0b7fff;
   --dcu-surface:rgba(13,13,13,.03);
 }
 /* Zai Dark —— 宿主暗色属性或 ZCode 暗色 class 命中任一即切换。 */
@@ -110,8 +133,7 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
   --dcu-sidebar-background:#161616;--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;
   --dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3;
   --dcu-sidebar-hover:rgba(255,255,255,.05);--dcu-sidebar-selected:rgba(255,255,255,.1);
-  --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);
-  --dcu-tip-shadow:0 8px 24px rgba(0,0,0,.4);--dcu-focus:#4099ff;
+  --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-focus:#4099ff;
   --dcu-surface:rgba(255,255,255,.05);
 }
 `

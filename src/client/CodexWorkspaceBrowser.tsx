@@ -220,21 +220,28 @@ const stylesheet = `
 /* 触屏（无悬停）——ZCode 同原则：触屏必须能看到操作（(hover:none) 时操作常驻）。
    快捷归档与 ⋯ 菜单常驻；时间左移让位；三者几何互不重叠（见 verify-session-coarse-actions.mjs）。
    待处理胶囊占位时除外：胶囊本身是行动号召，不让操作与它抢位。 */
-/* 触屏（pointer:coarse）：操作常驻 + **目标尺寸补足**。
+/* 触屏（pointer:coarse）：操作常驻 + **目标尺寸补足** + **单一入口**。
    2026-10-14 前这里只解决「按钮是否常驻可见」，没解决「是否够大」：会话行 32px、
    行内 ⋯ / 归档按钮 20×20，而放宽规则只写给了集合头（那里也只到 36/28px）。
    20×20 低于 WCAG 2.2 AA 2.5.8 目标尺寸（最小值）的 24×24，也远低于触屏惯例的 44px。
-   现在统一：行高 44px、行内按钮 44×44（透明底，视觉图标仍是 16px）。
-   代价是行内要给「时间 + 两个操作」留出 152px——这是触屏下 44px 目标的必要成本。 */
+
+   1.10.0 曾把两个按钮都放到 44×44，结果「时间 + 两个 44px 操作」要占 156px，
+   240px 侧栏的内容宽只剩 84px、标题元素实测只有 54px——用可读性换目标尺寸，
+   得不偿失（见 KNOWN-ISSUES §21.2）。
+   1.11.0 改为**触屏只保留 ⋯ 一个 44×44 入口**（归档移到菜单里，多一次点击）。
+   同一 240px 夹具实测：预留从 156px 降到 120px，标题元素从 54px 回到 90px。
+   依据：触屏行列表的惯例是单一「更多」入口（iOS/Android list row），且把一键归档这种
+   破坏性动作从易误触的常驻位挪进菜单，本身就更安全。 */
 @media (pointer:coarse){
   .dcu-wb-session{min-height:44px}
   .dcu-wb-session .dcu-wb-more{width:44px;height:44px;border-radius:var(--dsw-radius-lg)}
-  .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-quick-actions{opacity:1;pointer-events:auto}
-  .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-actions{display:flex;position:absolute;right:56px;top:50%;transform:translateY(-50%)}
+  /* 快捷归档在触屏下退场：菜单里有同一动作（见 workspace-browser.ts 的 sessionMenuItems）。 */
+  .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-quick-actions{display:none}
+  .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-actions{display:flex;position:absolute;right:8px;top:50%;transform:translateY(-50%)}
   .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-actions .dcu-wb-context-anchor{opacity:1;pointer-events:auto}
-  .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-session-time{right:104px}
-  .dcu-wb-session:not(:has(.dcu-wb-pending)){padding-right:104px}
-  .dcu-wb-session:not(:has(.dcu-wb-pending)):has(.dcu-wb-session-time){padding-right:156px}
+  .dcu-wb-session:not(:has(.dcu-wb-pending)) .dcu-wb-session-time{right:56px}
+  .dcu-wb-session:not(:has(.dcu-wb-pending)){padding-right:56px}
+  .dcu-wb-session:not(:has(.dcu-wb-pending)):has(.dcu-wb-session-time){padding-right:120px}
   .dcu-wb-collection-head,.dcu-wb-collection-label{min-height:44px}
   .dcu-wb-collection-actions{width:44px}
   .dcu-wb-collection-actions .dcu-wb-more{width:44px;height:44px;border-radius:var(--dsw-radius-lg)}
@@ -243,11 +250,14 @@ const stylesheet = `
 .dcu-wb-more{display:grid;place-items:center;width:20px;height:20px;border:0;border-radius:6px;padding:0;background:transparent;color:var(--dcu-sidebar-tertiary);cursor:pointer}
 .dcu-wb-more:hover{color:var(--dcu-sidebar-primary)}.dcu-wb-confirm{display:inline-flex;align-items:center;height:20px;padding:0 8px;border:0;border-radius:var(--dsw-radius-md);background:var(--dcu-state-error-fill);color:var(--dsw-alias-bg-layer-3);font:500 12px/18px var(--dsw-font-family);cursor:pointer;white-space:nowrap}.dcu-wb-confirm:hover{background:var(--dcu-state-error-fill-hover)}
 .dcu-wb-context-anchor{opacity:0;pointer-events:none}
-.dcu-wb-tip{position:fixed;z-index:10050;min-width:220px;max-width:280px;padding:10px 12px;border:1px solid var(--dcu-sidebar-border);border-radius:var(--dsw-radius-xl);background:var(--dcu-tip-bg);box-shadow:var(--dcu-tip-shadow,0 8px 28px rgba(31,39,36,.16));color:var(--dcu-sidebar-primary);animation:dcu-tip-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}.dcu-wb-tip-workspace{width:316px;min-width:0;max-width:calc(100vw - 16px);padding:10px 8px 8px}@keyframes dcu-tip-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.dcu-wb-tip{animation:none}}.dcu-wb-tip-title{display:flex;align-items:center;gap:6px;min-width:0;min-height:20px;font-size:var(--dsw-font-size-base);line-height:20px;font-weight:500}.dcu-wb-tip-title-main{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dcu-wb-tip-pin{display:grid;place-items:center;flex:none;width:20px;height:20px;border:0;border-radius:4px;padding:0;background:transparent;color:var(--dcu-sidebar-tertiary);cursor:pointer}.dcu-wb-tip-pin:hover{background:var(--dcu-sidebar-hover);color:var(--dcu-sidebar-primary)}.dcu-wb-tip-meta,.dcu-wb-tip-row{display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px;color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-base);line-height:20px}.dcu-wb-tip-meta svg,.dcu-wb-tip-row svg{flex:none}.dcu-wb-tip-row>span:not(.dcu-wb-folder){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dcu-wb-tip-path{align-items:flex-start;margin-top:8px}.dcu-wb-tip-path-copy{min-width:0;overflow-wrap:anywhere;white-space:normal}.dcu-wb-tip-sep{height:1px;margin:8px 0 4px;background:var(--dcu-sidebar-border)}.dcu-wb-tip-edit{display:flex;align-items:center;gap:6px;width:100%;min-height:24px;border:0;padding:2px 0;background:transparent;color:var(--dcu-sidebar-primary);font:14px/20px var(--dsw-font-family);text-align:left;cursor:pointer}.dcu-wb-tip-edit svg{flex:none;color:var(--dcu-sidebar-secondary)}
+.dcu-wb-tip{position:fixed;z-index:10050;min-width:220px;max-width:280px;padding:10px 12px;border:1px solid var(--dcu-sidebar-border);border-radius:var(--dsw-radius-xl);background:var(--dcu-tip-bg);box-shadow:var(--dcu-tip-shadow);color:var(--dcu-sidebar-primary);animation:dcu-tip-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}.dcu-wb-tip-workspace{width:316px;min-width:0;max-width:calc(100vw - 16px);padding:10px 8px 8px}@keyframes dcu-tip-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.dcu-wb-tip{animation:none}}.dcu-wb-tip-title{display:flex;align-items:center;gap:6px;min-width:0;min-height:20px;font-size:var(--dsw-font-size-base);line-height:20px;font-weight:500}.dcu-wb-tip-title-main{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dcu-wb-tip-pin{display:grid;place-items:center;flex:none;width:20px;height:20px;border:0;border-radius:4px;padding:0;background:transparent;color:var(--dcu-sidebar-tertiary);cursor:pointer}.dcu-wb-tip-pin:hover{background:var(--dcu-sidebar-hover);color:var(--dcu-sidebar-primary)}.dcu-wb-tip-meta,.dcu-wb-tip-row{display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px;color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-base);line-height:20px}.dcu-wb-tip-meta svg,.dcu-wb-tip-row svg{flex:none}.dcu-wb-tip-row>span:not(.dcu-wb-folder){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dcu-wb-tip-path{align-items:flex-start;margin-top:8px}.dcu-wb-tip-path-copy{min-width:0;overflow-wrap:anywhere;white-space:normal}.dcu-wb-tip-sep{height:1px;margin:8px 0 4px;background:var(--dcu-sidebar-border)}.dcu-wb-tip-edit{display:flex;align-items:center;gap:6px;width:100%;min-height:24px;border:0;padding:2px 0;background:transparent;color:var(--dcu-sidebar-primary);font:14px/20px var(--dsw-font-family);text-align:left;cursor:pointer}.dcu-wb-tip-edit svg{flex:none;color:var(--dcu-sidebar-secondary)}
 .dcu-wb-session:has(.dcu-wb-pending){padding-right:112px}.dcu-wb-unread{position:absolute;left:13px;top:50%;width:6px;height:6px;margin:-3px 0 0;border-radius:50%;background:var(--dsw-alias-state-business-primary)}
 .dcu-wb-pending{position:absolute;right:10px;top:50%;display:flex;align-items:center;gap:4px;max-width:88px;margin:0;transform:translateY(-50%);color:var(--dcu-state-warn-text);font-size:var(--dsw-font-size-sm);line-height:16px;white-space:nowrap}.dcu-wb-pending-dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--dcu-state-warn-text)}.dcu-wb-pending-label{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .dcu-wb-empty{padding:10px 8px;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-caption)}
-.dcu-wb-error{margin:4px 0;padding:6px 8px;border-radius:8px;background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent);color:var(--dcu-state-error-text);font-size:var(--dsw-font-size-sm)}
+/* 三态外壳接管了排版与语义色（见 zcode-theme.ts 的 .dcu-state 段）。
+   这里只保留侧栏需要的两件事：与上方内容的间距、以及「不再铺 12% 破坏性底色」——
+   那层底色在 240px 窄栏里是一整块刺眼的红，且与契约第 4 条相抵触。 */
+.dcu-wb-error{margin:4px 0;background:transparent}
 .dcu-wb-rail{display:none}
 .dcu-wb-rename-actions{display:flex;justify-content:flex-end;gap:8px}
 .dcu-wb-delete-button{color:var(--dcu-state-error-text)!important}

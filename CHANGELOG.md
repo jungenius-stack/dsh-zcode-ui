@@ -4,6 +4,33 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.11.0 - 2026-10-14
+
+1.10.0 shipped with six registered follow-ups; this release clears four of them and cashes in two older
+registrations. Full disposition table: `docs/KNOWN-ISSUES.md` §22. Design rationale: `docs/ZCODE-DESIGN.md` §15.
+
+### Changed (visual / interaction)
+
+- **Touch session rows get a single action entry**: the quick-archive button steps aside on touch; archiving moves into the ⋯ menu (where it has always lived). "Time + two 44px actions" reserved 156px, leaving the 240px sidebar 84px of content width and a **54px** title element (measured); the single entry reserves 120px and the title element measures **90px** on the same fixture. Moving a destructive action off the persistent, mis-tap-prone slot is a safety improvement in its own right.
+- **Tool menu / Git popover backgrounds move to semantic tokens**: previously `background:#fff!important` plus a `body[data-ds-dark-theme] …{background:#2b2b2b}` dark patch — two hand-maintained copies that drift. Now `var(--dsw-specific-menu, var(--dcu-tip-bg))` + `backdrop-filter:var(--dsw-menu-backdrop-filter,none)`: the host menu token (translucent + blur) wins, our opaque overlay color is the fallback; the dark patch is deleted.
+- **Overlay tokens promoted to `:root`**: `--dcu-tip-{bg,border,shadow}` were scoped to `.dcu-root` and friends, but tool menus render through a portal into `body`, where scoped `var()` silently fails. Promoted alongside `--dcu-state-*`.
+
+### Added
+
+- **Three-state shells (loading / error / empty)**: `.dcu-state--{loading,error,empty}` — one shell swaps semantic color only, never container geometry (the same information changing state must not reflow). `.dcu-wb-error` folds into the same shell. **The error state no longer paints a 12% destructive background** — semantics come from text color (≥4.5:1) + `role="alert"` + `aria-invalid` borders (the old wash was a block of glaring red in a 240px rail and violated contract rule 4). New `scripts/verify-state-shells.mjs`, wired into the gate layout chain (15 → 16 scripts).
+- **Platform coverage extended**: `verify-sidebar-titlebar.mjs` gains Linux plus a `deviceScaleFactor` 1 / 1.25 / 1.5 / 2 matrix (1.25 is the Windows display default and where sub-pixel rounding breaks layouts first), asserting traffic-light clearance, center-point hit testing, footer bounds, and no horizontal overflow under non-integer scaling.
+
+### Fixed (toolchain / test infrastructure)
+
+- **Fixtures inject tokens per theme modality**: `fixtureTokenStyle()` used to flatten both `--dsw-*` sets into one `:root`, so **dark always won** — the light run measured dark tokens, and `--dsw-alias-bg-layer-3` made contrast compute physically impossible results (`#2b2b2b on #ff5c5c = 1.19:1`). Now `fixtureTokenStyle(modality)`, split into `ZCODE_LIGHT` / `ZCODE_DARK` / `ZCODE_STRUCTURAL` (the structural segment must be split out separately, or light fixtures lose all radius/font-size tokens); all six layout scripts inject per modality, with an assertion guarding each caller's shape.
+- **Gate's vitest step caps workers**: vitest defaults to one fork per CPU; with parallel sessions driving the machine to load 10+, workers time out en masse — non-zero exit with no parseable failure file (the gate's "undecided" shape). Measured green with `--maxWorkers=4` (50 files / 354 tests); override via `VITEST_MAX_WORKERS`.
+
+### Still open (registered, scheduled separately)
+
+- The parallel `--sp-*` / `--dcu-*` namespaces (8 consumers, differing fallbacks — needs a point-by-point merge).
+- No breakpoint system (7 `max-width` values; 639 and 640 live in two files yet govern the same composer region).
+- Platform coverage remainder: multi-window / split-view / multi-monitor unverified.
+
 ## 1.10.0 - 2026-10-14
 
 An external UI review (grade: B) flagged three systemic problems: light-theme state colors below WCAG AA,

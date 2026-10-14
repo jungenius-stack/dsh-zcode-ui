@@ -180,7 +180,10 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   'CodexWorkspaceBrowser.tsx:4px': 1,
   'CodexWorkspaceBrowser.tsx:50%': 3,
   'CodexWorkspaceBrowser.tsx:6px': 3,
-  'CodexWorkspaceBrowser.tsx:8px': 9,
+  // 2026-10-14（1.11.0）：.dcu-wb-error 的 border-radius:8px 并入主题层三态外壳
+  // （zcode-theme.ts 的 .dcu-state,.dcu-wb-error 规则，值改为 var(--dsw-radius-lg)），
+  // 侧栏这份只保留间距与「去 destructive 底色」，故 9 → 8。
+  'CodexWorkspaceBrowser.tsx:8px': 8,
   'DesktopNavigationControls.tsx:50%': 1,
   'TurnNavigator.tsx:4px': 1,
   'new-conversation-style.ts:8px': 1,
@@ -443,11 +446,55 @@ assert.deepEqual(
   `以下文件把状态色**填充档**当文字色用（亮色档不达 4.5:1，应用 --dcu-state-*-text）：${stateTextOffenders.join(', ')}`,
 )
 
-// ── 16. role="tree" 必须兑现树的契约（2026-10-14 新增）──────────────────────
+// ── 16. 浮层表面不得硬编码底色（2026-10-14 新增）──────────────────────────────
+// 2026-10-14 前，输入区工具菜单与 Git 弹窗的底色是 `background:#fff!important`、
+// 投影是 `#0002` / `#0000000a`，另有一条 `body[data-ds-dark-theme] …{background:#2b2b2b}`
+// 暗色补丁。硬编码 + 补丁意味着：改一次主题要改三处，且补丁与主规则值容易漂移。
+// 现在统一走 --dcu-tip-bg / --dcu-tip-shadow（见 zcode-theme.ts 的 :root 段）。
+// 只查**声明行**：先把 CSS 注释整体剥掉再扫。按「行是否以 * 开头」过滤是不可靠的——
+// 注释续行常常不以星号开头（本仓 2026-10-14 正好这样误报过一次）。
+const toolMenuStyle = read('composer-tool-menus.ts')
+const toolMenuDeclarations = toolMenuStyle.replace(/\/\*[\s\S]*?\*\//g, '')
+const hardcodedSurface = toolMenuDeclarations
+  .split('\n')
+  .filter((line: string) => /(?:background|box-shadow)\s*:[^;]*#[0-9a-fA-F]{3,8}/.test(line))
+assert.deepEqual(hardcodedSurface, [], `浮层表面不得硬编码颜色（应走 --dcu-tip-bg / --dcu-tip-shadow）：\n${hardcodedSurface.map(l => l.trim().slice(0, 120)).join('\n')}`)
+assert.match(toolMenuStyle, /background:var\(--dsw-specific-menu,var\(--dcu-tip-bg\)\)/, '工具菜单底色必须宿主菜单令牌优先、自家浮层色兜底')
+assert.match(toolMenuStyle, /backdrop-filter:var\(--dsw-menu-backdrop-filter,none\)/, '必须保留宿主菜单的毛玻璃（不再用 !important 抹掉）')
+assert.match(toolMenuStyle, /box-shadow:var\(--dcu-tip-shadow\)/, '菜单投影必须取 --dcu-tip-shadow')
+// 浮层三件套必须挂在 :root：菜单经 portal 渲染到 body，挂在侧栏作用域上 var() 会静默失效。
+assert.match(theme, /:root\{[^}]*--dcu-tip-bg:#ffffff/, '浮层底色令牌必须挂在 :root（portal 到 body 的表面才取得到）')
+assert.match(theme, /body\[data-ds-dark-theme\][^}]*--dcu-tip-bg:#2b2b2b/, '暗色下浮层底色必须重取（不能靠亮色值 + 补丁）')
+
+// ── 17. 合成夹具必须按 modality 注入令牌（2026-10-14 新增）────────────────────
+// `zcode-tokens.ts` 里 ZCODE_LIGHT / ZCODE_DARK 是同名令牌的两份定义。旧 fixture-tokens
+// 把两份一起塞进同一个 :root，于是**暗色恒胜**——亮色趟也拿暗色令牌，且 `--dsw-alias-bg-layer-3`
+// 这种前景色会让对比度算出「物理上不可能」的数（#2b2b2b on #ff5c5c = 1.19:1）。
+// 见 docs/KNOWN-ISSUES.md §12.3 #2。
+const fixtureTokens = readFileSync(new URL('../scripts/fixture-tokens.mjs', import.meta.url), 'utf8')
+assert.match(fixtureTokens, /export const ZCODE_DARK/, 'fixture-tokens 必须按 ZCODE_DARK 切分明暗两份令牌')
+assert.match(fixtureTokens, /fixtureTokenStyle = \(modality = 'light'\)/, 'fixtureTokenStyle 必须接受 modality 参数（默认 light）')
+// 覆盖全部**在门禁布局链里**的令牌消费方。verify-session-coarse-actions 今天只测几何，
+// 但一并纳入：它显式传 'light'，将来若有人在这里加颜色断言，modality 契约已经就位。
+for (const caller of ['verify-a11y-and-overflow.mjs', 'verify-composer-style.mjs', 'verify-new-conversation.mjs', 'verify-composer-tools.mjs', 'verify-session-coarse-actions.mjs', 'verify-state-shells.mjs']) {
+  const text = readFileSync(new URL(`../scripts/${caller}`, import.meta.url), 'utf8')
+  // 允许的形态：直接传三元、传字面量、或包一层「modality 透传」的辅助函数
+  // （a11y 的 cssFor / composer-tools 的 tokenStylesFor 都是后者）。
+  assert.ok(
+    /fixtureTokenStyle\((?:dark|modal) \? 'dark' : 'light'\)/.test(text)
+      || /fixtureTokenStyle\('light'\)/.test(text)
+      || /fixtureTokenStyle\(modal\)/.test(text),
+    `${caller} 必须按主题态注入令牌（fixtureTokenStyle 不再默认暗色）`,
+  )
+}
 // 背景：此前侧栏**声明**了 tree/treeitem，但没有方向键、每个 treeitem 都写死
 // tabIndex={0}（100 个会话 = 100 次 Tab）、没有 aria-level、treeitem 的归属还被
 // 纯结构 div 夹断。声明了更强的语义却不兑现，比不声明更差——辅助技术按树呈现，
 // 用户按树操作，然后失败。这里锁住「声明必须与实现一致」。
+// ── 18. role="tree" 必须兑现树的契约（2026-10-14 新增）──────────────────────
+// 背景：此前侧栏**声明**了 tree/treeitem，但契约一条都没兑现——没有方向键、
+// 每行写死 tabIndex={0}、没有 aria-level、treeitem 归属被纯结构层夹断。
+// 声明更强的语义却不兑现，比不声明更差：辅助技术按树呈现，用户按树操作，然后失败。
 const treeKeyboard = read('tree-keyboard.ts')
 const workspaceBrowserSource = read('CodexWorkspaceBrowser.tsx')
 assert.match(workspaceBrowserSource, /role="tree"/, '侧栏必须声明 role="tree"')
@@ -471,7 +518,7 @@ const hardcodedTabStops = clientFiles
   .map(({ name }) => name)
 assert.deepEqual(hardcodedTabStops, [], `以下文件给 treeitem 写死了 tabIndex={0}（应由 tree-keyboard 的 roving 管理）：${hardcodedTabStops.join(', ')}`)
 
-// ── 17. 布局脚本不得用「第一个反引号」抽样式（2026-10-14 新增）────────────────
+// ── 19. 布局脚本不得用「第一个反引号」抽样式（2026-10-14 新增）────────────────
 // §13 已经防住了「源码里的 CSS 注释出现反引号会把模板串截断」，但只校验了源码侧。
 // 消费侧同样脆：两个布局脚本用 `indexOf('\`')` 定位模板串，文件头 JSDoc 一旦出现
 // 反引号（标记 CSS 变量名极自然），抽出的「样式」就成了注释正文，CSS 规则被切碎。

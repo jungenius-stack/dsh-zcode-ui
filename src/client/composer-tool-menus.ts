@@ -5,14 +5,22 @@ const MENU = '[role="menu"],[role="listbox"]'
 export const COMPOSER_TOOL_MENU_STYLE = `
 [class*="_heroWorkspaceRow"] button{min-height:28px;border-radius:var(--dsw-radius-full);font-size:var(--dsw-font-size-caption);line-height:20px}
 [class*="_heroWorkspaceRow"] button:hover,[class*="_heroWorkspaceRow"] button[aria-expanded=true]{background:color-mix(in srgb,var(--dsw-alias-label-primary) 8%,transparent)}
-:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]){box-sizing:border-box;max-height:var(--dcu-tool-menu-height,360px)!important;padding:5px!important;border-radius:var(--dsw-radius-xl)!important;background:#fff!important;color:var(--dsw-alias-label-primary);box-shadow:0 8px 32px #0002,0 0 0 1px #0000000a!important;display:flex;flex-direction:column;gap:0;z-index:1100}
+/* 底色与投影走语义令牌（2026-10-14 去硬编码）：原来底色是 background:#fff!important、
+   投影是 box-shadow:0 8px 32px #0002,0 0 0 1px #0000000a!important，另有一条
+   body[data-ds-dark-theme] …{background:#2b2b2b} 暗色补丁。
+   菜单与 Git 弹窗是**会**跟着宿主切暗色的表面，硬编码 #fff 会让它在暗色主题下变成一块白板；
+   而补丁与主规则各写一份，值容易漂移。
+   同系令牌 --dcu-tip-bg / --dcu-tip-shadow 早已用在侧栏浮层上，这里接同一对令牌，
+   让「浮层表面」在仓库里有**一个**定义而不是每处一份字面量。 */
+:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]){box-sizing:border-box;max-height:var(--dcu-tool-menu-height,360px)!important;padding:5px!important;border-radius:var(--dsw-radius-xl)!important;background:var(--dsw-specific-menu,var(--dcu-tip-bg))!important;backdrop-filter:var(--dsw-menu-backdrop-filter,none)!important;color:var(--dsw-alias-label-primary);box-shadow:var(--dcu-tip-shadow)!important;display:flex;flex-direction:column;gap:0;z-index:1100}
 /* 原生菜单保留宿主宽度约束；Git 弹窗沿用独立尺寸，避免观察器标记前后跳变。 */
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover])[data-gitgraph-popover]{min-width:0!important;width:262px;max-width:calc(100vw - 24px)}
 :is([data-dcu-tool-menu=inline],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]:not([data-dcu-tool-menu=portal]))[data-gitgraph-popover]{width:320px}
 [data-dcu-tool-menu=portal]{position:fixed!important;left:var(--dcu-tool-menu-x)!important;top:var(--dcu-tool-menu-y)!important;bottom:auto!important;right:auto!important}
 :is([data-dcu-tool-menu=inline],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]:not([data-dcu-tool-menu=portal])){translate:var(--dcu-tool-menu-shift,0px) 0}
 [class*="_heroWorkspaceRow"] [data-gitgraph-popover]:not([data-dcu-tool-menu=portal]){top:auto!important;bottom:calc(100% + 4px)!important}
-body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]){background:#2b2b2b!important;box-shadow:0 8px 32px #0003,0 0 0 1px #ffffff08!important}
+/* 原先这里还有一条 body[data-ds-dark-theme] …{background:#2b2b2b!important;…} 的暗色补丁，
+   现在由 --dcu-tip-bg / --dcu-tip-shadow 的暗色值统一承担（见文件头注释），补丁已删。 */
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover])>[class*="_viewport"]{min-height:0;max-height:none;overflow-y:auto;scrollbar-width:thin}
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) :is([role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=option]){box-sizing:border-box;min-height:28px;padding:4px 9px;gap:8px;border-radius:var(--dsw-radius-lg);font-size:var(--dsw-font-size-caption);line-height:20px}
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) :is([role=menuitem],[role=menuitemradio],[role=option]):hover:not(:disabled),:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [class*="_selected"],:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [aria-selected=true],:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [aria-checked=true]{background:color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent)}
@@ -29,8 +37,8 @@ body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [
 [data-dcu-tool-empty]{padding:8px 10px;font-size:var(--dsw-font-size-caption);color:var(--dsw-alias-label-secondary)}
 [data-dcu-tool-filtered]{display:none!important}
 /* 建议菜单单独换肤：外框跟随宿主输入区，保留宿主定位和动态高度，不给内部列表套固定宽度。 */
-[data-conversation-scroll] [data-trigger-menu]{box-sizing:border-box;left:0;right:0;width:auto;min-width:0;max-width:none;padding:5px;border-radius:var(--dsw-radius-xl);background:#fff;box-shadow:0 8px 32px #0002,0 0 0 1px #0000000a}
-body[data-ds-dark-theme] [data-conversation-scroll] [data-trigger-menu]{background:#2b2b2b;box-shadow:0 8px 32px #0003,0 0 0 1px #ffffff08}
+[data-conversation-scroll] [data-trigger-menu]{box-sizing:border-box;left:0;right:0;width:auto;min-width:0;max-width:none;padding:5px;border-radius:var(--dsw-radius-xl);background:var(--dcu-tip-bg);box-shadow:var(--dcu-tip-shadow)}
+
 [data-conversation-scroll] [data-trigger-menu]>[role=listbox]{box-sizing:border-box;width:100%;min-width:0;align-self:stretch;scrollbar-width:thin}
 [data-conversation-scroll] [data-trigger-menu] [role=option]{box-sizing:border-box;width:100%;min-width:0;min-height:28px;padding:4px 9px;gap:8px;border-radius:var(--dsw-radius-lg);font-size:var(--dsw-font-size-caption);line-height:20px}
 [data-conversation-scroll] [data-trigger-menu] [role=option][aria-selected=true]{background:color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent)}

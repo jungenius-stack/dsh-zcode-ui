@@ -4,6 +4,52 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.11.0 - 2026-10-14
+
+1.10.0 发布时登记的 6 项未决项，本版清理 4 项，并顺带兑现 2 项更早的登记。逐项销账表见
+`docs/KNOWN-ISSUES.md` §22；设计依据见 `docs/ZCODE-DESIGN.md` §15。
+
+### 变更（视觉 / 交互）
+
+- **触屏会话行改为单一操作入口**：快捷归档在触屏下退场，归档走 ⋯ 菜单（该项一直在菜单里）。
+  「时间 + 两个 44px 操作」曾占 156px，240px 侧栏的内容宽只剩 84px、标题元素实测仅 54px；
+  改为单一入口后预留 120px，标题元素回到 **90px**（同一夹具实测）。破坏性动作离开易误触的
+  常驻位，本身也是安全改进。
+- **工具菜单 / Git 弹窗底色改走语义令牌**：原为 `background:#fff!important` 加一条
+  `body[data-ds-dark-theme] …{background:#2b2b2b}` 暗色补丁——补丁与主规则各写一份、值容易漂移。
+  现统一为 `var(--dsw-specific-menu, var(--dcu-tip-bg))` + `backdrop-filter:var(--dsw-menu-backdrop-filter,none)`：
+  宿主菜单令牌（半透明 + 毛玻璃）优先，自家不透明浮层色兜底；暗色补丁条删除。
+- **浮层三件套上提 `:root`**：`--dcu-tip-{bg,border,shadow}` 原先只挂在 `.dcu-root` 等侧栏作用域，
+  而工具菜单经 portal 渲染到 body，作用域内 `var()` 静默失效。与 `--dcu-state-*` 同路上提。
+
+### 新增
+
+- **三态外壳（loading / error / empty）**：`.dcu-state--{loading,error,empty}` 一个外壳只换语义色、
+  不换容器几何（同一处信息换状态不该跳版）；`.dcu-wb-error` 并入同一外壳。
+  **错误态不再铺 12% destructive 底色**——语义改由文字色（≥4.5:1）+ `role="alert"` +
+  `aria-invalid` 边框表达（原底色在 240px 窄栏里是一整块刺眼的红，且违反外来内容契约第 4 条）。
+  新脚本 `scripts/verify-state-shells.mjs` 接入门禁布局链（15 → 16 项）。
+- **平台覆盖扩展**：`verify-sidebar-titlebar.mjs` 新增 Linux 平台与 `deviceScaleFactor`
+  1 / 1.25 / 1.5 / 2 矩阵（1.25 是 Windows 显示设置默认档，也是亚像素舍入最易破版处），
+  断言交通灯避让、控件中心点击命中、底部边界与横向溢出在非整数缩放下仍成立。
+
+### 修复（工具链 / 测试基础设施）
+
+- **合成夹具按主题态注入令牌**：`fixtureTokenStyle()` 原把明暗两套 `--dsw-*` 平铺进同一个
+  `:root`，**暗色恒胜**——亮色趟拿到暗色令牌，且 `--dsw-alias-bg-layer-3` 会让对比度算出
+  `#2b2b2b on #ff5c5c = 1.19:1` 这种物理上不存在的结果。改为 `fixtureTokenStyle(modality)`，
+  按 `ZCODE_LIGHT` / `ZCODE_DARK` / `ZCODE_STRUCTURAL` 三段切分（结构段必须单独拆，否则亮色
+  夹具拿不到圆角/字号令牌）；6 个布局脚本全部按 modality 注入，调用方形态有断言逐个看守。
+- **门禁 vitest 步骤加 worker 上限**：默认按 CPU 数起 fork，多会话并行把机器打到 load 10+ 时
+  worker 大面积启动超时——进程非零退出却解析不到失败文件（门禁的「无法判定」形态）。
+  实测 `--maxWorkers=4` 下 50 文件 / 354 用例全过；可用 `VITEST_MAX_WORKERS` 覆盖。
+
+### 仍未解决（登记，单独排期）
+
+- `--sp-*` 与 `--dcu-*` 两套并行命名空间（8 个消费点、回退值不同，需逐点核对后合并）。
+- 断点无体系（7 个 `max-width`，639/640 分属两个文件却管同一块 composer 区）。
+- 平台覆盖剩余面：多窗口 / 分屏 / 多显示器未验。
+
 ## 1.10.0 - 2026-10-14
 
 一次外部 UI 审查（评级 B）指出三处系统性问题：亮色主题状态色不达 WCAG AA、可访问性可验证范围远小于设计范围、

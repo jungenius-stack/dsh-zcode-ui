@@ -51,7 +51,7 @@ try {
       </div><div id="metrics">耗时 2.4秒 · 费用 ¥0.030<br>输入 19.7K tok · 输出 161 tok</div></div></div></div></div></div>`)
     // 令牌必须一并注入：hero 字号自 2026-10-13 起走 var(--dsw-font-size-display)，
     // 合成页面缺令牌会让 font-size 静默回退成继承值（曾量到 16px 而误判）。
-    await page.addStyleTag({ content: fixtureTokenStyle() })
+    await page.addStyleTag({ content: fixtureTokenStyle(dark ? 'dark' : 'light') })
     for (const m of modules) await page.addStyleTag({ content: m.css })
     await page.addStyleTag({ content: skin })
     await page.evaluate(dark => document.body.toggleAttribute('data-ds-dark-theme', dark), dark)

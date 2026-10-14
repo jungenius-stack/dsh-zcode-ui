@@ -35,7 +35,7 @@ try {
         </aside></div><main class="${classOf('centerCol')}">对话</main><div></div>
       </div>`)
     await page.addStyleTag({ content: css + stylesheet })
-    for (const platform of ['darwin', 'win32', 'web']) {
+    for (const platform of ['darwin', 'win32', 'linux', 'web']) {
       for (const fullscreen of [false, true, false]) {
         await page.evaluate(({ platform, fullscreen }) => {
           const html = document.documentElement
@@ -91,7 +91,61 @@ try {
       `宿主提高保留区后控件必须随之落在 64px 之下（实测 ${overrideBox.y}）`)
     await page.evaluate(() => document.documentElement.style.removeProperty('--dsh-frame-top-clearance'))
   }
-  console.log('✓ Sidebar titlebar: macOS, fullscreen transitions, Web/Windows, 3 window sizes, expanded/compact/animation controls and footer bounds')
+  // 系统缩放：交通灯避让、可点击性与底部边界都必须在**非整数缩放**下成立。
+    // deviceScaleFactor 是 context 级选项，不能在现有 page 上改，因此这里单独开 context。
+    // 矩阵刻意收窄（darwin 非全屏 + expanded/compact 两形态），否则运行时会失控；
+    // 1.25 是 Windows 显示设置的默认档，也是亚像素舍入最容易破版的地方——必须显式覆盖。
+    for (const scale of [1, 1.25, 1.5, 2]) {
+      const scaled = await browser.newContext({ viewport: { width: 1280, height: 820 }, deviceScaleFactor: scale, reducedMotion: 'reduce' })
+      try {
+        const p = await scaled.newPage()
+        await p.setContent(`<style>html,body{height:100%;margin:0}html{--dsw-font-family:system-ui}</style>
+          <div class="${classOf('frame')}" style="grid-template-columns:240px minmax(0px,1fr) 0px">
+            <div class="${classOf('sidebarCol')}"><aside class="dcu-root">
+              <div class="dcu-expanded-shell"><header class="dcu-head">
+                <button class="dcu-brand" aria-label="品牌"><svg viewBox="0 0 150 24"><text x="0" y="18">DeepSeek Harness</text></svg></button>
+                <div class="dcu-head-actions"><button class="dcu-icon" aria-label="收起">☰</button><button class="dcu-icon" aria-label="搜索">⌕</button></div>
+              </header><nav class="dcu-menu"><button>任务</button></nav><div class="dcu-workspaces">项目与会话</div></div>
+              <div class="dcu-compact-shell"><button class="dcu-icon" aria-label="展开">☰</button><nav class="dcu-compact-nav"><button class="dcu-icon">+</button></nav></div>
+              <footer class="dcu-foot"><button class="dcu-footer-link">账户与设置</button></footer>
+            </aside></div><main class="${classOf('centerCol')}">对话</main><div></div>
+          </div>`)
+        await p.addStyleTag({ content: css + stylesheet })
+        await p.evaluate(() => {
+          document.documentElement.setAttribute('data-platform', 'darwin')
+          document.documentElement.removeAttribute('data-fullscreen')
+        })
+        for (const mode of ['expanded', 'compact']) {
+          await p.evaluate(mode => {
+            const root = document.querySelector('.dcu-root')
+            root.classList.toggle('dcu-compact', mode === 'compact')
+            root.parentElement.parentElement.style.gridTemplateColumns = `${mode === 'expanded' ? 240 : 56}px minmax(0px,1fr) 0px`
+          }, mode)
+          const control = p.getByRole('button', { name: mode === 'expanded' ? '收起' : '展开', exact: true })
+          const controlBox = await control.boundingBox()
+          assert.ok(controlBox.y >= DARWIN_TITLEBAR_CLEARANCE,
+            `缩放 ${scale}/${mode}: 控件必须避让交通灯（实测顶边 ${controlBox.y}）`)
+          // 非整数缩放下 getBoundingClientRect 会带小数；「顶边必须落在保留区下方」这条
+          // 契约仍应成立，但容差要放宽到 1px（1.25x 时 48px 保留区可能舍入到 47.2）。
+          assert.ok(controlBox.y <= DARWIN_TITLEBAR_CLEARANCE + HEADER_BAND_TOLERANCE + 1,
+            `缩放 ${scale}/${mode}: 控件不得被推离保留区（实测 ${controlBox.y}）`)
+          assert.ok(await control.evaluate(el => {
+            const r = el.getBoundingClientRect()
+            return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))
+          }), `缩放 ${scale}/${mode}: 控件中心必须命中自身（缩放导致的偏移会让点击落空）`)
+          const geometry = await p.locator('.dcu-root').evaluate(el => ({
+            overflow: document.documentElement.scrollWidth > window.innerWidth,
+            footerBottom: el.querySelector('.dcu-foot').getBoundingClientRect().bottom,
+            bottom: el.getBoundingClientRect().bottom,
+          }))
+          assert.equal(geometry.overflow, false, `缩放 ${scale}/${mode}: 不得出现横向滚动条`)
+          assert.ok(geometry.footerBottom <= geometry.bottom, `缩放 ${scale}/${mode}: 账户入口必须保留在窗口内`)
+        }
+      } finally {
+        await scaled.close()
+      }
+    }
+    console.log('✓ Sidebar titlebar: macOS/Windows/Linux/Web, fullscreen transitions, device scale 1/1.25/1.5/2, 3 window sizes, expanded/compact/animation controls and footer bounds')
 } finally {
   await browser.close()
 }

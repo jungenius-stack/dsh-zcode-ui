@@ -175,7 +175,9 @@ const verify = async () => {
 }
 // 令牌块改由共享模块提供（scripts/fixture-tokens.mjs）：此前每个脚本各抄一份提取逻辑，
 // 新增令牌时总有脚本漏掉，导致断言量到「看起来合理但错误」的值。
-const tokenStyles = fixtureTokenStyle()
+// 本夹具按 .light / .dark **类**切换主题态（两种都在同一页里），故用 'both'；
+// 不得在类切换的夹具上断言颜色，颜色一律走 modality + body[data-ds-dark-theme] 的路径。
+const tokenStyles = fixtureTokenStyle('both')
 const bootStyles = JSON.stringify(tokenStyles + styles.join('\n') + '\nbody{margin:0;font-family:Arial;background:#ddd}h3{font-size:13px}.dark{--dcu-sidebar-primary:#b9bab9;--dcu-sidebar-secondary:#909191;--dcu-sidebar-tertiary:#707874;--dcu-sidebar-hover:#303432;background:#1d2120;color:#b9bab9}.light{--dcu-sidebar-primary:#303432;--dcu-sidebar-secondary:#606563;--dcu-sidebar-tertiary:#767e7a;--dcu-sidebar-hover:#dfe8e5;background:#eef7f5;color:#303432}.dcu-wb{--dsw-alias-state-business-primary:#69a7ff}')
 const script = `(async()=>{document.head.innerHTML='<meta charset="utf-8">';const style=document.createElement('style');style.textContent=${bootStyles} ;document.head.append(style);${implementation};return (${verify.toString()})();})()`
 const verifyReducedTitle = () => {

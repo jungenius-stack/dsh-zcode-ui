@@ -24,7 +24,9 @@ const sheets = [
   pick('src/client/settings-page-styles.ts', 'settingsPageStyles'),
 ]
 assert.ok(sheets.every(Boolean), '必须能取到全部样式表（变量名被改时此断言会失败）')
-const css = fixtureTokenStyle() + '\n' + sheets.join('\n')
+// 按主题态注入 --dsw-*（fixture-tokens 之前把明暗两套平铺进同一个 :root，
+// 暗色恒胜，导致令牌量到的与真实宿主相反——见 fixture-tokens.mjs 顶部注释）。
+const cssFor = (modal) => fixtureTokenStyle(modal) + '\n' + sheets.join('\n')
 
 // 建议卡文案取自 locales.ts 的英文表（同一 key 的最后一次出现即 en）
 const locales = readFileSync('src/client/locales.ts', 'utf8')
@@ -90,9 +92,9 @@ const cardsFixture = `
  * `zcode-theme.ts` 里分了「填充档 / 文字档」，这里负责让该分档**可回归**——
  * 若有人把文字色改回 `--dsw-alias-state-*`，本节立刻变红。
  *
- * 只测量颜色来自 `--dcu-state-*-text` 的元素：`fixtureTokenStyle()` 目前把明暗两套
- * `--dsw-*` 平铺进同一个 `:root`（暗色胜出，见 KNOWN-ISSUES §12.3 #2），凡是走
- * `--dsw-alias-label-*` 的元素在亮色趟会拿到暗色值而误报，故不纳入。 */
+ * 只测量颜色来自 `--dcu-state-*-text` 的元素：令牌注入改为按 modality 之后（见
+ * `fixture-tokens.mjs` 顶部注释），走 `--dsw-alias-label-*` 的元素本可纳入；但那会同时
+ * 依赖 `--dsw-alias-label-*` 在两种底色上的配对，测的东西与本节无关，故仍不纳入。 */
 const stateFixture = `
 <div class="dcu-root" id="state-root">
   <div class="dcu-wb dcu-workspaces">
@@ -178,7 +180,7 @@ try {
   const TEXT_SELECTORS = ['.dcu-wb-project-title', '.dcu-wb-session-title-text', '.dcu-wb-session-time', '.dcu-wb-section-label', '.dcu-wb-empty']
   for (const dark of [false, true]) {
     await page.setContent(`<!doctype html><html><head><style>html,body{margin:0}body{font-family:system-ui,-apple-system,sans-serif}</style></head><body>${sidebarFixture}</body></html>`)
-    await page.addStyleTag({ content: css })
+    await page.addStyleTag({ content: cssFor(dark ? 'dark' : 'light') })
     await page.addStyleTag({ content: `body{background:#f8f8f8}` })
     if (dark) {
       await page.evaluate(() => document.body.setAttribute('data-ds-dark-theme', ''))
@@ -198,7 +200,7 @@ try {
   // 亮色档实测 2.63（待处理）/ 2.82（可更新）/ 3.34（错误条）/ 4.15（已安装）/ 4.25（未安装）:1。
   for (const dark of [false, true]) {
     await page.setContent(`<!doctype html><html><head><style>html,body{margin:0}body{font-family:system-ui,-apple-system,sans-serif}</style></head><body>${stateFixture}</body></html>`)
-    await page.addStyleTag({ content: css })
+    await page.addStyleTag({ content: cssFor(dark ? 'dark' : 'light') })
     // 各元素按**真实所在底色**测量：侧栏 #f0f0f0/#161616，设置页 #f8f8f8/#161616。
     await page.addStyleTag({
       content: dark
@@ -224,7 +226,7 @@ try {
 
   // ---- 2) 建议卡标签不得截断 ----
   await page.setContent(`<!doctype html><html><head><style>html,body{margin:0}body{font-family:system-ui,-apple-system,sans-serif}</style></head><body>${cardsFixture}</body></html>`)
-  await page.addStyleTag({ content: css })
+  await page.addStyleTag({ content: cssFor('light') })
   const clipped = await page.evaluate(() => [...document.querySelectorAll('.dcu-home-card > span')]
     .filter((el) => el.scrollWidth > el.clientWidth + 1)
     .map((el) => el.textContent))
@@ -233,7 +235,7 @@ try {
 
   // ---- 3) 折叠轨不得横向溢出 ----
   await page.setContent(`<!doctype html><html><head><style>html,body{margin:0}body{font-family:system-ui,-apple-system,sans-serif}</style></head><body>${railFixture}</body></html>`)
-  await page.addStyleTag({ content: css })
+  await page.addStyleTag({ content: cssFor('light') })
   await page.evaluate(MEASURE)
   const overflow = await page.evaluate(() => window.__overflow('#rail'))
   assert.deepEqual(overflow, [], `折叠轨内横向溢出: ${JSON.stringify(overflow)}`)

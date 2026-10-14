@@ -26,7 +26,7 @@ try {
     await page.setContent(`<style>*{box-sizing:border-box}body{margin:0;--dsh-chat-content-width:720px;--dsh-composer-text-max-height:240px;--dsw-specific-input-major:#fff;--dsw-alias-bg-base:${dark ? '#181818' : '#fff'};--dsw-alias-bg-layer-2:#242424;--dsw-alias-label-primary:${dark ? '#ddd' : '#262626'};--dsw-alias-label-secondary:#777}</style><main data-conversation-scroll><div class="${c.root}"><div data-composer-card class="${c.card}"><div data-input-scroll class="${c.scroll}"><div class="${c.grow}"><div data-lexical-editor="true" contenteditable="true" class="${c.input}" aria-label="消息"><p><br></p></div><div data-composer-placeholder class="${c.placeholder}">输入消息</div></div></div><div class="${c.row}"><div class="${c.tools}"><button class="${c.add}">+</button><div class="${c.modes}"><button>权限</button></div></div><div class="${c.trailing}"><button class="${c.primary}" aria-label="发送">↑</button></div></div></div></div></main>`)
     await page.addStyleTag({ content: JSON.parse(css) })
     await page.addStyleTag({ content: skin })
-    await page.addStyleTag({ content: fixtureTokenStyle() })
+    await page.addStyleTag({ content: fixtureTokenStyle(dark ? 'dark' : 'light') })
     await page.addStyleTag({ content: theme })
     await page.evaluate(dark => document.body.toggleAttribute('data-ds-dark-theme', dark), dark)
     const measure = () => page.locator('[data-composer-card]').evaluate(el => {

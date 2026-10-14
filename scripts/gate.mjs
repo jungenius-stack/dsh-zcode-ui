@@ -44,6 +44,7 @@ const LAYOUT = [
   ['scripts/verify-settings-backdrop.mjs', []],
   ['scripts/verify-settings-geometry.mjs', []],
   ['scripts/verify-upstream-style-regressions.mjs', []],
+  ['scripts/verify-state-shells.mjs', []],
   ['scripts/verify-a11y-and-overflow.mjs', []],
 ]
 
@@ -75,7 +76,12 @@ const assertUndecided = !assertions.ok && failedAsserts.length === 0
 const assertedGreen = KNOWN_RED_ASSERT.filter(name => !failedAsserts.includes(name))
 
 console.log('\n== 3/4 vitest（tests/**/*.spec.ts）==')
-const vitest = run(['node_modules/vitest/vitest.mjs', 'run'], 'vitest run')
+// worker 数上限：vitest 默认按 CPU 数起 fork，每个 fork 再拉一套 jsdom 环境。本机 10 核
+// 满载（多会话并行）时默认 10 worker 会大面积「Timeout waiting for worker to respond」，
+// 进程非零退出却解析不到失败文件——正是下面 vitestUndecided 要拦的形态。实测同机
+// --maxWorkers=4 下 50 文件 / 354 用例全过（2026-10-14，load 6~11）。可用
+// VITEST_MAX_WORKERS 覆盖（CI 机器核多负载低时可以放宽）。
+const vitest = run(['node_modules/vitest/vitest.mjs', 'run', `--maxWorkers=${process.env.VITEST_MAX_WORKERS ?? 4}`], 'vitest run')
 // 环境错（用错 Node 导致原生绑定被 macOS 签名拦住）必须显式拦下，不能当"通过"。
 const vitestEnvBroken = /Cannot find native binding|different Team IDs/.test(vitest.output)
 const vitestFailedFiles = [...new Set([...vitest.output.matchAll(/^\s*FAIL\s+(tests\/\S+\.spec\.ts)/gm)].map(match => match[1]))]

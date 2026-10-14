@@ -40,7 +40,21 @@ for (const file of walk(join(root, 'src'))) {
   }
 }
 
-const missing = [...consumed.keys()].filter(name => !defined.has(name)).sort()
+/**
+ * 宿主运行时下发、本仓**不**定义的令牌。
+ *
+ * 这些令牌在宿主 bundle 里定义（`--dsw-specific-menu` = `#f8f9faf0` / darwin 暗色 `#303136f0`，
+ * `--dsw-menu-backdrop-filter` 是宿主菜单的毛玻璃滤镜），我们只消费、并给自家兜底值。
+ * 放进白名单不是放行——每一项都要写清「宿主给什么、缺了会怎样」。
+ */
+const HOST_PROVIDED = new Set([
+  // 宿主菜单表面（半透明 + 毛玻璃）。缺宿主时回退 --dcu-tip-bg（不透明），菜单仍可读，
+  // 只是失去半透明与模糊——这是「降级到可读」，不是「静默失效」。
+  '--dsw-specific-menu',
+  '--dsw-menu-backdrop-filter',
+])
+
+const missing = [...consumed.keys()].filter(name => !defined.has(name) && !HOST_PROVIDED.has(name)).sort()
 if (missing.length > 0) {
   console.error('✗ token-coverage: 以下 --dsw-* 令牌被 src/ 消费但未在 zcode-tokens.ts 定义：')
   for (const name of missing) {
