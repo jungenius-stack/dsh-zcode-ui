@@ -27,7 +27,7 @@ const stylesheet = `
 .dcu-turn-link[aria-current=true]::before{width:var(--dcu-tick-w,5px);flex-basis:var(--dcu-tick-w,5px);height:var(--dcu-tick-h,1px)}
 .dcu-turn-navigator[data-hovering=true] .dcu-turn-link[aria-current=true]{color:var(--dsw-alias-label-tertiary)}
 .dcu-turn-navigator[data-hovering=true] .dcu-turn-link[data-active=true]{color:var(--dsw-alias-label-primary)}
-.dcu-turn-link:focus-visible{outline:0;box-shadow:0 0 0 2px var(--dsw-alias-button-info-fill)}
+.dcu-turn-link:focus-visible{outline:0;box-shadow:0 0 0 2px var(--dsw-focus-ring-color,var(--dcu-focus))}
 @media (prefers-reduced-motion:reduce){.dcu-turn-link,.dcu-turn-link::before{transition:none}}
 @media (max-width:760px){.dcu-turn-summary{max-width:200px}}
 `

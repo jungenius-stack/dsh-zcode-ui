@@ -19,7 +19,13 @@ body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [class*="_itemIcon"] svg{width:16px;height:16px}
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [class*="_footer"]{flex:none;margin-top:5px;padding-top:5px;border-top:1px solid color-mix(in srgb,var(--dsw-alias-label-primary) 10%,transparent)}
 [data-dcu-tool-filter]{box-sizing:border-box;flex:none;width:100%;height:32px;padding:4px 10px;margin:0 0 1px;border:0;border-radius:var(--dsw-radius-lg);outline:none;background:transparent;color:inherit;font:13px/20px var(--dsw-font-family)}
-[data-dcu-tool-filter]:focus-visible{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dsw-alias-label-primary) 20%,transparent)}
+/* 焦点环必须用**实色**：2026-10-14 前这里是
+   「box-shadow:inset 0 0 0 1px color-mix(… label-primary 20%, transparent)」——
+   一个 20% alpha 的 1px 内环，实测上限只有亮色 1.61:1 / 暗色 1.91:1，
+   **数学上不可能达到 3:1**（无论基准色取多极端），WCAG 2.1 AA 2.4.7 焦点可见失效。
+   改为与 settings-page-styles.ts 同款实色 outline，色值取宿主一等焦点令牌
+   （亮 #0b7fff / 暗 #4099ff，在各自底色上 3.35:1 / 6.22:1）。 */
+[data-dcu-tool-filter]:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:-2px}
 [data-dcu-tool-empty]{padding:8px 10px;font-size:var(--dsw-font-size-caption);color:var(--dsw-alias-label-secondary)}
 [data-dcu-tool-filtered]{display:none!important}
 /* 建议菜单单独换肤：外框跟随宿主输入区，保留宿主定位和动态高度，不给内部列表套固定宽度。 */

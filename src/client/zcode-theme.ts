@@ -19,6 +19,42 @@ body[data-ds-dark-theme],.theme-zai-dark{color-scheme:dark}
    挂在侧栏作用域会让该 var() 解析失败并静默失效——详见 docs/KNOWN-ISSUES.md §8。 */
 :root{--dcu-primary:#000000;--dcu-primary-foreground:#ffffff}
 body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-foreground:#000000}
+
+/* ── 状态色：填充档 / 文字档分离（2026-10-14）─────────────────────────────
+   Zai 的「--dsw-alias-state-{success,error,warn}-*」是**按填充用途**推导的值：
+   #e03131 / #1e8a3e / #e07b00。它们作为色块（进度条、指示点、按钮底）成立，
+   但**当作小字用时亮色档全部不达 WCAG AA**——实测（底 = 侧栏 #f0f0f0 / 页面 #f8f8f8）：
+
+     #e07b00 于 #f0f0f0 = 2.63:1   「待处理」胶囊文字（悬停态 #e4e4e4 更降到 2.36:1）
+     #e03131 于 12% 错误色调底   = 3.34:1   会话区错误提示条
+     #e07b00 于 #f8f8f8 = 2.82:1   关于页「有更新」
+     #1e8a3e 于 #f8f8f8 = 4.15:1   关于页「已安装」
+
+   这与 docs/ZCODE-DESIGN.md §9「明度即层级」是同一个问题：那节把 secondary/tertiary
+   按实际底色重取了值，但**没有覆盖状态色轴**。§10.2 契约第 4 条甚至明令第三方插件
+   「语义色只约束填充，不得用于文字」——本插件自己的亮色档却在这么做。
+
+   故在此分档：**填充档沿用 Zai 原值不动**（色相语义不变，第三方进度条等仍按原样收敛），
+   **文字档按实际底色重新取值**，色相保持同族、只压明度，符合 §11「只用位移与明度」。
+
+   挂「:root」而非侧栏作用域的原因同 --dcu-primary：会话菜单（含删除按钮）经 portal
+   渲染到 body，不在 .dcu-root 内，挂作用域会静默失效。
+
+   实测（明暗两档、全部消费底色，含 12% 色调底与行悬停底）：
+     文字档亮色  warn #8a4b00 ≥5.04:1  error #b3261e ≥4.84:1  success #176c31 ≥4.82:1
+     文字档暗色  warn #ff8a30 ≥6.02:1  error #ff5c5c ≥4.68:1  success #46bf72 ≥6.04:1
+
+   「--dcu-state-error-fill / --dcu-state-error-fill-hover」是「错误底 + 反色文字」按钮
+   （归档确认）的配对。悬停方向**必须随主题相反**：亮色前景是白，底色要更暗；
+   暗色前景是深色，底色要更亮。旧实现两档一律变亮，导致亮色 3.91:1、暗色 3.93:1 双双掉线。 */
+:root{
+  --dcu-state-success-text:#176c31;--dcu-state-error-text:#b3261e;--dcu-state-warn-text:#8a4b00;
+  --dcu-state-error-fill:#e03131;--dcu-state-error-fill-hover:#c52b2b;
+}
+body[data-ds-dark-theme],.theme-zai-dark{
+  --dcu-state-success-text:#46bf72;--dcu-state-error-text:#ff5c5c;--dcu-state-warn-text:#ff8a30;
+  --dcu-state-error-fill:#ff5c5c;--dcu-state-error-fill-hover:#ff7070;
+}
 /* ── 动效令牌 ─────────────────────────────────────────────────────────────
    2026-10-13 起：原先全站收敛为「180ms ease-out」一条曲线。那是一致，但没有意图——
    出现、移动、消失用同一条曲线，读起来是「没做动效」而不是「克制的动效」。现按意图分档：

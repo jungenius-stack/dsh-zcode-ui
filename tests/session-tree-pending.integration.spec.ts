@@ -477,18 +477,20 @@ test('custom group menu renames without changing identity, membership, order or 
     expect(projects.querySelector('.dcu-wb-section-head [aria-label="workspace.createGroup"]')).not.toBeNull()
     expect(projects.querySelector('.dcu-wb-ungrouped [aria-haspopup]')).toBeNull()
     const first = projects.querySelector('.dcu-wb-collection')!
-    const label = first.querySelector<HTMLButtonElement>('.dcu-wb-collection-label')!
-    await act(async () => { label.click() })
+    const head = first.querySelector<HTMLElement>('.dcu-wb-collection-head')!
+    // 点标签即点整行（标签现在只是 span，点击冒泡到 treeitem 的 onClick）。
+    await act(async () => { first.querySelector<HTMLElement>('.dcu-wb-collection-label')!.click() })
     const menu = first.querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]')!
     expect(menu).not.toBeNull()
     const transfer = createDataTransfer()
     await act(async () => { dispatchDrag(menu, 'dragstart', transfer); menu.click() })
     expect(transfer.effectAllowed).toBe('uninitialized')
-    expect(label.getAttribute('aria-expanded')).toBe('false')
+    // 展开状态挂在 treeitem（head）上，不再挂在内部标签上——一行只允许一个 disclosure 控件。
+    expect(head.getAttribute('aria-expanded')).toBe('false')
     const menuItem = document.querySelector<HTMLElement>('[role="menuitem"]')!
     await act(async () => { menuItem.focus(); menuItem.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })) })
     expect(document.querySelector('[role="menu"]')).toBeNull()
-    expect(label.getAttribute('aria-expanded')).toBe('false')
+    expect(head.getAttribute('aria-expanded')).toBe('false')
     await act(async () => { menu.click() })
     await clickText('workspace.renameGroup')
     const input = document.querySelector<HTMLInputElement>('[role="dialog"] input')!
@@ -504,8 +506,8 @@ test('custom group menu renames without changing identity, membership, order or 
     await act(async () => { input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
     const expected = [{ ...workspaceGroups[0], title: 'Renamed' }, workspaceGroups[1]]
     expect(cache()).toEqual(expected)
-    expect(label.textContent).toContain('Renamed')
-    expect(label.getAttribute('aria-expanded')).toBe('false')
+    expect(head.textContent).toContain('Renamed')
+    expect(head.getAttribute('aria-expanded')).toBe('false')
     expect(fetcher.mock.calls.filter(([, init]) => init?.method === 'PUT').map(([, init]) => JSON.parse(String(init!.body))).at(-1)?.workspaceGroups).toEqual(expected)
     await act(async () => { menu.click() })
     await clickText('workspace.renameGroup')

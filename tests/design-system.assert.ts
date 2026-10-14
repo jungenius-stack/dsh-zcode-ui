@@ -250,6 +250,18 @@ const sessionTree = read('session-tree.tsx')
 assert.match(sessionTree, /dcu-wb-running[^>]*><ZIconLoading size=\{16\} className="dcu-spin"/, '侧栏运行中指示必须消费共享转圈基元（LoaderIcon size-4）')
 const aboutSection = read('AboutSection.tsx')
 assert.match(aboutSection, /<ZIconLoading size=\{14\} className="dcu-spin" \/>/, '设置页安装中指示必须消费共享转圈基元')
+// 状态槽的三个分支必须都能被读出（2026-10-14 补）。
+// 光秃的 `<span aria-label>` 是无效的：span 映射到 `generic` 角色，而 ARIA 1.2 对
+// generic 的规定是「Name From: prohibited」——标签会被直接忽略。必须显式给 role。
+// 运行中此前是 `aria-hidden="true"` 且无文本替代：视觉用户看得到转圈，
+// 屏幕阅读器用户得到零信息，而这是并发多会话场景最需要的状态之一。
+assert.match(sessionTree, /dcu-wb-unread" role="img" aria-label=\{t\('sessions\.unread'\)\}/, '未读点必须带 role="img" 才有可访问名（generic 角色的 aria-label 被 ARIA 1.2 禁止）')
+assert.match(sessionTree, /dcu-wb-running" role="img" aria-label=\{t\('sessions\.running'\)\}/, '运行中必须对辅助技术可见')
+assert.doesNotMatch(sessionTree, /dcu-wb-running" aria-hidden/, '运行中不得再对辅助技术隐藏')
+assert.match(sessionTree, /dcu-wb-pending-label">\{label\}/, '待处理胶囊的可访问名由可见文本提供（不靠 generic 上的 aria-label）')
+const localesSource = read('locales.ts')
+assert.match(localesSource, /'sessions\.running': '运行中'/, '运行中必须提供中文文案')
+assert.match(localesSource, /'sessions\.running': 'Running'/, '运行中必须提供英文文案')
 // 图标唯一来源：宿主图标桥接模块退场后，设置区不得再出现第二套图标语言。
 assert.doesNotMatch(aboutSection + sessionTree + read('ConnectorsSection.tsx') + read('ScheduleBrowser.tsx'), /OutlineMedium|host-icons/, '设置区不得再引用宿主图标（图标唯一来源 = zcode-icons）')
 
@@ -289,6 +301,36 @@ assert.ok(
   extractedTheme.includes('--dcu-focus:#4099ff') && extractedTheme.trimEnd().endsWith('}'),
   'ZCODE_THEME_STYLE 的抽取内容必须延伸到模板末尾（含暗色块的收尾）——只校验前中部会漏掉尾部截断',
 )
+
+// 13b. 样式表抽取必须按**变量名**取，且首条必须是一条 CSS 规则（2026-10-14）
+// 2026-10-14 给 settings-page-styles.ts 补了含反引号的文件头注释后，三个用
+// indexOf 找第一个反引号的布局脚本从**注释正文**开始切，量到设置页宽 1264 ≠ 1280、
+// 标题栏安全区断言假失败。那几个脚本已改成变量名正则，但那只修了结果、不防复发。
+// 这里双保险：按变量名抽 + 检首条必须是 .dcu-settings-page{ ——文件头再出现反引号、
+// 或变量被改名，首条就不再是规则，立即变红。
+const settingsPageStyle = read('settings-page-styles.ts')
+  .match(/(?:export )?const settingsPageStyles = `([\s\S]*?)`/)?.[1] ?? ''
+assert.ok(
+  settingsPageStyle.trimStart().startsWith('.dcu-settings-page{'),
+  'settingsPageStyles 的抽取内容必须以 .dcu-settings-page{ 开头——文件头注释里不得出现反引号（indexOf 会从注释开始切）',
+)
+assert.ok(
+  settingsPageStyle.includes('--sp-muted-on-card'),
+  'settingsPageStyles 的抽取内容必须含卡片档次要色（--sp-muted 与卡片底同用会掉到 4.38:1）',
+)
+// 关键守卫：**文件里第一个反引号必须就是模板串的起始反引号**。
+// 上面那条用变量名正则，文件头有反引号也能抽对——但另外几个布局脚本用的是
+// 「找第一个反引号」，它们会从注释正文开始切。所以必须直接断言这个位置关系，
+// 否则本文件头的注释迟早又会把别人带偏一次。
+const settingsPageSource = read('settings-page-styles.ts')
+const firstBacktick = settingsPageSource.indexOf('`')
+const templateOpen = settingsPageSource.indexOf('const settingsPageStyles = `')
+assert.ok(firstBacktick !== -1 && templateOpen !== -1, '必须能在 settings-page-styles.ts 里定位模板串')
+assert.equal(
+  firstBacktick,
+  templateOpen + 'const settingsPageStyles = '.length,
+  'settings-page-styles.ts 的第一个反引号必须是 settingsPageStyles 模板串的起始——文件头注释里出现反引号会让 indexOf 式切片从注释正文开始',
+)
 const extractedStructure = skin.match(/const STRUCTURE_CSS = `([\s\S]*?)`/)?.[1] ?? ''
 assert.ok(
   extractedStructure.includes(':root:root body{color-scheme:light}'),
@@ -327,4 +369,120 @@ assert.match(discovery, /isMono = \/mono\|menlo\|consolas\|courier\/i\.test/, '�
 // 自动检测**不得**对外来内容的背景底色下结论：有白底不等于错（浮层/菜单本该有底），
 // 这是设计判断，实测它把白底浮层全误报了。
 assert.doesNotMatch(discovery, /不透明底色/, '发现机制不得对背景底色下结论（那是设计判断，不是可自动判定的缺陷）')
+
+// ── 14. 焦点环必须单一来源、且不得用低透明度颜色（2026-10-14 新增）────────────
+// 背景：一次 UI 审查实测到两件事。
+//  ① 焦点环颜色同仓并存 6 种来源（--dcu-focus / --dsw-alias-button-info-fill /
+//     --dsw-alias-state-business-primary / --dsw-alias-label-primary / --sp-muted /
+//     --dsw-alias-state-success-primary），其中**绿色成功色**被当作焦点环，焦点与
+//     「已安装」两种语义撞色；--sp-muted 是**文字色**，被当成环用。
+//  ② 工具菜单过滤框的焦点环是 `color-mix(… 20%, transparent)` 的 1px 内环——
+//     20% alpha 的环**数学上不可能达到 3:1**（实测上限亮色 1.61:1 / 暗色 1.91:1，
+//     即使基准色取纯黑/纯白），键盘用户看不到焦点在哪。
+// 设计依据：ZCODE-DESIGN.md §9.1 明确「唯一允许出现色相的地方是状态色与**焦点环**」，
+// 所以焦点环走宿主一等令牌 --dsw-focus-ring-color（亮 #0b7fff / 暗 #4099ff，
+// 在侧栏/页面/卡片三种底色上 3.35–6.22:1）是合规的，且它已是设置页原有取值。
+const FOCUS_RING_TOKEN = 'var(--dsw-focus-ring-color,var(--dcu-focus))'
+// 按「选择器 + 声明体」成对抽取焦点规则——只看声明会漏掉 box-shadow 形式的环。
+const focusRules = clientFiles.flatMap(({ name, text }) =>
+  [...text.matchAll(/([^{}]*:focus(?:-visible|-within)?[^{}]*)\{([^{}]*)\}/g)].map(([, sel, body]) => ({
+    name,
+    sel: sel.trim().replace(/\s+/g, ' '),
+    body,
+  })),
+)
+/** 焦点规则里的「环」声明：outline / box-shadow 中带颜色的那条。 */
+const ringDecls = focusRules.flatMap(rule =>
+  [...rule.body.matchAll(/(?:outline|box-shadow)\s*:[^;]*/g)]
+    .map(([decl]) => ({ ...rule, decl: decl.trim() }))
+    .filter(({ decl }) => /var\(--|color-mix|#|rgb/.test(decl)),
+)
+// A. 环颜色只允许 --dsw-focus-ring-color。其余令牌（尤其是状态色、文字色）一律是语义/角色错配。
+const ringTokenOffenders = ringDecls
+  .filter(({ decl }) => !/--dsw-focus-ring-color|--dcu-focus/.test(decl))
+  .map(({ name, sel, decl }) => `${name} → ${sel} { ${decl} }`)
+assert.deepEqual(
+  ringTokenOffenders,
+  [],
+  `焦点环颜色必须只取 ${FOCUS_RING_TOKEN}，以下声明用了其它令牌：\n${ringTokenOffenders.join('\n')}`,
+)
+// B. 环不得是低透明度颜色：alpha < 60% 的环在两种主题下都不可能达到 3:1。
+// 例外：同一条规则里另有实色指示（border-color / outline 实色）时，低透明度的只是叠加光晕。
+const lowAlphaOnly = ringDecls
+  .filter(({ decl }) => /color-mix\([^)]*?\b([0-5]?\d)%/.test(decl))
+  .filter(({ body }) => !/(?:border-color|outline)\s*:\s*[^;]*(?:var\(--|#|rgb)[^;]*/.test(body.replace(/(?:outline|box-shadow)\s*:[^;]*/g, '')))
+  .map(({ name, sel, decl }) => `${name} → ${sel} { ${decl} }`)
+assert.deepEqual(
+  lowAlphaOnly,
+  [],
+  `焦点环不得用低透明度颜色（实测 20% 环上限仅亮色 1.61:1 / 暗色 1.91:1，达不到 3:1）：\n${lowAlphaOnly.join('\n')}`,
+)
+assert.doesNotMatch(
+  read('AboutSection.tsx'),
+  /focus-visible\{outline:2px solid var\(--dsw-alias-state-success-primary\)/,
+  '焦点环不得挪用成功色（绿色在本仓表示「已安装」，与焦点语义撞色）',
+)
+
+// ── 15. 状态色必须分「填充档 / 文字档」（2026-10-14 新增）──────────────────────
+// Zai 的 --dsw-alias-state-* 是按**填充**用途推导的：#e03131 / #1e8a3e / #e07b00。
+// 作小字用时亮色档全部不达 WCAG AA（实测 2.63 / 2.82 / 3.34 / 4.15 / 4.25:1），
+// 而 §10.2 外来内容契约第 4 条恰恰明令第三方插件「语义色只约束填充，不得用于文字」。
+// 这里锁住分档本身：文字必须走 --dcu-state-*-text，填充档仍可保留 Zai 原值。
+assert.match(theme, /--dcu-state-success-text:#176c31;--dcu-state-error-text:#b3261e;--dcu-state-warn-text:#8a4b00;/, '亮色状态色文字档必须是按实际底色重取的值（≥4.5:1）')
+assert.match(theme, /--dcu-state-success-text:#46bf72;--dcu-state-error-text:#ff5c5c;--dcu-state-warn-text:#ff8a30;/, '暗色状态色文字档必须定义（暗色沿用 Zai 原值即达标）')
+// 错误底按钮的悬停方向必须随主题相反——旧实现两档一律变亮，实测亮色 3.91:1 / 暗色 3.93:1 双双掉线。
+assert.match(theme, /--dcu-state-error-fill-hover:#c52b2b;/, '亮色错误底按钮悬停必须**变暗**（前景是白，变亮会掉到 3.91:1）')
+assert.match(theme, /--dcu-state-error-fill-hover:#ff7070;/, '暗色错误底按钮悬停必须**变亮**（前景是深色，变暗会掉到 3.68:1）')
+// 状态色作文字处不得回退到填充档令牌。
+const stateTextOffenders = clientFiles
+  .filter(({ text }) => /[^-]color:var\(--dsw-alias-state-(?:success|error|warn|warning)-[a-z-]+\)/.test(text))
+  .map(({ name }) => name)
+assert.deepEqual(
+  stateTextOffenders,
+  [],
+  `以下文件把状态色**填充档**当文字色用（亮色档不达 4.5:1，应用 --dcu-state-*-text）：${stateTextOffenders.join(', ')}`,
+)
+
+// ── 16. role="tree" 必须兑现树的契约（2026-10-14 新增）──────────────────────
+// 背景：此前侧栏**声明**了 tree/treeitem，但没有方向键、每个 treeitem 都写死
+// tabIndex={0}（100 个会话 = 100 次 Tab）、没有 aria-level、treeitem 的归属还被
+// 纯结构 div 夹断。声明了更强的语义却不兑现，比不声明更差——辅助技术按树呈现，
+// 用户按树操作，然后失败。这里锁住「声明必须与实现一致」。
+const treeKeyboard = read('tree-keyboard.ts')
+const workspaceBrowserSource = read('CodexWorkspaceBrowser.tsx')
+assert.match(workspaceBrowserSource, /role="tree"/, '侧栏必须声明 role="tree"')
+assert.match(workspaceBrowserSource, /installTreeKeyboard\(tree\)/, '声明了 role="tree" 就必须安装键盘模型（tree-keyboard）')
+for (const key of ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End']) {
+  assert.ok(treeKeyboard.includes(`'${key}'`), `树键盘模型必须处理 ${key}（树的全部意义就是一个 Tab 站 + 方向键遍历）`)
+}
+assert.match(treeKeyboard, /item\.tabIndex = -1/, 'roving tabindex：非活动项必须置 -1')
+assert.match(treeKeyboard, /item\.setAttribute\('aria-level'/, 'treeitem 必须写 aria-level（ARIA 必填属性）')
+assert.match(treeKeyboard, /setAttribute\('role', 'presentation'\)/, '纯结构包裹层必须标为 presentation，否则 treeitem 的归属被打断')
+// 只观察 childList：本模块自己要写 aria-level / role / tabindex，
+// 若观察 attributes 就会自触发（相同值的 setAttribute 同样触发属性观察器，本仓库踩过）。
+assert.match(treeKeyboard, /observer\.observe\(root, \{ childList: true, subtree: true \}\)/, '观察器必须只观察 childList，不得观察 attributes（会自触发成死循环）')
+// 结构层：折叠体必须是 group，否则其中的 treeitem 归属不成立。
+assert.match(workspaceBrowserSource, /<DisclosureBody className="dcu-wb-project-body" open=\{isExpanded\} role="group">/, '项目折叠体必须是 role="group"')
+assert.match(workspaceBrowserSource, /className="dcu-wb-section-body" role="group"/, '分区体必须是 role="group"')
+// 行内不得写死 tabIndex={0}（那会把全树每一行都塞进 Tab 序列）。
+// 只看 .tsx：tree-keyboard.ts 的注释里就引用了这个写法，扫 .ts 会自指误报。
+const hardcodedTabStops = clientFiles
+  .filter(({ name, text }) => name.endsWith('.tsx') && /role="treeitem"[^>]*tabIndex=\{0\}/.test(text))
+  .map(({ name }) => name)
+assert.deepEqual(hardcodedTabStops, [], `以下文件给 treeitem 写死了 tabIndex={0}（应由 tree-keyboard 的 roving 管理）：${hardcodedTabStops.join(', ')}`)
+
+// ── 17. 布局脚本不得用「第一个反引号」抽样式（2026-10-14 新增）────────────────
+// §13 已经防住了「源码里的 CSS 注释出现反引号会把模板串截断」，但只校验了源码侧。
+// 消费侧同样脆：两个布局脚本用 `indexOf('\`')` 定位模板串，文件头 JSDoc 一旦出现
+// 反引号（标记 CSS 变量名极自然），抽出的「样式」就成了注释正文，CSS 规则被切碎。
+// 2026-10-14 实踩：给 settings-page-styles.ts 补了含反引号的注释后，
+// verify-settings-backdrop 量到设置页宽 1264 ≠ 1280、verify-settings-geometry
+// 的标题栏安全区断言假失败——都是**夹具坏了**，不是产品坏了。
+const layoutScripts = [...readdirSync(new URL('../scripts', import.meta.url))].filter(name => name.endsWith('.mjs'))
+const fragileSlicers = layoutScripts.filter(name => {
+  const text = readFileSync(new URL(`../scripts/${name}`, import.meta.url), 'utf8')
+  // 匹配用「第一个反引号」/「最后一个反引号」切片模板串的写法（注释里的提及不算）。
+  return /source\.slice\(\s*source\.indexOf\(/s.test(text) || /source\.slice\([^)]*indexOf\(/s.test(text)
+})
+assert.deepEqual(fragileSlicers, [], `以下布局脚本用「第一个反引号」抽样式，文件头注释一旦含反引号就会静默抽错：${fragileSlicers.join(', ')}`)
 assert.match(indexSource, /observeForeignSurfaces\(\)/, '外来表面发现哨兵必须以应用级 effect 注册')

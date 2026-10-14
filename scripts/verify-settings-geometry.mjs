@@ -4,7 +4,11 @@ import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 
 const source = readFileSync(new URL('../src/client/settings-page-styles.ts', import.meta.url), 'utf8')
-const styles = source.slice(source.indexOf('`') + 1, source.lastIndexOf('`'))
+// 按变量名定位模板串，不能用 indexOf('`')——文件头 JSDoc 里的反引号会把切片带偏。
+// 本脚本 2026-10-14 实踩：注释里出现反引号后抽出的 CSS 被切碎，标题栏安全区断言假失败。
+const matched = source.match(/(?:export )?const settingsPageStyles = `([\s\S]*?)`/)
+assert.ok(matched, 'settings-page-styles.ts 的样式抽取失败（变量名被改时会失败）')
+const styles = matched[1]
 const browser = await chromium.launch({ headless: true })
 
 try {

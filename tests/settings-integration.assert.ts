@@ -105,7 +105,11 @@ assert.match(client, /openPathInHost/, '资源管理器动作必须直接调用 
 assert.doesNotMatch(client, /ctx\.workspaces\.openPath/, '资源管理器动作不得再进入侧边栏文件预览拦截链')
 assert.match(workspaceBrowser, /const openPathImmediately[^]*setMenu\(undefined\)[^]*setHeaderMenu\(undefined\)[^]*run\('open-path'/, '资源管理器首次启动较慢时，菜单也必须在点击后立即收起')
 assert.match(workspaceBrowser, /\.dcu-wb-rename-input\{[^}]*border:1px solid var\(--dsw-alias-border-l2\)[^}]*border-radius:8px/, '重命名输入框必须使用弹窗可见的全局边框 token 和矩形圆角')
-assert.match(workspaceBrowser, /\.dcu-wb-rename-input:focus\{[^}]*var\(--dsw-alias-state-business-primary\)/, '重命名输入框必须提供清晰的蓝色焦点态')
+// 2026-10-14 更正：本条文案一直写「蓝色焦点态」，但正则匹配的是
+// --dsw-alias-state-business-primary（亮色 #000000 / 暗色 #ffffff，**黑白**）——
+// 文案与判据自相矛盾，实现跟着错的那一半走。现按文案本意改为宿主一等焦点令牌
+// （亮 #0b7fff / 暗 #4099ff），与全仓焦点环统一。
+assert.match(workspaceBrowser, /\.dcu-wb-rename-input:focus\{[^}]*var\(--dsw-focus-ring-color,var\(--dcu-focus\)\)/, '重命名输入框必须提供清晰的蓝色焦点态')
 assert.match(workspaceBrowser, /description=\{t\('sessions\.renameDescription'\)\}/, '项目和会话重命名弹窗必须显示辅助说明')
 assert.match(sessionRowActions, /description=\{t\('sessions\.renameDescription'\)\}/, '频道和定时会话的重命名弹窗必须同步辅助说明')
 assert.match(workspaceBrowser, /workspace\.pinnedEmpty/, '置顶区域必须支持拖入项目')
@@ -259,7 +263,7 @@ assert.match(workspaceBrowser, /className="dcu-wb-confirm"[^]*sessions\.confirm/
 // 2026-10-13 ZCode 对齐：键盘聚焦与悬停同权——均露出快捷操作并让元信息让位。
 assert.match(workspaceBrowser, /\.dcu-wb-session:focus-within \.dcu-wb-quick-actions/, '键盘聚焦会话行必须像悬停一样露出快捷操作')
 assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-quick-actions\{opacity:1;pointer-events:auto\}/, '确认态必须常驻显示确认按钮（与 hover 无关）')
-assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dsw-alias-state-error-primary\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用宿主错误色配对（背景 error-primary / 前景 bg-layer-3，同 DSH badge 约定）')
+assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dcu-state-error-fill\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用错误色**填充档**配反色前景（前景沿用宿主 bg-layer-3）；底色不得直接用 --dsw-alias-state-error-primary——该值只按填充推导，作按钮底时悬停会掉到 3.91:1，见 zcode-theme.ts 状态色分档')
 assert.doesNotMatch(workspaceBrowser, /setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin/, '任务树不得本地维护会话置顶（宿主 pinnedSessionIds 是唯一状态源）')
 assert.match(workspaceBrowser, /pinnedFirstSessionIds\(/, '置顶会话必须排在未置顶之前（宿主置顶语义）')
 assert.match(workspaceBrowser, /pinCapable && <SessionPinButton pinned=\{pinnedSet\.has\(id\)\}/, '任务树必须在宿主提供 pin 能力时渲染行首置顶按钮')
@@ -321,7 +325,7 @@ assert.doesNotMatch(workspaceBrowser, /standalonePinnedSessionIds|sectionSession
 assert.match(workspaceBrowser, /const pinDragActive = workspaceDragId !== undefined/, '置顶区只能在拖动项目时成为落点')
 assert.match(workspaceBrowser, /if \(pinnedGroups\.length === 0 \|\| event\.target === event\.currentTarget \|\| \(event\.target instanceof Element && event\.target\.closest\('\.dcu-wb-section-head'\) !== null\)\)/, '置顶为空时整个空态区域都必须激活首位落点，不能只命中顶部 8px 占位')
 assert.match(workspaceBrowser, /pinnedGroups\.length === 0 && <div className="dcu-wb-empty"[\s\S]*?\{t\('workspace\.pinnedEmpty'\)\}<\/div>/, '空置顶落点激活后必须保留空态高度，避免命中区域缩回顶部并闪烁')
-assert.match(workspaceBrowser, /<DisclosureBody className="dcu-wb-project-body" open=\{isExpanded\}>[\s\S]*renderedIds\.map/, '置顶项目必须和项目区一样可展开会话并具有展开动画')
+assert.match(workspaceBrowser, /<DisclosureBody className="dcu-wb-project-body" open=\{isExpanded\} role="group">[\s\S]*renderedIds\.map/, '置顶项目必须和项目区一样可展开会话并具有展开动画（折叠体需带 role="group" 让 treeitem 归属成立）')
 assert.match(workspaceBrowser, /setSessionDropTarget\(beforeId === null \? undefined : \{ workspaceId, beforeId, hoveredId: id \}\)/, '会话行 dragOver 必须把悬停行写入 drop target')
 assert.match(workspaceBrowser, /dropAfterSessionId[\s\S]*?sessionDropAfterRowId\(sessionDropTarget, renderedIds\)/, '每个项目每次渲染只算一次会话 after 落点行')
 assert.match(workspaceBrowser, /id === dropAfterSessionId/, '会话行 after 线必须只比对唯一落点行')

@@ -5,6 +5,7 @@ import { act, createElement, type ReactNode } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { CodexWorkspaceBrowser } from '../src/client/CodexWorkspaceBrowser.tsx'
 import { SESSION_UNREAD_STORAGE_KEY } from '../src/client/session-manager.ts'
+import { installTreeKeyboard } from '../src/client/tree-keyboard.ts'
 import type { PendingInteractionSnapshot, UseSessionPendingInteraction } from '../src/client/session-pending.ts'
 
 const createRoot = (createRequire(import.meta.url)('react-dom/client') as {
@@ -151,15 +152,26 @@ test('会话行可聚焦，Enter 与空格打开会话；行内按钮上的 Ente
   const view = await renderTree('row-keys', '键盘会话', vi.fn(async () => {}), openSession)
   try {
     const { row } = view
-    expect(row.getAttribute('tabindex')).toBe('0')
-    await act(async () => { row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
-    expect(openSession).toHaveBeenCalledWith('row-keys')
-    await act(async () => { row.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true })) })
-    expect(openSession).toHaveBeenCalledTimes(2)
-    // 行内按钮（快捷操作）上的 Enter 由按钮自己消费，不得再触发行打开。
-    const innerButton = row.querySelector<HTMLElement>('.dcu-wb-quick-actions button')!
-    await act(async () => { innerButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
-    expect(openSession).toHaveBeenCalledTimes(2)
+    // tabIndex 由 tree-keyboard 的 roving 统一管理，JSX 里不再写死 0。
+    // 这里只断言「行仍是可编程聚焦的」——roving 选中哪一项取决于树里还有哪些可见项，
+    // 那不是本测试关心的事（roving 与 aria-level 由 tree-keyboard.spec.ts 专门覆盖）。
+    const stop = installTreeKeyboard(row.closest('[role="tree"]') as HTMLElement)
+    try {
+      const tabIndex = row.getAttribute('tabindex')
+      expect(tabIndex === '0' || tabIndex === '-1').toBe(true)
+      row.focus()
+      expect(document.activeElement).toBe(row)
+      await act(async () => { row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
+      expect(openSession).toHaveBeenCalledWith('row-keys')
+      await act(async () => { row.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true })) })
+      expect(openSession).toHaveBeenCalledTimes(2)
+      // 行内按钮（快捷操作）上的 Enter 由按钮自己消费，不得再触发行打开。
+      const innerButton = row.querySelector<HTMLElement>('.dcu-wb-quick-actions button')!
+      await act(async () => { innerButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })) })
+      expect(openSession).toHaveBeenCalledTimes(2)
+    } finally {
+      stop()
+    }
   } finally {
     await view.dispose()
   }

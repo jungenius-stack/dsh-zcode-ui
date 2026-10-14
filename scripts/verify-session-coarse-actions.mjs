@@ -42,13 +42,14 @@ async function measure(browser, { touch, pending }) {
         if (el === null) return null
         const cs = getComputedStyle(el)
         const r = el.getBoundingClientRect()
-        return { left: r.left, right: r.right, opacity: cs.opacity, pointerEvents: cs.pointerEvents, display: cs.display, visibility: cs.visibility }
+        return { left: r.left, right: r.right, width: Math.round(r.width), height: Math.round(r.height), opacity: cs.opacity, pointerEvents: cs.pointerEvents, display: cs.display, visibility: cs.visibility }
       }
       const rowRect = row.getBoundingClientRect()
       const byRow = (m) => m === null ? null : { ...m, gapRight: Math.round(rowRect.right - m.right) }
       return {
         coarse: matchMedia('(pointer:coarse)').matches,
         rowRight: rowRect.right,
+        rowHeight: Math.round(rowRect.height),
         rowPadRight: getComputedStyle(row).paddingRight,
         title: byRow(pick('.dcu-wb-session-title')),
         time: byRow(pick('.dcu-wb-session-time')),
@@ -71,13 +72,19 @@ try {
   assert.equal(coarse.quick.pointerEvents, 'auto', '触屏下快捷归档必须可点')
   assert.equal(coarse.anchor.opacity, '1', '触屏下 ⋯ 菜单锚点必须常驻')
   assert.equal(coarse.anchor.pointerEvents, 'auto', '触屏下 ⋯ 菜单锚点必须可点')
-  assert.equal(coarse.rowPadRight, '110px', '有时间的会话行必须为「时间 + 两个操作」预留 110px')
+  assert.equal(coarse.rowPadRight, '156px', '有时间的会话行必须为「时间 + 两个 44px 操作」预留 156px')
   assert.equal(coarse.quick.gapRight, 8, '快捷归档固定在最右侧 8px')
-  assert.equal(coarse.anchor.gapRight, 32, '⋯ 菜单锚点固定在右侧 32px')
-  assert.equal(coarse.time.gapRight, 60, '触屏下时间必须左移到 60px 为操作让位')
+  assert.equal(coarse.anchor.gapRight, 56, '⋯ 菜单锚点固定在右侧 56px')
+  assert.equal(coarse.time.gapRight, 104, '触屏下时间必须左移到 104px 为操作让位')
   assert.ok(coarse.time.right <= coarse.anchor.left, '时间与 ⋯ 不得重叠')
   assert.ok(coarse.anchor.right <= coarse.quick.left, '⋯ 与快捷归档不得重叠')
-  assert.ok(coarse.title.gapRight >= 108, '标题必须为「时间 + 操作」整段让位（padding-right 110px）')
+  assert.ok(coarse.title.gapRight >= 154, '标题必须为「时间 + 操作」整段让位（padding-right 156px）')
+
+  // 1b) 触屏目标尺寸：WCAG 2.2 AA 2.5.8 要求 ≥24×24，触屏惯例是 44×44。
+  //     2026-10-14 前会话行只有 32px 高、行内按钮 20×20——放宽规则只写给了集合头。
+  assert.ok(coarse.rowHeight >= 44, `触屏下会话行高必须 ≥44px，实测 ${coarse.rowHeight}px`)
+  assert.ok(coarse.quick.width >= 44 && coarse.quick.height >= 44, `触屏下快捷归档目标必须 ≥44×44，实测 ${coarse.quick.width}×${coarse.quick.height}`)
+  assert.ok(coarse.anchor.width >= 44 && coarse.anchor.height >= 44, `触屏下 ⋯ 锚点目标必须 ≥44×44，实测 ${coarse.anchor.width}×${coarse.anchor.height}`)
 
   // 2) 触屏 + 待处理胶囊：胶囊本身是行动号召，操作不得常驻与它抢位
   const pending = await measure(browser, { touch: true, pending: true })
@@ -90,7 +97,7 @@ try {
   assert.equal(desktop.quick.opacity, '0', '桌面下快捷归档必须等待悬停/聚焦（不得常驻）')
   assert.equal(desktop.anchor.opacity, '0', '桌面下 ⋯ 锚点必须保持隐藏（菜单经右键唤出）')
 
-  console.log('✓ 触屏会话行：操作常驻、时间让位 60px、三者几何互不重叠；桌面揭示语义未受影响')
+  console.log('✓ 触屏会话行：操作常驻、目标 ≥44×44、时间让位 104px、三者几何互不重叠；桌面揭示语义未受影响')
 } finally {
   await browser.close()
 }

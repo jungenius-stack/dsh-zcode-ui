@@ -3,7 +3,13 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 const source = readFileSync(new URL('../src/client/settings-page-styles.ts', import.meta.url), 'utf8')
-const styles = source.slice(source.indexOf('`') + 1, source.lastIndexOf('`'))
+// ⚠️ 必须按**变量名**定位模板串，不能用 `indexOf('\`')`：
+// 文件头的 JSDoc 注释里常出现反引号（标记 CSS 变量），裸切片会切到注释正文，
+// 把 CSS 规则切碎——本仓 `tests/design-system.assert.ts` §13 一直在防这件事。
+// 2026-10-14 实踩：给文件头补了含反引号的注释后，本脚本量到设置页宽 1264 ≠ 1280。
+const matched = source.match(/(?:export )?const settingsPageStyles = `([\s\S]*?)`/)
+assert.ok(matched, 'settings-page-styles.ts 的样式抽取失败（变量名被改时会失败）')
+const styles = matched[1]
 const browser = await chromium.launch({ headless: true })
 try {
   const page = await browser.newPage()

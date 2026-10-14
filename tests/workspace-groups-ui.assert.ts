@@ -10,7 +10,10 @@ assert.match(browser, /@media \(pointer:coarse\).*\.dcu-wb-collection-head \.dcu
 assert.doesNotMatch(browser, /workspace\.manageGroups/, 'Projects header must not have manage groups menu')
 assert.match(browser, /\.dcu-wb-collection-title\{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\}/, 'long group names must not push actions offscreen')
 assert.match(browser, /\.dcu-wb-collection-actions\{flex-shrink:0;width:20px\}/, 'group action column must reserve a fixed width')
-assert.match(browser, /ungroupedGroups\.length\}<\/span>[\s\S]*?<\/button>\s*<span className="dcu-wb-collection-actions" aria-hidden="true" \/>/, 'ungrouped count must align with custom groups without adding an interactive action')
+// 未分组计数与自定义分组对齐，且**不添加可交互操作**（actions 只是 aria-hidden 的空位）。
+// 2026-10-14：标签从 button 改为 span——head div 才是可展开的 treeitem，内部再放
+// 带 aria-expanded 的按钮等于一行两个 disclosure 控件。收尾标签随之变成 </span>。
+assert.match(browser, /ungroupedGroups\.length\}<\/span>[\s\S]*?<\/span>\s*<span className="dcu-wb-collection-actions" aria-hidden="true" \/>/, 'ungrouped count must align with custom groups without adding an interactive action')
 
 assert.match(browser, /workspaceGroups\.map\(renderWorkspaceCollection\)/, '项目区必须按集合标题渲染持久化分组')
 assert.match(browser, /initialWorkspaceGroups = useMemo\(\(\) => readWorkspaceGroupsCache\(storage\(\)\), \[\]\)/, '分组首帧必须从浏览器同步缓存恢复')
@@ -18,7 +21,14 @@ assert.match(browser, /useState<WorkspaceGroup\[\]>\(\(\) => initialWorkspaceGro
 assert.match(browser, /saveWorkspaceGroupsCache\(storage\(\), workspaceGroups, workspaceGroupsPendingHostSyncRef\.current\)/, '分组变化必须同步写入浏览器缓存')
 // Host 读取失败后继续写回，由 session-tree-pending.integration.spec.ts 的真实交互验证。
 assert.match(browser, /writeWorkspaceGroupDrag\(event\.dataTransfer, groupId, group\.title\)/, '分组标题必须写入独立的分组拖拽载荷')
-assert.match(browser, /className=\{`dcu-wb-collection-head[^`]*`\} draggable onDragStart=/, '分组标题容器必须作为唯一的原生拖拽源')
+// 2026-10-14：容器同时是 treeitem（可展开、可聚焦），拖拽源仍必须是它本身。
+// 注意 `[^>]*` 在这里不能用——插进去的 onClick 里含 `=>`，会把「非 > 字符」提前截断。
+assert.match(browser, /className=\{`dcu-wb-collection-head[^`]*`\} role="treeitem"/, '分组标题容器必须是 treeitem（可展开、可聚焦）')
+assert.match(
+  browser,
+  /className=\{`dcu-wb-collection-head[^`]*`\}[\s\S]{0,700}?draggable onDragStart=\{\(event\) => \{ event\.stopPropagation\(\); setSessionDrag\(undefined\); setSessionDropTarget\(undefined\); setWorkspaceDragId\(undefined\)/,
+  '分组标题容器必须作为唯一的原生拖拽源',
+)
 assert.doesNotMatch(browser, /className="dcu-wb-collection-label" draggable/, '分组标题按钮不得抢占 Chrome 的原生拖拽手势')
 assert.match(browser, /\.dcu-wb-collection-head\[draggable=true\],[^}]*\.dcu-wb-collection-label\{cursor:grab\}/, '分组标题及其按钮必须显示可拖动光标')
 assert.match(browser, /reorderDropBeforeId\(workspaceGroupIds, draggedGroupId, groupId,/, '分组拖动必须按标题上下半区计算精确落点')
@@ -35,10 +45,23 @@ assert.match(browser, /const regularGroups = groups\.items\.filter\(workspace =>
 assert.match(browser, /setPinnedWorkspaceIds\(ids => ids\.filter\(id => id !== dragged\)\)/, '从置顶投放到项目区时必须取消置顶')
 assert.match(browser, /workspaceGroups\.length > 0 && renderUngroupedCollection\(\)/, '仅在已有分组时显示未分组小节')
 assert.match(browser, /const ungroupedExpandKey = 'workspace-group:ungrouped'/, '未分组小节必须使用独立且稳定的折叠状态键')
-assert.match(browser, /<div className="dcu-wb-collection-head">[\s\S]*aria-expanded=\{ungroupedExpanded\}/, '未分组必须复用二级分类标题基础样式')
-assert.match(browser, /className="dcu-wb-collection-label" aria-expanded=\{ungroupedExpanded\}/, '未分组标题必须提供可访问的展开状态')
+assert.match(browser, /<div className="dcu-wb-collection-head" role="treeitem" aria-expanded=\{ungroupedExpanded\}/, '未分组必须复用二级分类标题基础样式')
+// 2026-10-14：展开状态改由 treeitem 承载。原先挂在内部按钮上，等于在同一行放两个
+// disclosure 控件（按钮 + 树项），屏幕阅读器会读两遍、且两处状态可能不一致。
+assert.match(browser, /<div className="dcu-wb-collection-head" role="treeitem" aria-expanded=\{ungroupedExpanded\}/, '未分组标题必须提供可访问的展开状态（挂在 treeitem 上）')
+assert.doesNotMatch(browser, /className="dcu-wb-collection-label" aria-expanded=/, '展开状态不得同时挂在内部按钮上（一行只允许一个 disclosure 控件）')
+// 标签必须是 span：head div 已是可展开的 treeitem，内部再放可聚焦按钮等于一行两个
+// Tab 站（原先用 tabIndex={-1} 把按钮推出 Tab 序列，治标；现在结构性消除）。
+assert.match(browser, /<span className="dcu-wb-collection-label">/, '集合标签必须是 span（不得是按钮）')
+assert.doesNotMatch(browser, /<button[^>]*className="dcu-wb-collection-label"/, '集合标签不得是按钮——否则一行里有两个可聚焦控件')
+// 指示箭头必须跟着 treeitem 的 aria-expanded 转（原先挂在内部标签上：标签改成 span 后会失效）。
+assert.match(
+  browser,
+  /\.dcu-wb-collection-head\[aria-expanded=true\] \.dcu-wb-collection-label \.dcu-wb-section-caret\{transform:rotate\(90deg\)\}/,
+  '分组展开箭头必须按 treeitem 的 aria-expanded 旋转（挂错位置会让箭头永远不转）',
+)
 assert.match(browser, /toggleGroup\(ungroupedExpandKey, true\)/, '未分组标题必须支持展开和收起')
-assert.match(browser, /<DisclosureBody className="dcu-wb-collection-body" open=\{ungroupedExpanded\}>/, '未分组项目必须复用统一折叠动画')
+assert.match(browser, /<DisclosureBody className="dcu-wb-collection-body" open=\{ungroupedExpanded\} role="group">/, '未分组项目必须复用统一折叠动画（折叠体带 role="group" 让 treeitem 归属成立）')
 assert.doesNotMatch(browser, /dcu-wb-ungrouped-head/, '未分组不得保留与其他二级分类不一致的专用标题样式')
 assert.match(browser, /assignWorkspaceToGroup\(current, dragged, groupId\)/, '拖入任意分组区域必须将项目归入该分组')
 assert.match(browser, /className=\{`dcu-wb-collection[^`]*`\} key=\{group\.id\} onDragOver=/, '分组空白区域必须在冒泡阶段接收项目，不能抢占成员的精确落点')

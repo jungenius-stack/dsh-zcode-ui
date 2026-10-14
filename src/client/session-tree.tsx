@@ -152,13 +152,20 @@ export function SessionState({ pendingInteraction, unread, running, t }: Pick<Se
   // 状态指示互斥渲染、按优先级取最高（对齐 ZCode TaskListItem 的前置状态槽）：
   // 待处理胶囊（右侧）＞ 未读点（行首 16px 槽）＞ 运行中转圈（行首 16px 槽）。
   // 未读与运行中共用同一个行首槽位，同一时刻只出现一个。
+  //
+  // 可访问名（2026-10-14 补）：三个分支**都必须能被读出**。
+  //  - 光秃的 `<span aria-label>` 是无效的：span 映射到 `generic` 角色，而 ARIA 1.2
+  //    对 generic 的规定是「Name From: prohibited」，标签会被直接忽略。
+  //    因此未读点与运行中必须显式给 `role="img"` 才有名字。
+  //  - 运行中此前是 `aria-hidden="true"` 且无文本替代——视觉用户看得到转圈，
+  //    屏幕阅读器用户得到的是**零信息**，而这是并发多会话场景最需要的状态之一。
   if (pendingInteraction !== undefined) {
     const label = pendingLabel(pendingInteraction, t)
-    return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction} aria-label={label}><span className="dcu-wb-pending-dot" aria-hidden="true" /><span className="dcu-wb-pending-label">{label}</span></span>
+    return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction}><span className="dcu-wb-pending-dot" aria-hidden="true" /><span className="dcu-wb-pending-label">{label}</span></span>
   }
-  if (unread) return <span className="dcu-wb-unread" aria-label={t('sessions.unread')} />
+  if (unread) return <span className="dcu-wb-unread" role="img" aria-label={t('sessions.unread')} />
   // 运行中：ZCode Spinner（LoaderIcon，size-4，1s linear 由 .dcu-spin 提供）。见 zcode-icons 的 ZIconLoading。
-  if (running) return <span className="dcu-wb-running" aria-hidden="true"><ZIconLoading size={16} className="dcu-spin" /></span>
+  if (running) return <span className="dcu-wb-running" role="img" aria-label={t('sessions.running')}><ZIconLoading size={16} className="dcu-spin" aria-hidden="true" /></span>
   return null
 }
 
@@ -186,7 +193,7 @@ export function SessionRow({
   const archiveConfirm = useArchiveConfirm()
   const confirmingArchive = archiveConfirm.confirmingId === id
   const requestArchive = (): void => { if (archiveConfirm.press(id)) onArchive() }
-  return <div data-dcu-session={id} data-pinned={pinned === true ? 'true' : undefined} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}${confirmingArchive ? ' dcu-wb-archive-confirming' : ''}`} role="treeitem" aria-selected={selected} tabIndex={0} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
+  return <div data-dcu-session={id} data-pinned={pinned === true ? 'true' : undefined} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}${confirmingArchive ? ' dcu-wb-archive-confirming' : ''}`} role="treeitem" aria-selected={selected} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
     {subtitle !== undefined && subtitle !== '' ? <span className="dcu-wb-session-copy"><SessionRowTitle title={title} /><span className="dcu-wb-session-sub">{subtitle}</span></span> : <SessionRowTitle title={title} />}
     <SessionState pendingInteraction={pendingInteraction} unread={unread} running={running} t={t} />
     {onTogglePin !== undefined && <SessionPinButton pinned={pinned === true} label={t(pinned === true ? 'sessions.unpin' : 'sessions.pin')} onToggle={onTogglePin} />}
@@ -203,7 +210,9 @@ export function SessionRow({
 }
 
 export function GroupHead({ expanded, title, icon, onToggle, actions, menuOpen }: { expanded: boolean; title: string; icon: ReactNode; onToggle: () => void; actions?: ReactNode; menuOpen?: boolean }) {
-  return <div className={`dcu-wb-project-head${menuOpen === true ? ' dcu-wb-menu-open' : ''}`} role="treeitem" aria-expanded={expanded} tabIndex={0} onClick={onToggle} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onToggle() } }}>
+  // tabindex 由 tree-keyboard 的 roving 统一管理，行内不再写死 tabIndex={0}
+  // （写死会让全树每一行都进 Tab 序列，100 个会话就是 100 次 Tab）。
+  return <div className={`dcu-wb-project-head${menuOpen === true ? ' dcu-wb-menu-open' : ''}`} role="treeitem" aria-expanded={expanded} onClick={onToggle} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onToggle() } }}>
     <span className="dcu-wb-folder">{icon}</span>
     <span className="dcu-wb-project-title">{title}</span>
     {actions !== undefined && <span className="dcu-wb-actions">{actions}</span>}

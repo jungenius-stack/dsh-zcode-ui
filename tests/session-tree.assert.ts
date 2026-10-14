@@ -156,7 +156,10 @@ assert.match(sessionManager, /previous\[id\] === true && running !== true && id 
 // ── 2026-10-13：会话行交互对齐 ZCode TaskListItem（第一批）────────────────────
 const archiveConfirm = readFileSync(new URL('../src/client/archive-confirm.ts', import.meta.url), 'utf8')
 assert.match(tree, /useArchiveConfirm\(\)/, '共用会话行必须复用两步确认 hook（ZCode 同款交互）')
-assert.match(tree, /role="treeitem" aria-selected=\{selected\} tabIndex=\{0\}/, '共用会话行必须可聚焦（键盘可达）')
+// 2026-10-14：行内不再写死 tabIndex={0}——那会让全树每一行都进 Tab 序列
+// （100 个会话 = 100 次 Tab）。tabindex 改由 tree-keyboard 的 roving 统一管理。
+assert.match(tree, /role="treeitem" aria-selected=\{selected\} draggable=\{draggable\}/, '共用会话行必须是 treeitem 且可聚焦（键盘可达）')
+assert.doesNotMatch(tree, /role="treeitem"[^>]*tabIndex=\{0\}/, '会话行不得写死 tabIndex={0}（roving tabindex 由 tree-keyboard 管理，否则全树逐行进 Tab 序列）')
 assert.match(tree, /onKeyDown=\{\(event\) => \{ if \(event\.target !== event\.currentTarget\) return; if \(event\.key === 'Enter' \|\| event\.key === ' '\)/, '共用会话行必须支持 Enter/空格打开，且不吞行内按钮事件')
 assert.match(workspace, /archiveConfirm\.confirmingId === id/, '任务树会话行必须接入确认态样式与按钮切换')
 assert.match(workspace, /tabIndex=\{0\} onKeyDown=\{\(event\) => \{ if \(event\.target !== event\.currentTarget\) return; if \(event\.key === 'Enter' \|\| event\.key === ' '\)/, '任务树会话行必须可聚焦并支持 Enter/空格打开')

@@ -4,6 +4,48 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.10.0 - 2026-10-14
+
+An external UI review (grade: B) flagged three systemic problems: light-theme state colors below WCAG AA,
+an accessibility net far narrower than the design surface, and docs contradicting the implementation.
+Each is fixed below and now guarded by an assertion. Design rationale: `docs/ZCODE-DESIGN.md` §14.
+
+### Fixed
+
+- **Light-theme state colors split into "fill tier" and "text tier"**: Zai's `--dsw-alias-state-*` values were derived for fills, and as small text on the light theme every one of them fell below 4.5:1 —
+  the sidebar's "pending" pill text at **2.63:1** (2.36:1 on hover; the only signal on the sidebar that a conversation is waiting on you, yet the hardest text on screen to read), the error banner at **3.34:1**, and the About page states at **2.82 / 4.15 / 4.25:1**. New `--dcu-state-*-text` text tier (light: warn `#8a4b00` / error `#b3261e` / success `#176c31`, all ≥4.82:1 across every consuming background; dark keeps the original values, which already pass).
+  The fill tier is untouched — hue semantics stay, third-party progress bars keep converging as before.
+- **The confirm button's hover state dropped below AA in both themes** (3.91 / 3.93:1): it always lightened, but the foreground flips with the theme (white on light, dark on dark), so the direction has to flip too. New `--dcu-state-error-fill{,-hover}`, hover direction theme-aware (light `#c52b2b` 5.59:1 / dark `#ff7070` 5.26:1).
+- **"Running" was invisible to screen readers**: the spinner was `aria-hidden="true"` with no text alternative. Added the `sessions.running` copy and `role="img"`.
+- **The unread dot's `aria-label` never worked**: a bare `<span aria-label>` maps to the `generic` role, and ARIA 1.2 specifies "Name From: prohibited" for generic — the label is ignored. Now `role="img"` + `aria-label`.
+- **The tool menu filter's focus ring was invisible**: it was a 1px inset ring at `color-mix(… 20%, transparent)`, measured at 1.61 / 1.91:1 — **mathematically unable to reach 3:1**. Replaced with a solid outline.
+
+### Added
+
+- **`role="tree"` now honors its contract** (`src/client/tree-keyboard.ts`): the sidebar *declared* tree/treeitem but honored none of the contract —
+  no arrow keys (100 conversations = 100 Tab presses), every row hard-coded to `tabIndex={0}`, no `aria-level`, and treeitem ownership broken by structural wrappers. Now: arrow keys (up/down to move, left/right to collapse or move to parent, right to enter children) + Home/End + roving tabindex + DOM-derived `aria-level` + structural wrappers normalized to `presentation`.
+  `Enter`/`Space` deliberately stay with the rows themselves — React 18 dispatches synthetic events at the React root, so a container-level listener would fire *before* the row handlers and double-fire.
+- **Touch target sizes brought up to spec**: session rows 32px → **44px**, inline ⋯/archive buttons 20×20 → **44×44**, group heads 36 → 44px.
+  The old coarse branch only made buttons persistently visible, not large enough; 20×20 is below WCAG 2.2 AA 2.5.8's 24×24 minimum.
+- Accessibility assertions grown from 5 sidebar text selectors to 7: four state-text roles + the settings search box + non-text contrast for the state dot, light and dark.
+
+### Changed (visual)
+
+- **Focus rings unified on one token** `var(--dsw-focus-ring-color, var(--dcu-focus))`: six sources coexisted, one of them **success green used as a focus ring** (`.dcu-about-external-link`, colliding with "installed") and `--sp-muted` (a text color) used as a ring. Sidebar/row/card rings move from black-or-white state colors to Zai icon-blue (§9.1 explicitly permits hue on the focus ring).
+- **Settings search box uses the card-tier text color** `--sp-muted-on-card`: `--sp-muted` was used across two different backgrounds, and `#8f8f8f` on `#2b2b2b` measured 4.38:1. Card tier is `#9a9a9a` at 5.03:1.
+- Sidebar section headers (Pinned / Projects / Recent) gain a `:focus-visible` outline (previously only a caret opacity change, and inconsistent with the session rows beside them).
+
+### Documentation corrections
+
+- `docs/ZCODE-DESIGN.md` §2 "converted sidebar solids" had three of four values left over from *before* the fix (dark tertiary `#4f4f4f` measures 2.21:1 — implementing the doc literally would have introduced a new AA failure). Corrected to the real `zcode-theme.ts` values with recomputed ratios, plus the rule "change the source first, then sync this table".
+- The `#777777` fallback in the settings page `--sp-*` tokens (3.93:1, already judged failing in §9.2) has been corrected.
+- One assertion in `settings-integration.assert.ts` contradicted itself: its message demanded a "clear **blue** focus state" while its pattern matched the black-and-white state token. The message was right; the implementation followed the wrong half. Fixed to the message's intent.
+
+### Registered trade-offs (not bugs)
+
+- On touch, "time + two 44px actions" consumes 156px, leaving 84px for the title on a 240px sidebar. Mitigation direction: keep only ⋯ on touch and move archive into the menu — but that contradicts the §1.7.0 decision "actions and ⋯ persist under coarse", so it is a product call and is only registered here (KNOWN-ISSUES §21).
+- The tree keyboard model handles only arrow keys and Home/End; `Enter`/`Space` stay with the rows. Making the controller own them requires untangling React synthetic-event ordering first, and was out of scope.
+
 ## 1.9.0 - 2026-10-14
 
 ### Changed

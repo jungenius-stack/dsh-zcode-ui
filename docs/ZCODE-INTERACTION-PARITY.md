@@ -1,29 +1,29 @@
 # ZCode 操作 UI 逻辑对齐手册（行为清单 + 差距审计）
 
-> 目的：把本地 ZCode 3.15.1 的「操作 UI 逻辑」整套学来套到本插件上——不是抄表层图标，
+> 目的：把本地 ZCode 3.15.1 的「操作 UI 逻辑」整套学来套到本插件上——不是抄表层图标，  
 > 而是对齐交互模型、行为契约与键盘路径。本文档是唯一的行为对照来源；每次对齐批次在此登记。
 >
-> 取证来源：`/Users/m1/WorkBuddy AI/2026-10-12-11-04-42/ZCode`（aac4755 = v3.15.1，
-> 与 `/Applications/ZCode.app` 同版本）。设计规范以其仓库根 `DESIGN.md` 为唯一真源；
+> 取证来源：`/Users/m1/WorkBuddy AI/2026-10-12-11-04-42/ZCode`（aac4755 = v3.15.1，  
+> 与 `/Applications/ZCode.app` 同版本）。设计规范以其仓库根 `DESIGN.md` 为唯一真源；  
 > 插件契约见其 `UI_PLUGIN.md`。本文引用行号以该检出为准。
 
 ## 1. ZCode 行为清单（按域）
 
 ### 1.1 任务行（`packages/ui/src/TaskListItem.tsx`）
 
-| 行为 | ZCode 的实现 | 关键源码位置 |
-| --- | --- | --- |
-| 悬停让位 | hover 时**元信息（相对时间）隐藏**、给操作按钮腾位 | `shouldSuppressWorkspaceTaskMetadata = hoverActionsVisible \|\| focusActionsVisible`（L404） |
-| 键盘同权 | 行 `tabIndex=0`；聚焦行时**同样**露出操作按钮（`focusActionsVisible`，focus capture/blur capture） | L571-576 |
-| 键盘打开 | `Enter` / 空格打开；用 `event.target === event.currentTarget` 守卫，避免吞行内按钮按键 | L578-586 |
-| 触屏常驻 | `(hover:none)` 时操作按钮常驻（不为触屏隐藏功能） | L172-177、L400-405 |
-| 状态槽优先级 | 前置 16px 槽只有一个指示：**错误 > 未读 > 运行中**（转圈）> 时间线空闲点 | 领先槽三元链 L613-630 |
-| 置顶交互 | 已置顶且无状态指示时，前置槽显示 Pin；**hover 时变为可点击的取消置顶按钮**，状态指示同时隐藏 | L398-399、L552-554、L632-645 |
-| 归档两步确认 | 首击进确认态（普通按钮换成 destructive「确认」）；**Escape 取消**；**条目外 pointerdown 取消**；**鼠标离开不取消**；二次点击才执行 | L195-223（窗口级捕获监听）、L447-501 |
-| 行操作按钮 | 共享 `TaskRowActionButton`：ghost `icon-sm`；**mousedown/pointerdown preventDefault + stopPropagation**（不抢焦、不触发行选择）；tooltip 在上方 | `workspace-grouped-tasks/task-row-action-button.tsx` |
-| 右键菜单 | 整行 `onContextMenu`；菜单内容**列表级单例**——只有菜单真正打开时才挂载，idle 行零订阅 | `TaskListItemContextMenuContent`（L903-905 注释） |
-| 拖拽 | HTML5 拖拽（拖到 workbench/分屏），自定义 drag preview | L281-326 |
-| 元信息 | 相对时间右对齐；定时任务时钟图标 / 错峰月亮图标挂在时间前（不占状态槽） | L807-822 |
+| 行为     | ZCode 的实现                                                                                                                   | 关键源码位置                                                                                     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 悬停让位   | hover 时**元信息（相对时间）隐藏**、给操作按钮腾位                                                                                              | `shouldSuppressWorkspaceTaskMetadata = hoverActionsVisible \|\| focusActionsVisible`（L404） |
+| 键盘同权   | 行 `tabIndex=0`；聚焦行时**同样**露出操作按钮（`focusActionsVisible`，focus capture/blur capture）                                           | L571-576                                                                                   |
+| 键盘打开   | `Enter` / 空格打开；用 `event.target === event.currentTarget` 守卫，避免吞行内按钮按键                                                        | L578-586                                                                                   |
+| 触屏常驻   | `(hover:none)` 时操作按钮常驻（不为触屏隐藏功能）                                                                                            | L172-177、L400-405                                                                          |
+| 状态槽优先级 | 前置 16px 槽只有一个指示：**错误 > 未读 > 运行中**（转圈）> 时间线空闲点                                                                               | 领先槽三元链 L613-630                                                                            |
+| 置顶交互   | 已置顶且无状态指示时，前置槽显示 Pin；**hover 时变为可点击的取消置顶按钮**，状态指示同时隐藏                                                                       | L398-399、L552-554、L632-645                                                                 |
+| 归档两步确认 | 首击进确认态（普通按钮换成 destructive「确认」）；**Escape 取消**；**条目外 pointerdown 取消**；**鼠标离开不取消**；二次点击才执行                                     | L195-223（窗口级捕获监听）、L447-501                                                                 |
+| 行操作按钮  | 共享 `TaskRowActionButton`：ghost `icon-sm`；**mousedown/pointerdown preventDefault + stopPropagation**（不抢焦、不触发行选择）；tooltip 在上方 | `workspace-grouped-tasks/task-row-action-button.tsx`                                       |
+| 右键菜单   | 整行 `onContextMenu`；菜单内容**列表级单例**——只有菜单真正打开时才挂载，idle 行零订阅                                                                    | `TaskListItemContextMenuContent`（L903-905 注释）                                              |
+| 拖拽     | HTML5 拖拽（拖到 workbench/分屏），自定义 drag preview                                                                                  | L281-326                                                                                   |
+| 元信息    | 相对时间右对齐；定时任务时钟图标 / 错峰月亮图标挂在时间前（不占状态槽）                                                                                       | L807-822                                                                                   |
 
 ### 1.2 右键/下拉菜单（`TaskActionMenuContent.tsx`、`TaskListItemContextMenu.tsx`）
 
@@ -34,19 +34,19 @@
 
 ### 1.3 键盘（`packages/shared/src/shortcutCommands.ts`、`shortcuts/bindings.ts`）
 
-| 键位 | 命令 |
-| --- | --- |
-| `Cmd/Ctrl+K`、`Cmd/Ctrl+Shift+P` | 命令中心 |
-| `Cmd/Ctrl+,` | 打开设置 |
-| `Cmd/Ctrl+F` | 会话内查找 |
-| `Cmd/Ctrl+B` | 侧栏开关 |
-| `Cmd/Ctrl+Shift+L` | 切换主题 |
-| `Cmd/Ctrl+J` / `Cmd/Ctrl+Alt+B` | 终端 / Side Pane 开关 |
-| `Cmd/Ctrl+Shift+[` / `Cmd/Ctrl+Shift+]` | 上一个 / 下一个会话 |
-| `Cmd/Ctrl+[` / `Cmd/Ctrl+]` | 历史后退 / 前进 |
-| `Ctrl+M` / `Ctrl+Shift+M` / `Ctrl+T` | 模型菜单 / 会话模式 / 思考档 |
-| `Cmd/Ctrl+N` / `O` / `W` | 新任务 / 打开项目 / 关闭当前上下文（菜单通道） |
-| `Enter` / `Shift+Enter`（输入框内） | 发送 / 换行（composer 作用域） |
+| 键位                                      | 命令                         |
+| --------------------------------------- | -------------------------- |
+| `Cmd/Ctrl+K`、`Cmd/Ctrl+Shift+P`         | 命令中心                       |
+| `Cmd/Ctrl+,`                            | 打开设置                       |
+| `Cmd/Ctrl+F`                            | 会话内查找                      |
+| `Cmd/Ctrl+B`                            | 侧栏开关                       |
+| `Cmd/Ctrl+Shift+L`                      | 切换主题                       |
+| `Cmd/Ctrl+J` / `Cmd/Ctrl+Alt+B`         | 终端 / Side Pane 开关          |
+| `Cmd/Ctrl+Shift+[` / `Cmd/Ctrl+Shift+]` | 上一个 / 下一个会话                |
+| `Cmd/Ctrl+[` / `Cmd/Ctrl+]`             | 历史后退 / 前进                  |
+| `Ctrl+M` / `Ctrl+Shift+M` / `Ctrl+T`    | 模型菜单 / 会话模式 / 思考档          |
+| `Cmd/Ctrl+N` / `O` / `W`                | 新任务 / 打开项目 / 关闭当前上下文（菜单通道） |
+| `Enter` / `Shift+Enter`（输入框内）           | 发送 / 换行（composer 作用域）      |
 
 - 引擎契约：IME 组合（`isComposing`/`Process`/`Dead`/keyCode 229）与长按 repeat **一律不匹配、不录制**；`CmdOrCtrl` 平台归一；用户可整体重绑定 + 冲突检测 + 录制态抑制。
 
@@ -68,28 +68,28 @@
 ### 1.6 插件扩展模型（`UI_PLUGIN.md`）
 
 - 外来 UI 以侧栏面板（`ui.surfaces`）+ 内联页面进入；宿主提供能力协商（`getHostCapabilities`）、主题/语言（`hostContext`）、显示模式切换。
-- **插件不重绘宿主外壳**：外壳（侧栏、对话区）永远保持宿主语言；插件只在自己的表面内渲染。
+- **插件不重绘宿主外壳**：外壳（侧栏、对话区）永远保持宿主语言；插件只在自己的表面内渲染。  
   → 对应本插件的皮肤信封（`skin-envelope.ts`）与外来表面发现（`foreign-surface-discovery.ts`）策略：收敛继承属性、不越界改别人的颜色/布局。
 
 ## 2. 差距审计（插件 1.4.0 → 对照上表）
 
-| # | 行为 | ZCode | 插件 1.4.0 现状 | 处置 |
-| --- | --- | --- | --- | --- |
-| 1 | 行键盘可达 | `tabIndex=0`、Enter/Space | 行不可聚焦（`:focus-visible` 样式形同虚设） | ✅ 1.5.0 |
-| 2 | 聚焦与悬停同权 | focus 露出操作、元信息让位 | 仅 `:hover` | ✅ 1.5.0（`:focus-within`） |
-| 3 | 归档两步确认 | 首击确认 / Esc / 外点取消 / 离开不取消 | **单击直接归档** | ✅ 1.5.0 |
-| 4 | 菜单顺序 | rename → archive → markUnread | rename → **unread → archive** | ✅ 1.5.0 |
-| 5 | 行操作按钮不抢焦 | mousedown/pointerdown preventDefault | 未做 | ✅ 1.5.0 |
-| 6 | 状态指示优先级 | 单一前置槽：错误 > 未读 > 运行中 | 运行中在左、未读在右（两槽并存） | ✅ 1.6.0（未读进前置槽、未读优先；error 档 DSH 无对应） |
-| 7 | 未读点位置 | 前置槽（左） | 右侧时间旁 | ✅ 1.6.0 |
-| 8 | 相对时间 | 有 | ✅ 有（`formatCompactTime`） | — |
-| 9 | 右键菜单结构 | 三段式（管理 ‖ 路径/复制 ‖ 辅助） | 四段式（另含 fork/移动/删除） | ✅ 1.7.0（管理组含 fork/移动收尾 ‖ 路径与复制组以「打开位置」打头 ‖ 删除单列；菜单图标保留为已决偏差） |
-| 10 | 菜单单例化 | 列表级单例、打开才挂载 | 每行挂 `Menu` 组件 | 已评估（不做）：宿主 Menu 关闭态零渲染（`open && MenuSurface`）、行菜单无每行 RPC——收益趋零，见 KNOWN-ISSUES §18.2 |
-| 11 | 触屏操作常驻 | `(hover:none)` 常驻 | 集合头有常驻，会话行无 | ✅ 1.7.0（coarse 下操作与 ⋯ 常驻、时间让位、几何断言） |
-| 12 | 标题溢出 | mask 渐隐（无省略号） | ellipsis（有断言锁死） | —（有意偏差，登记） |
-| 13 | 会话置顶 | Pin 前置槽 + hover 变按钮 | **已接入宿主置顶**（行首图钉 + 菜单置顶/取消 + 置顶排前） | ✅ 已实施（1.9.0：宿主 0.2.0-rc.2 已有 pinSession/pinnedSessionIds，上游"移除"针对的是本地自维护模型，见 §3） |
-| 14 | 拖拽 | 拖到 workbench | ✅ 有（项目内排序 + 跨项目移动） | — |
-| 15 | 键盘总表 | Cmd+K/B/F/N/… | 官方命令经宿主 `ctx.shortcuts` 分发（侧栏 bridge 已接）；**上/下一个会话原为空白，1.8.0 已补** | ✅ 已实施（1.8.0，详见 §3；命令中心见 §5 结论） |
+| #  | 行为       | ZCode                                | 插件 1.4.0 现状                                                       | 处置                                                                                  |
+| -- | -------- | ------------------------------------ | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1  | 行键盘可达    | `tabIndex=0`、Enter/Space             | 行不可聚焦（`:focus-visible` 样式形同虚设）                                    | ✅ 1.5.0                                                                             |
+| 2  | 聚焦与悬停同权  | focus 露出操作、元信息让位                     | 仅 `:hover`                                                        | ✅ 1.5.0（`:focus-within`）                                                            |
+| 3  | 归档两步确认   | 首击确认 / Esc / 外点取消 / 离开不取消            | **单击直接归档**                                                        | ✅ 1.5.0                                                                             |
+| 4  | 菜单顺序     | rename → archive → markUnread        | rename → **unread → archive**                                     | ✅ 1.5.0                                                                             |
+| 5  | 行操作按钮不抢焦 | mousedown/pointerdown preventDefault | 未做                                                                | ✅ 1.5.0                                                                             |
+| 6  | 状态指示优先级  | 单一前置槽：错误 > 未读 > 运行中                  | 运行中在左、未读在右（两槽并存）                                                  | ✅ 1.6.0（未读进前置槽、未读优先；error 档 DSH 无对应）                                                |
+| 7  | 未读点位置    | 前置槽（左）                               | 右侧时间旁                                                             | ✅ 1.6.0                                                                             |
+| 8  | 相对时间     | 有                                    | ✅ 有（`formatCompactTime`）                                          | —                                                                                   |
+| 9  | 右键菜单结构   | 三段式（管理 ‖ 路径/复制 ‖ 辅助）                 | 四段式（另含 fork/移动/删除）                                                | ✅ 1.7.0（管理组含 fork/移动收尾 ‖ 路径与复制组以「打开位置」打头 ‖ 删除单列；菜单图标保留为已决偏差）                        |
+| 10 | 菜单单例化    | 列表级单例、打开才挂载                          | 每行挂 `Menu` 组件                                                     | 已评估（不做）：宿主 Menu 关闭态零渲染（`open && MenuSurface`）、行菜单无每行 RPC——收益趋零，见 KNOWN-ISSUES §18.2 |
+| 11 | 触屏操作常驻   | `(hover:none)` 常驻                    | 集合头有常驻，会话行无                                                       | ✅ 1.7.0（coarse 下操作与 ⋯ 常驻、时间让位、几何断言）                                                 |
+| 12 | 标题溢出     | mask 渐隐（无省略号）                        | ellipsis（有断言锁死）                                                   | —（有意偏差，登记）                                                                          |
+| 13 | 会话置顶     | Pin 前置槽 + hover 变按钮                  | **已接入宿主置顶**（行首图钉 + 菜单置顶/取消 + 置顶排前）                                | ✅ 已实施（1.9.0：宿主 0.2.0-rc.2 已有 pinSession/pinnedSessionIds，上游"移除"针对的是本地自维护模型，见 §3）    |
+| 14 | 拖拽       | 拖到 workbench                         | ✅ 有（项目内排序 + 跨项目移动）                                                | —                                                                                   |
+| 15 | 键盘总表     | Cmd+K/B/F/N/…                        | 官方命令经宿主 `ctx.shortcuts` 分发（侧栏 bridge 已接）；**上/下一个会话原为空白，1.8.0 已补** | ✅ 已实施（1.8.0，详见 §3；命令中心见 §5 结论）                                                      |
 
 ## 3. 已实施批次
 
@@ -134,48 +134,100 @@
 
 ### 1.9.0（2026-10-14）——会话置顶接入 + 菜单键帽 + composer 域调研
 
-**一、会话置顶（#13 翻案并实施）**：宿主 0.2.0-rc.2 已有一等置顶模型——
-`ctx.workspaces.pinSession/unpinSession` + 快照 `pinnedSessionIds`（注册表全局、最近置顶在前），
-官方 ui-workspace 有全套 UI（菜单 PinSessionMenuItem order 100、行按钮 PinSessionRowButton、
-失败 toast）。上游 0.2.102 的「移除会话置顶」针对的是**本地自维护、与项目置顶并存的第二套模型**，
-不是宿主 registry 级置顶；本批接入的是后者，因此不违背该决策（本插件此前被移除的
+**一、会话置顶（#13 翻案并实施）**：宿主 0.2.0-rc.2 已有一等置顶模型——  
+`ctx.workspaces.pinSession/unpinSession` + 快照 `pinnedSessionIds`（注册表全局、最近置顶在前），  
+官方 ui-workspace 有全套 UI（菜单 PinSessionMenuItem order 100、行按钮 PinSessionRowButton、  
+失败 toast）。上游 0.2.102 的「移除会话置顶」针对的是**本地自维护、与项目置顶并存的第二套模型**，  
+不是宿主 registry 级置顶；本批接入的是后者，因此不违背该决策（本插件此前被移除的  
 `QuickPinIcon`/本地存储/自绘图标仍然禁止，且断言反向锁死）。
 
-1. 渲染对齐 ZCode TaskListItem：行首 16px 槽放同一枚图钉——**常显**（已置顶且槽空闲）＋
-   **悬停/聚焦时接管**（未读点与转圈让位，ZCode 的 hidden 语义）；触屏与 ZCode 相同不接管
+1. 渲染对齐 ZCode TaskListItem：行首 16px 槽放同一枚图钉——**常显**（已置顶且槽空闲）＋  
+   **悬停/聚焦时接管**（未读点与转圈让位，ZCode 的 hidden 语义）；触屏与 ZCode 相同不接管  
    （hover:none 只让右侧操作常驻，行首留给状态指示）。
-2. 菜单：管理组最前加「置顶/取消置顶」，顺序 pin → rename → archive → unread（与 ZCode
+2. 菜单：管理组最前加「置顶/取消置顶」，顺序 pin → rename → archive → unread（与 ZCode  
    TaskActionMenuContent 一致）；只在宿主提供 pin 能力时出现（频道/定时树不呈现）。
-3. 排序：置顶会话排在所属账户最前（最近置顶在前，`pinnedFirstSessionIds` 一处实现，侧栏树与
+3. 排序：置顶会话排在所属账户最前（最近置顶在前，`pinnedFirstSessionIds` 一处实现，侧栏树与  
    快捷键全序共用）；快捷键顺序同步。
-4. 取舍（登记 §20）：取消置顶回到原位（官方有本地手动顺序覆盖层，我们保持宿主单一顺序源）；
-   flat/top 行不参与悬停接管（无固定行首槽，避免 padding 跳动），置顶走菜单与常显态；
-   触屏、旧宿主缺省=整条呈现链缺席。
-5. 验证：集成测试新增 3 用例（按钮状态与 API 调用 / 旧宿主降级 / 置顶排序）+ 菜单与全序
+4. 取舍（登记 §20）：取消置顶回到原位（官方有本地手动顺序覆盖层，我们保持宿主单一顺序源）；  
+   flat/top 行不参与悬停接管（无固定行首槽，避免 padding 跳动），置顶走菜单与常显态；  
+   ~触屏、旧宿主缺省=整条呈现链缺席。
+5. 验证：集成测试新增 3 用例（按钮状态与 API 调用 / 旧宿主降级 / 置顶排序）+ 菜单与全序  
    用例各 1；断言从「禁止置顶」改写为「宿主 API 唯一来源」政策。
 
-**二、菜单键帽后缀与 aria-keyshortcuts**：宿主 `MenuItem.shortcut = {keys, aria}` 原生支持
-键帽显示（官方菜单直传 catalog）。新增共享目录桥 `shortcut-catalog.ts`（`ctx.inject` 等待 +
-`useShortcutLookup`）：行菜单的 rename/archive/fork 显示生效键帽；侧栏搜索/新建按钮（宽/窄
-两种形态）与项目行「新建会话」按钮标注 `aria-keyshortcuts`。键位一律以宿主目录为真源，
+**二、菜单键帽后缀与 aria-keyshortcuts**：宿主 `MenuItem.shortcut = {keys, aria}` 原生支持  
+键帽显示（官方菜单直传 catalog）。新增共享目录桥 `shortcut-catalog.ts`（`ctx.inject` 等待 +  
+`useShortcutLookup`）：行菜单的 rename/archive/fork 显示生效键帽；侧栏搜索/新建按钮（宽/窄  
+两种形态）与项目行「新建会话」按钮标注 `aria-keyshortcuts`。键位一律以宿主目录为真源，  
 不在本地硬编码。
 
-**三、composer 域键位调研结论（无代码改动）**：DSH 输入框（官方 ui-conversation 的
-Lexical keymap，CRITICAL 优先级）已拥有 composer 域全部语义：Enter 提交 / Shift+Enter 换行 /
-Ctrl·Cmd+Enter 加速投递 / 菜单仲裁（箭头·Escape·Enter）/ IME 组合守卫（isComposing·keyCode 229·
-Safari 组合后窗口）/ Escape 分层与停止快捷键（`installStopShortcut` 走宿主 `Shortcuts` 服务）——
-与 ZCode 的 composer 契约一致。`ctx.shortcuts.register` 面向 window 分发，**没有 composer 域
-接入面**；插件不应自建第二套输入键位（与「不自建命令面板」同一原则）。ZCode 的工具条动作
-（Ctrl+T 档位循环等）在 DSH 由输入工具条菜单承接（本插件 composer-tool-menus 已对接）。
+**三、composer 域键位调研结论（无代码改动）**：DSH 输入框（官方 ui-conversation 的  
+Lexical keymap，CRITICAL 优先级）已拥有 composer 域全部语义：Enter 提交 / Shift+Enter 换行 /  
+Ctrl·Cmd+Enter 加速投递 / 菜单仲裁（箭头·Escape·Enter）/ IME 组合守卫（isComposing·keyCode 229·  
+Safari 组合后窗口）/ Escape 分层与停止快捷键（`installStopShortcut` 走宿主 `Shortcuts` 服务）——  
+与 ZCode 的 composer 契约一致。`ctx.shortcuts.register` 面向 window 分发，**没有 composer 域  
+接入面**；插件不应自建第二套输入键位（与「不自建命令面板」同一原则）。ZCode 的工具条动作  
+（Ctrl+T 档位循环等）在 DSH 由输入工具条菜单承接（本插件 composer-tool-menus 已对接）。  
 登记为「无接入点，维持现状」。
 
 ## 4. 待办批次（候选，按价值排序）
 
-1. **宿主目录驱动的更多提示**：`aria-keyshortcuts` 已接入搜索/新建；后续可评估把「刷新/停止」
+1. **宿主目录驱动的更多提示**：`aria-keyshortcuts` 已接入搜索/新建；后续可评估把「刷新/停止」  
    等宿主命令提示接到对应按钮（需逐项对照宿主目录的 id 稳定性）。
-2. **`session.search` 快捷键在搜索对话框内的呈现**：ZCode 搜索框带快捷键提示行；接入前先确认
+2. **`session.search` 快捷键在搜索对话框内的呈现**：ZCode 搜索框带快捷键提示行；接入前先确认  
    宿主是否有对应组件（否则自绘会引入第二套键帽样式）。
 3. **会话置顶的官方顺序覆盖层评估**：官方 pin 后本地 `sessionOrderByAccount` 覆盖层使 unpin 不回位；
-   若未来确认这是用户可感知的差异，再评估引入（当前维持宿主单一顺序源）。
+
+
+若未来确认这是用户可感知的差异，再评估引入（当前维持宿主单一顺序源）。
 
 审计表各项已全部处置：✅ 已实施（#1-#7、#9、#11、#13、#15）或已登记（#8/#12/#14 有意偏差，#10 评估不做）。
+
+## 5. 主动偏离：ARIA 树键盘模型（2026-10-14，1.10.0）
+
+这一条**不是**向 ZCode 对齐，而是修正本插件自己的一处「声明与实现不一致」。
+
+### 5.1 问题
+
+侧栏此前**声明**了 `role="tree"` / `role="treeitem"`，但树的契约一条都没兑现：
+
+| 契约 | 兑现情况 | 后果 |
+| --- | --- | --- |
+| 方向键遍历 | 全仓 `ArrowUp/Down/Left/Right` 在侧栏相关文件里匹配数 **0** | 树的全部意义就是「一个 Tab 站 + 方向键」。没有它，100 个会话 = **100 次 Tab** |
+| roving tabindex | 每个 treeitem 都写死 `tabIndex={0}` | 违反树的根本约定 |
+| `aria-level`（treeitem 必填） | **0** 处 | 屏幕阅读器无法播报层级 |
+| treeitem 由 tree/group 直接拥有 | 被 `.dcu-wb-section` / `.dcu-wb-collections` / `.dcu-wb-group-member` 夹断 | 树结构在无障碍树里散架 |
+
+对照 ZCode：它的 `TaskListItem` 也是「行 `tabIndex=0` + Enter/Space」，**没有** roving tabindex与方向键
+——也就是说本插件当初是**照着抄了表层、却额外多声明了 `role="tree"`**。
+声明更强的语义却不兑现，比不声明更差：辅助技术按树呈现，用户按树操作，然后失败。
+ZCode 是 PC 桌面、行数通常有限；本插件的侧栏在长会话（上千条）下，Tab 遍历成本不可接受。
+
+### 5.2 处置（超出 ZCode，故登记为主动偏离）
+
+`src/client/tree-keyboard.ts`，控制器挂在 `role="tree"` 容器上：
+
+- **roving tabindex**：全树只有一项 `tabIndex=0`（选中项 > 首项），其余 `-1`。
+- **方向键**：`↓/↑` 移动、`Home/End` 首尾、`→` 收起态展开 / 展开态进入子项、`←` 展开态收起 / 否则回父项。
+- **`aria-level` 由 DOM 推导**：按 `role="group"` 嵌套深度算，不手写——加新层级不会漏。
+- **纯结构层归一**：树内没有 role 的 div 统一标 `presentation`，让 treeitem 归属成立。
+- **分区头与分组头成为 treeitem**：视觉层级本来就是树，键盘上 `←/→` 可跨分区上下移动。
+- 顶层分区体 / 项目体 / 分组体为 `role="group"`；折叠体收起时 `inert` + `aria-hidden`，不参与遍历。
+
+### 5.3 刻意不做的事
+
+- **不碰 `Enter`/`Space`**：仍由行内元素各自的 `onKeyDown` 处理。React 18 把合成事件挂在 React 根容器，
+  容器级监听器会**先于**行内处理器触发，在这里也处理一遍会双触发（同一键位触发两次 `openSession`）。
+  控制器只在**捕获阶段**拦方向键。
+- **不做 type-ahead**（按首字母跳转）：会话标题中英混排，收益不明确。
+- **不动 ZCode 行的 Enter/Space 与 `event.target === event.currentTarget` 守卫**：那部分已对齐且正确。
+
+### 5.4 验证
+
+`tests/tree-keyboard.spec.ts` 13 例：roving 唯一可 Tab 项、`aria-level` 三档推导、结构层归一、
+折叠子树不参与遍历、方向键四向、Home/End、鼠标聚焦同步 roving、`Enter` 不双触发、
+修饰键不拦截、卸载后失效、空树不报错。`tests/design-system.assert.ts` §16 锁住契约本身
+（有 `role="tree"` 就必须装控制器、必须处理六个方向键、不得写死 `tabIndex={0}`）。
+
+> 若未来宿主或 ZCode 侧提出统一行键盘模型，本节的偏离应重新评估——**方向键 + roving 是树的必要条件，
+> 不是可选项**，届时哪个方案实现它都不重要，重要的是别再停在「声明了但没实现」。
+

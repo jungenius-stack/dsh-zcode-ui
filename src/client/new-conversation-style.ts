@@ -21,7 +21,7 @@ export const NEW_CONVERSATION_STYLE = `
 .dcu-home-card>span{min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:normal;line-height:18px;text-wrap:pretty}
 .dcu-home-card:hover,.dcu-home-card[aria-pressed=true]{background:color-mix(in srgb,var(--dsw-alias-label-primary) 5%,transparent);border-color:color-mix(in srgb,var(--dsw-alias-label-primary) 20%,transparent)}
 .dcu-home-card svg{width:16px;height:16px;flex:none;color:var(--dcu-home-icon)}
-.dcu-home-card:focus-visible,.dcu-home-task:focus-visible{outline:2px solid var(--dsw-alias-label-primary);outline-offset:3px}
+.dcu-home-card:focus-visible,.dcu-home-task:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:3px}
 .dcu-home-details,.dcu-home-status{display:grid}
 .dcu-home-suggestions[data-has-draft=true]{visibility:hidden;pointer-events:none}
 .dcu-home-tasks{grid-area:1/1;display:flex;flex-wrap:wrap;align-content:start;gap:8px;margin-top:16px}
