@@ -4,6 +4,53 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.12.0 - 2026-10-14
+
+移植上游 1.1.35–1.1.37 的修复，并把「禁用官方 + 顶替」架构整体替换为上游 1.1.37 的
+insert-only + 槽位镜像架构。活宿主探针证实旧架构会静默弄断目录拾取器的渲染链
+（KNOWN-ISSUES §23.1）。逐项销账见 `docs/KNOWN-ISSUES.md` §23；设计依据见
+`docs/ZCODE-DESIGN.md` §16。
+
+### 架构
+
+- **纯 insert，不再禁用官方**：官方侧栏、设置壳、官方会话标题提供方全部保持登记。
+  共享槽镜像进自有命名空间（`sidebar.codex.*` / `settings.codex.*`，经 `mirrorSlot` +
+  `withSlotAliases`）；`registerAfterOfficialWave` 等官方声明就绪（超时 3 秒只注册自有槽），
+  官方晚到不冲突、停用本插件后官方渲染原样恢复。会话标题提供方改经
+  `session-title-lifecycle.ts` 与官方共存，不再用 patch 禁用官方。
+
+### 新增（移植自上游）
+
+- **项目区「添加工作区」按钮**（#42）：随官方入口启停（缺席时禁用），`aria-keyshortcuts`
+  实时跟随官方快捷键目录，点击走官方 `requestAddWorkspace` 流程。图标统一 Lucide（Plus）。
+- **developerTools 开关**（#41）：宿主提供 `configForms.developerTools` 时在
+  `settings.general.item` 镜像一行；宿主没有则不出现。开关样式沿用 sp-token 纪律。
+- **旧版宿主的紧凑顶栏**（#41）：无内联页签但有面包屑的宿主同样按 34px 控件带重排。
+- 会话树右键菜单去 `compact`（与官方菜单密度一致）；会话标题生命周期加固。
+
+### 新增（工具链）
+
+- **CI**：`.github/workflows/ci.yml` 在每次 push/PR 上跑全量门禁（`pnpm install
+  --frozen-lockfile` → Playwright Chromium → `node scripts/gate.mjs`）——与 pre-push 钩子
+  同一份门禁，本地绿 == CI 绿 == 发布绿。pnpm 版本读 package.json 的 packageManager
+  字段，单一真源。
+- 新活宿主脚本 `scripts/verify-workspace-shortcuts-host.mjs`（接入 gate-host）：对真实
+  `dsh web` 宿主断言搜索键、添加流程与复位路径——注意官方拾取器是**原生选择器桥**
+  （组件恒返回 null，弹的是系统级目录选择器），合约断言状态翻转而非 DOM 弹窗。
+- `gate-host.mjs` 两处修复：打包前强制 `npm run build`（`files` 发的是 `lib/` 预构建
+  产物，src 改动后不 build 就 pack 会测到旧 bundle）；桌面 CLI 往 stderr 写噪音不再被
+  当成版本行。
+- 搜索弹窗键盘监听改捕获相：宿主窗口级处理器会先于冒泡相拦截 Escape，真机上曾因此
+  关不掉弹窗（活宿主复现）。
+
+### 测试
+
+- 新增 spec：`slot-mirror`、`official-slot-shadow`、`session-title-lifecycle`；重写：
+  `official-sidebar-activate`（时序矩阵 + 超时回退）、`session-title-provider`（官方
+  loader 注入 + 单槽语义）、`settings-registration`（官方晚到矩阵 + 镜像行）。
+  全量 53 文件 / 394 用例全过（此前 50 / 354）。
+- 圆角棘轮基线 +2：`999px`（胶囊开关轨道）与 `50%`（拇指）——形状语义，非圆角档位。
+
 ## 1.11.0 - 2026-10-14
 
 1.10.0 发布时登记的 6 项未决项，本版清理 4 项，并顺带兑现 2 项更早的登记。逐项销账表见

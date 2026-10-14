@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Plus } from 'lucide-react'
 import type { DragEvent, ReactNode, RefObject } from 'react'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
 import type { WorkspaceId } from '@deepseek-ai/dsh-workspace/types'
@@ -44,6 +45,7 @@ import { useArchiveConfirm } from './archive-confirm.ts'
 import { archiveWorkspaceSessions } from './workspace-archive.ts'
 import { mountWorkspaceDropIndicator } from './workspace-drop-indicator.ts'
 import { installTreeKeyboard } from './tree-keyboard.ts'
+import type { WorkspaceShortcutSource } from './workspace-shortcuts.ts'
 
 type BrowserInjected = {
   archiveSession: (sessionId: SessionId) => Promise<void>
@@ -67,6 +69,10 @@ type BrowserInjected = {
   useSessionStatus?: UseSessionStatus
   canDeleteSession?: () => boolean
   panelActive?: boolean
+  /** 影子桥接源（1.12.0）：Ctrl/Cmd+K、Ctrl/Cmd+O 落点，见 workspace-shortcuts.ts。 */
+  workspaceShortcuts?: WorkspaceShortcutSource
+  requestAddWorkspace?: () => void
+  addWorkspaceShortcutAria?: string
 }
 
 type CodexWorkspaceBrowserProps = PropsRuntime<'sidebar.workspaces'> & PropsLocale<typeof NS> & BrowserInjected
@@ -87,6 +93,10 @@ function NewSessionIcon() {
 
 function CreateGroupIcon() {
   return <ZIconProjectAdd size={16} />
+}
+
+function AddWorkspaceIcon() {
+  return <Plus aria-hidden="true" size={16} strokeWidth={1.5} />
 }
 
 /** 使用独立节点生成稳定的拖拽预览，避免浏览器把目标高亮和操作按钮截入默认快照。 */
@@ -339,11 +349,22 @@ function optionalText(value: object, key: string): string | undefined {
 }
 
 /** 插件自有的工作区树：复刻原生层级和拖拽行为，并在每个会话菜单中增加管理操作。 */
+const noSubscription = () => () => {}
+const noBindings = () => undefined
+const emptyShortcutRows: readonly { id: string; aria?: string }[] = []
+const noRows = () => emptyShortcutRows
+
 export function CodexWorkspaceBrowser(props: CodexWorkspaceBrowserProps) {
-  return <HoverShell><CodexWorkspaceTree {...props} /></HoverShell>
+  const snapshot = useSyncExternalStore(props.workspaceShortcuts?.subscribe ?? noSubscription, props.workspaceShortcuts?.getSnapshot ?? noBindings)
+  const catalog = snapshot?.bindings?.hooks.shortcuts
+  const bridgeShortcuts = useSyncExternalStore(catalog?.subscribe ?? noSubscription, catalog?.getSnapshot ?? noRows)
+  // 官方入口可随插件启停变化；不可把恒定的空操作函数当作可用能力。
+  const requestAddWorkspace = props.workspaceShortcuts ? snapshot?.bindings?.requestAddWorkspace : props.requestAddWorkspace
+  const addWorkspaceShortcutAria = bridgeShortcuts.find(row => row.id === 'workspace.add')?.aria ?? props.addWorkspaceShortcutAria
+  return <HoverShell><CodexWorkspaceTree {...props} requestAddWorkspace={requestAddWorkspace} addWorkspaceShortcutAria={addWorkspaceShortcutAria} /></HoverShell>
 }
 
-function CodexWorkspaceTree({ wide, useSessions, useSessionPendingInteraction, useSessionStatus, useWorkspaces, t, archiveSession, deleteSession, deleteWorkspace, forkSession, insertSessionBefore, insertWorkspaceBefore, moveSession, openPath, openSession, pinSession, unpinSession, renameSession, renameWorkspace, startSession, canDeleteSession, shortcuts, panelActive = false }: CodexWorkspaceBrowserProps) {
+function CodexWorkspaceTree({ wide, useSessions, useSessionPendingInteraction, useSessionStatus, useWorkspaces, t, archiveSession, deleteSession, deleteWorkspace, forkSession, insertSessionBefore, insertWorkspaceBefore, moveSession, openPath, openSession, pinSession, unpinSession, renameSession, renameWorkspace, startSession, canDeleteSession, shortcuts, panelActive = false, requestAddWorkspace, addWorkspaceShortcutAria }: CodexWorkspaceBrowserProps) {
   const sessions = useSessions(state => state)
   const now = useSharedNow()
   const pendingInteractions = useHostPendingInteractions(useSessionPendingInteraction, useSessionStatus)
@@ -1020,7 +1041,7 @@ function CodexWorkspaceTree({ wide, useSessions, useSessionPendingInteraction, u
         <div className="dcu-wb-section-body" role="group" data-open={sectionOpen('pinned')}><div className="dcu-wb-pinned-list">{pinDragActive && pinnedGroups.length === 0 && <div className={`dcu-wb-pin-start${pinnedHeaderDrop?.kind === 'empty' ? ' dcu-wb-drop' : ''}`} onDragOver={(event) => { event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = 'move'; setWorkspaceDropTarget({ zone: 'pinned', beforeId: undefined }) }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); const draggedWorkspace = readWorkspaceDrag(event.dataTransfer, workspaceDragId); setWorkspaceDragId(undefined); setWorkspaceDropTarget(undefined); if (draggedWorkspace !== undefined) pinWorkspaceAt(draggedWorkspace) }} />}{pinnedGroups.length === 0 && <div className="dcu-wb-empty" onDragOver={(event) => { if (!pinDragActive) return; event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = 'move'; setWorkspaceDropTarget({ zone: 'pinned', beforeId: undefined }) }} onDrop={(event) => { event.preventDefault(); event.stopPropagation(); const draggedWorkspace = readWorkspaceDrag(event.dataTransfer, workspaceDragId); setWorkspaceDragId(undefined); setWorkspaceDropTarget(undefined); if (draggedWorkspace !== undefined) pinWorkspaceAt(draggedWorkspace) }}>{t('workspace.pinnedEmpty')}</div>}{pinnedGroups.map(workspace => renderGroup(workspace, 'pinned'))}{pinDragActive && pinnedGroups.length > 0 && <div className={`dcu-wb-pin-end${workspaceDropTarget?.zone === 'pinned' && workspaceDropTarget.beforeId === undefined ? ' dcu-wb-drop' : ''}`} onDragOver={(event) => { if (!pinDragActive) return; event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = 'move'; const lastId = pinnedGroupIds[pinnedGroupIds.length - 1]; if (lastId === undefined || workspaceDragId === undefined) return; const beforeId = reorderDropBeforeId(pinnedGroupIds, workspaceDragId, lastId, true); setWorkspaceDropTarget(beforeId === null ? undefined : { zone: 'pinned', beforeId }) }} />}</div></div>
       </section>
       <section className="dcu-wb-section" role="presentation" aria-label={t("workspace.projects")} onDropCapture={(event) => { const dragged = readWorkspaceDrag(event.dataTransfer, workspaceDragId); if (dragged !== undefined && projectPinned(dragged)) setPinnedWorkspaceIds(ids => ids.filter(id => id !== dragged)) }}>
-        <div className="dcu-wb-section-head"><button type="button" role="treeitem" className="dcu-wb-section-label" ref={projectsSectionButtonRef} aria-expanded={sectionOpen('projects')} onClick={() => { toggleSection('projects') }}>{t('workspace.projects')}<span className="dcu-wb-section-caret" aria-hidden="true"><svg viewBox="0 0 16 16" width="12" height="12"><path d="M6.25 4.25 10.25 8 6.25 11.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></button><span className="dcu-wb-actions"><button type="button" className="dcu-wb-more" aria-label={t('workspace.createGroup')} title={t('workspace.createGroup')} onClick={(event) => { event.stopPropagation(); setGroupTitleDraft(''); setError(undefined); setCreateGroupOpen(true) }}><CreateGroupIcon /></button></span></div>
+        <div className="dcu-wb-section-head"><button type="button" role="treeitem" className="dcu-wb-section-label" ref={projectsSectionButtonRef} aria-expanded={sectionOpen('projects')} onClick={() => { toggleSection('projects') }}>{t('workspace.projects')}<span className="dcu-wb-section-caret" aria-hidden="true"><svg viewBox="0 0 16 16" width="12" height="12"><path d="M6.25 4.25 10.25 8 6.25 11.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span></button><span className="dcu-wb-actions"><button type="button" className="dcu-wb-more" aria-label={t('workspace.createGroup')} title={t('workspace.createGroup')} onClick={(event) => { event.stopPropagation(); setGroupTitleDraft(''); setError(undefined); setCreateGroupOpen(true) }}><CreateGroupIcon /></button><button type="button" className="dcu-wb-more" aria-label={t('workspace.add')} title={t('workspace.add')} aria-keyshortcuts={addWorkspaceShortcutAria} disabled={requestAddWorkspace === undefined} onClick={(event) => { event.stopPropagation(); requestAddWorkspace?.() }}><AddWorkspaceIcon /></button></span></div>
         <div className="dcu-wb-section-body" role="group" data-open={sectionOpen('projects')}><div className="dcu-wb-collections">{workspaceGroups.map(renderWorkspaceCollection)}{workspaceGroups.length > 0 && renderUngroupedCollection()}{workspaceGroups.length === 0 && ungroupedGroups.map(workspace => renderGroup(workspace, 'projects'))}{workspaceGroups.length === 0 && ungroupedGroups.length === 0 && <div className="dcu-wb-empty">{t('workspace.empty')}</div>}</div></div>
       </section>
       <section className="dcu-wb-section" role="presentation" aria-label={t("workspace.recent")}>

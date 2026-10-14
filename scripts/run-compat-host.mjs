@@ -58,7 +58,9 @@ const installed = await realpath(path.join(env.DSH_HOME, 'profiles', 'web', 'nod
 const relativeInstall = path.relative(await realpath(root), installed)
 assert.ok(relativeInstall !== '' && relativeInstall !== '..' && !relativeInstall.startsWith(`..${path.sep}`) && !path.isAbsolute(relativeInstall), '必须测试已安装的 tarball，不能链接回开发仓库')
 const patch = await readFile(path.join(installed, 'cordis.patch.yml'), 'utf8')
-assert.match(patch, /id: session-title-llm[\s\S]*disabled: true/, '安装包必须停用官方 session-title-llm')
+// 1.12.0 起为 insert-only 架构：官方侧栏/设置壳/官方标题提供方保持启用（KNOWN-ISSUES §23.2），
+// 补丁里不允许再出现任何 disabled 条目；标题插件经 insert 挂载。
+assert.doesNotMatch(patch, /disabled: true/, 'insert-only 架构：安装包补丁不得再禁用任何官方插件')
 assert.match(patch, /id: zcode-ui-session-title\s+name: 'dsh-zcode-ui\/session-title'/, '安装包必须单独挂上 ZCode UI first-prompt 标题插件')
 const titlePlugin = await readFile(path.join(installed, 'lib/session-title-plugin.mjs'), 'utf8')
 assert.match(titlePlugin, /zcode-ui-session-title/, '安装包必须注册 ZCode UI first-prompt 标题提供方')
@@ -82,6 +84,7 @@ try {
   console.log(await run(['scripts/verify-compat-host.mjs'], testEnv))
   console.log(await run(['scripts/verify-settings-exit.mjs'], testEnv))
   console.log(await run(['scripts/verify-session-features-host.mjs'], testEnv))
+  console.log(await run(['scripts/verify-workspace-shortcuts-host.mjs'], testEnv))
 } finally {
   server.kill()
   if (server.exitCode === null) await new Promise(resolve => server.once('exit', resolve))

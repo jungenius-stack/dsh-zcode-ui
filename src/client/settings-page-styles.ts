@@ -65,6 +65,17 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-row button{font-size:var(--dsw-font-size-caption);border-radius:8px}
 .dcu-settings-row input{max-width:100%}
 .dcu-settings-document{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;font-size:var(--dsw-font-size-base);line-height:20px}
+.dcu-settings-developer-tools{display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;padding:12px 0;font-size:var(--dsw-font-size-base);line-height:20px}
+.dcu-settings-developer-tools-copy{min-width:0}
+.dcu-settings-developer-tools-title{font-size:var(--dsw-font-size-base);line-height:20px;font-weight:400;color:var(--sp-text)}
+.dcu-settings-developer-tools-description{margin-top:4px;font-size:var(--dsw-font-size-caption);line-height:18px;color:var(--sp-muted)}
+.dcu-settings-developer-tools-error{margin-top:4px;font-size:var(--dsw-font-size-caption);line-height:18px;color:#f87171}
+.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:36px;height:20px;padding:2px;border:0;border-radius:999px;background:var(--dsw-alias-border-l3,rgba(127,127,127,.35));cursor:pointer;outline:none}
+.dcu-settings-switch:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
+.dcu-settings-switch[aria-checked=true]{background:var(--dsw-alias-brand-primary,#000)}
+.dcu-settings-switch:disabled{cursor:default;opacity:.5}
+.dcu-settings-switch-thumb{display:block;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform var(--dcu-motion-feedback-duration) ease;pointer-events:none}
+.dcu-settings-switch[aria-checked=true] .dcu-settings-switch-thumb{background:var(--dsw-alias-label-primary-foreground,#fff);transform:translateX(16px)}
 .dcu-settings-document-copy{min-width:0}
 .dcu-settings-document p{margin:4px 0 0;font-size:var(--dsw-font-size-sm);color:var(--sp-muted);overflow-wrap:anywhere}
 .dcu-settings-document button{flex:none;min-height:32px;padding:6px 14px;border:0;border-radius:8px;background:var(--sp-hover);color:var(--sp-text);font:inherit;font-size:var(--dsw-font-size-caption);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}

@@ -93,6 +93,7 @@ assert.match(browser, /const moveWorkspaceToGroup = \(workspaceId: string, group
 assert.doesNotMatch(browser, /<Modal open=\{moveWorkspaceId !== undefined\}/, '移动到分组不得继续打开选择弹窗')
 assert.match(browser, /deleteWorkspaceGroup\(current, deleteGroupId\)/, '删除分组必须仅解除归属')
 assert.match(browser, /function CreateGroupIcon\(\) \{[\s\S]*<ZIconProjectAdd size=\{16\}/, '新建分组必须使用 16px 文件夹加号图标（图标语言已统一为 Lucide）')
+assert.match(browser, /aria-label=\{t\('workspace.add'\)\}[\s\S]*?<AddWorkspaceIcon \/>/, '项目区添加工作区按钮必须使用工作区加号图标')
 assert.match(browser, /aria-label=\{t\('workspace.createGroup'\)\}[\s\S]*?<CreateGroupIcon \/>/, '项目区新建分组按钮必须使用文件夹加号图标')
 assert.doesNotMatch(browser, /aria-label=\{t\('workspace.createGroup'\)\}[\s\S]*?<IconPlusOutline16/, '项目区新建分组不得继续使用单独加号')
 assert.doesNotMatch(browser, /IconPlusOutline16/, '工作区树不得再导入已替换的加号图标')

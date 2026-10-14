@@ -16,14 +16,20 @@ export const HEADER_SESSION_MENU_EVENT = 'dcu-header-session-menu'
 // .crumb{text-overflow:ellipsis}，插件不重复写 overflow。控件带恒为 34px 单行。
 export const CONVERSATION_HEADER_STYLE = `
 header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
+/* 1.1.37：没有内联页签但存在面包屑的旧版宿主，同样按 34px 控件带重排（紧凑顶栏覆盖面）。 */
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
 header:has([data-dcu-inline-tabs]):after{display:none;content:none}
-header:has([data-dcu-inline-tabs]) [class*="titleRow"],header:has([data-dcu-inline-tabs]) [class*="titleCluster"]{display:contents}
-header:has([data-dcu-inline-tabs]) [class*="crumbs"]{order:1;flex:0 1 auto;min-width:0}
-header:has([data-dcu-inline-tabs]) [class*="headerActions"]{order:2;flex:none}
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]):after{display:none;content:none}
+header:has([data-dcu-inline-tabs]) [class*="titleRow"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleRow"],header:has([data-dcu-inline-tabs]) [class*="titleCluster"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleCluster"]{display:contents}
+header:has([data-dcu-inline-tabs]) [class*="crumbs"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="crumbs"]{order:1;flex:0 1 auto;min-width:0}
+header:has([data-dcu-inline-tabs]) [class*="headerActions"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="headerActions"]{order:2;flex:none}
+/* 旧版宿主没有页签带（order:3）占位，动作区需要 margin-right:auto 把扩展区顶到右侧。 */
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="headerActions"]{margin-right:auto}
 header [data-dcu-inline-tabs]{box-sizing:border-box;order:3;flex:none;display:flex;align-items:center;gap:0;margin:0 0 0 auto;padding:0;height:28px;position:relative;z-index:1;overflow:hidden;border:1px solid var(--dsw-alias-border-subtle);border-radius:var(--dsw-radius-lg);background:var(--dsw-alias-background-secondary)}
 header:has([data-dcu-inline-tabs]) [class*="headerUtilities"]{order:4;flex:none}
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="headerUtilities"]{order:4;flex:none}
 /* 新版角落插槽被 display:contents 摊平后，需要独立排序并撤销嵌套布局的边距补偿。 */
-header:has([data-dcu-inline-tabs]) [data-conversation-header-corner]{order:5;flex:none;margin-left:0;margin-right:0}
+header:has([data-dcu-inline-tabs]) [data-conversation-header-corner],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [data-conversation-header-corner]{order:5;flex:none;margin-left:0;margin-right:0}
 header [data-dcu-tab-slider]{position:absolute;left:0;top:0;height:26px;border-radius:var(--dsw-radius-md);background:color-mix(in srgb,var(--dsw-alias-button-info-fill) 18%,transparent);pointer-events:none;z-index:0;opacity:0;transform:translateX(0);width:0;transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),width var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),opacity var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 /* 顶栏统一使用 34px 控件带：与宿主扩展常用的 top:3px + 28px 图标按钮同心。
    better-sidebar 0.18.0 收起时会把开关组改到 14px（按官方 padding-top:12px 算），

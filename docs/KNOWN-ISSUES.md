@@ -1120,3 +1120,107 @@ Safari 组合窗口）/ Escape 分层与停止快捷键。`ctx.shortcuts.registe
 这不是测试变红，是**检查工具自身在满载机器上不可靠**——与 §5 的「环境错误必须显式拦下」
 是同一条原则的两个面。
 
+## 23. 上游 1.1.35–1.1.37 移植与 insert-only 架构（1.12.0）
+
+### 23.1 活宿主探针发现：disabled 架构下拾取器渲染链断裂
+
+外部评审（§22 引用的报告）P0#2 说「上游已改为仅 insert、不禁用」——当时判定为「取舍，
+本仓 disabled 架构下桥接已接线即可」。**活宿主实测推翻了这个判断**：
+
+- `verify-workspace-shortcuts-host.mjs`（本版新增，接入 gate-host）实测：搜索键
+  （Mod+Alt+K，web 宿主官方绑定）打开本插件搜索弹窗 ✅；添加键（Mod+Alt+O）无反应 ❌。
+- 诊断链（每一层都有证据）：官方注入面完整（requestAddWorkspace 存在且可调用）→
+  快捷键按下后桥接状态翻转（addRequested: true）→ 桥接效果器活着（directoryBusy: true
+  是桥接自己设置的）→ 无渲染抛错（console 无 SlotErrorBoundary 日志）——但
+  `sidebar.codex.directoryFlow` 的 SlotOutlet 锚点**内层为空**。
+- 根因：`disabled: true` 架构下，目录拾取器镜像条目经 `ctx.slots.inject` 包裹注册；
+  inject 的生效前提是**宿主侧槽位声明存在**，而官方侧栏已被禁用、声明不存在——镜像
+  永远不渲染。354 个单测全绿掩盖了断链：单测的假 slots 建模不了 inject 的生命周期。
+- 教训：**「接线」与「渲染」是两件事**。桥接逻辑有单测、槽位断言能看到条目，但渲染链
+  最后一环（SlotOutlet 吐出条目）只有活宿主能证明。§10.3 的活宿主档从此不可绕过。
+
+### 23.2 解法：移植上游 1.1.37 的 insert-only 架构（即评审 P0#2 的正解）
+
+- `cordis.patch.yml` 三条 `disabled: true` 全部删除（ui-sidebar / ui-settings-general /
+  session-title-llm），改为纯 insert——官方侧栏与设置壳保持启用。
+- 共享槽镜像到自有命名空间：`slot-mirror.tsx`（上游原样移植）提供 `mirrorSlot` +
+  `withSlotAliases`；侧栏把 `sidebar.*` 镜像进 `sidebar.codex.*`，设置壳镜像进
+  `settings.codex.*`。官方条目经 inject 包裹的镜像实时同步，停用本插件后官方渲染原样回来。
+- `registerAfterOfficialWave`（`official-slot-shadow.ts`，上游 1.1.37 版）：等官方声明
+  就绪后注册；超时 3 秒只注册自有槽并 warn——官方晚到也不冲突（单测覆盖 6 种时序组合）。
+- 会话标题：不再禁用官方 `session-title-llm`。`session-title-lifecycle.ts`（新）管理
+  本插件提供方与官方提供方的共存：官方可用时本插件退位，官方不可用时接管，停用时恢复。
+- developerTools 开关行（上游 #41）：宿主 `configForms.developerTools` 存在时在
+  `settings.general.item` 镜像一行 `DeveloperToolsRow`；宿主不提供则不出现。
+
+### 23.3 顺带移植的上游修复
+
+| 上游 | 内容 | 本仓适配 |
+|---|---|---|
+| #42 | 项目区「添加工作区」按钮：随官方入口启停（无官方入口时禁用）、键帽经快捷键目录实时更新 | 图标走 ZIcon（Plus），按钮放进 projects 分区头，与 CreateGroupIcon 并列 |
+| #41 | 紧凑顶栏覆盖旧版宿主：无内联页签但有面包屑（crumbCurrent）时按 34px 控件带重排 | 保持 --dsw-radius-* / 动效令牌风格 |
+| #41 | developerTools 开关 | 见 §23.2；样式块保持本仓 sp-muted-on-card 对比度制度 |
+| — | session-tree Menu 去 compact（与官方菜单密度一致） | 原样 |
+| — | 会话标题生命周期加固 | 见 §23.2 |
+
+### 23.4 测试与门禁变化
+
+- 新增 spec：`slot-mirror.spec.ts`、`official-slot-shadow.spec.ts`、
+  `session-title-lifecycle.spec.ts`（上游原样，标识符已适配）。
+- 重写 spec：`official-sidebar-activate.spec.ts`（时序矩阵 + 超时回退 + 停用取消；
+  本仓无 packages/ 工作区，补丁断言只校验根文件）、`session-title-provider.spec.ts`
+  （官方 loader 注入 + 单槽注册语义）、`settings-registration.spec.ts`（官方壳晚到矩阵
+  + 镜像行 + 超时兜底）。
+- `session-tree-pending.integration.spec.ts` 增「添加工作区按钮随官方入口启停与键帽实时
+  更新」用例；`settings-page.spec.ts` 增 developer-tools 分组断言。
+- 全量 vitest：53 文件 / 394 用例全过（1.11.0 时为 50 文件 / 354 用例）。
+- `verify-workspace-shortcuts-host.mjs` 接入 `run-compat-host` / `gate-host`；
+  `gate-host.mjs` 修了版本解析 bug（桌面 CLI 往 stderr 写噪音时被当成版本行）。
+- 圆角棘轮基线 +2：`settings-page-styles.ts:999px`（胶囊开关轨道）与 `:50%`（拇指）——
+  形状语义，非圆角档位。
+
+### 23.4b 活宿主联调中的三个「断言错、产品对」与一个真流程陷阱
+
+活宿主脚本落地过程中被三轮假阴性挡路，逐一定性后修正的都是**测试**而非产品：
+
+1. **旧 bundle 陷阱（真流程缺陷，已修）**：`gate-host.mjs` 原来只 `npm pack` 不 build——
+   `files` 发的是 `lib/` 预构建产物，src 改动后直接 gate:host 测的是旧 bundle（症状：
+   官方侧栏渲染、插件条目 abdicated，与真实回归极难区分）。已改为打包前强制
+   `npm run build`。此前每轮都恰好手动 build 过，把缺口掩盖到了今天。
+2. **NativeDirectoryFlow 恒返回 null（断言错）**：官方 `sidebar.workspaces.directoryFlow`
+   的条目是**原生选择器桥**——open 时调 `pick()` 让宿主主进程弹系统级目录选择器，组件
+   本身不渲染 DOM（官方注释 "the native chooser renders on the host display"）。据此
+   活宿主合约改为：按键 → `addRequested` 翻 true + 转发条目（NativeDirectoryFlow）在
+   `sidebar.codex.directoryFlow` live；复位走官方 `closeAddWorkspace()`（与用户在原生
+   选择器点「取消」同路径）——不断言 DOM 弹窗，Escape 也不绑定此流程。
+3. **转发条目必须用 priority -1（真约束）**：single 槽同优先级只允许一条注册
+   （"register at a different priority to shadow it (lowest renders)"）；转发与镜像/
+   官方条目同处优先级 0 时抛冲突。转发改为 -1（最低者渲染，同时天然 shadow 一切
+   默认优先级条目）。
+4. **搜索弹窗键盘监听用捕获相（真缺陷，已修）**：挂在冒泡相会被宿主先注册的窗口级
+   处理器拦截，真机上 Escape 关不掉弹窗（活宿主复现）。改为
+   `addEventListener('keydown', handler, true)`——弹窗打开期间键盘归弹窗。
+
+### 23.5 CI（评审 P0#1 销账）
+
+- `.github/workflows/ci.yml`：push main / PR 触发，pnpm install --frozen-lockfile →
+  playwright chromium → `node scripts/gate.mjs`。发布前 pre-push 钩子跑的同一份门禁，
+  保证「本地绿 == CI 绿 == 发布绿」三态一致。
+- pnpm 版本不写死在 workflow：`pnpm/action-setup` 读 package.json 的 packageManager 字段，
+  与 `client-module-contract.assert.ts` 的固定断言同源，改版本只动一处。
+- 活宿主门禁（gate-host）需要真实 DSH 应用，不在 CI 范围（本地重型档覆盖）。
+- 本机注意：WorkBuddy 的 node shim 会拦截 pnpm store 的 symlink 与 sqlite 连接，
+  本机模拟全新安装不可行——CI 是 frozen-lockfile 可复现性的唯一证明场。
+
+### 23.6 未决项状态（§22.3 之后）
+
+- ~~`--sp-*` 与 `--dcu-*` 命名空间合并~~：仍未做（§22.3 #1 继续有效）。
+- ~~断点体系~~：仍未做（§22.3 #2 继续有效）。
+- ~~多窗口 / 分屏 / 多显示器~~：仍未做（§22.3 #3 继续有效）。
+- 新登记：`settings.codex.*` / `sidebar.codex.*` 镜像命名空间与官方共享槽的双轨
+  是**有意的架构**而非债务；但 mirrorSlot 对官方条目的 props 透传依赖上游 SlotOutlet
+  行为，上游若改 renderSlot 解析（如 §14.7 登记的 `entriesOfSlot` 声明检查），镜像层
+  需要同步验证——已由 official-sidebar-activate / settings-registration 的时序矩阵
+  与活宿主脚本共同看护。
+
+

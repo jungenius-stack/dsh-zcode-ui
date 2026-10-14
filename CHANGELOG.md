@@ -4,6 +4,56 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.12.0 - 2026-10-14
+
+Ports the upstream 1.1.35–1.1.37 fixes and replaces the "disable official + override" architecture with
+upstream 1.1.37's insert-only + slot-mirror design. A live-host probe proved the old architecture
+silently broke the directory-picker render chain (KNOWN-ISSUES §23.1). Dispositions: `docs/KNOWN-ISSUES.md` §23;
+design rationale: `docs/ZCODE-DESIGN.md` §16.
+
+### Architecture
+
+- **Insert-only, no more `disabled: true`**: the official sidebar, settings shell, and official session-title
+  provider stay registered. Shared slots are mirrored into own namespaces (`sidebar.codex.*`, `settings.codex.*`)
+  via `mirrorSlot` + `withSlotAliases` (`slot-mirror.tsx`); `registerAfterOfficialWave` waits for official
+  declarations (3s timeout registers own slots only), so late officials never conflict and disabling the plugin
+  restores official rendering untouched. The session-title provider now coexists with the official one through
+  `session-title-lifecycle.ts` instead of patch-disabling it.
+
+### Added (ported from upstream)
+
+- **Add-workspace button in the projects section** (#42): tracks the official entry's presence (disabled when
+  absent), its `aria-keyshortcuts` follows the official shortcut catalog live, and it invokes the official
+  `requestAddWorkspace` flow. Icon set unified to Lucide (`Plus`).
+- **Developer-tools switch** (#41): mirrors a row into `settings.general.item` when the host provides
+  `configForms.developerTools`; absent on hosts without it. Switch styling keeps the sp-token discipline.
+- **Compact top bar for legacy hosts** (#41): hosts without inline tabs but with breadcrumbs now get the same
+  34px control-band re-layout.
+- Session-tree context menu drops `compact` to match official menu density; session-title lifecycle hardening.
+
+### Added (toolchain)
+
+- **CI**: `.github/workflows/ci.yml` runs the full gate on every push/PR (`pnpm install --frozen-lockfile` →
+  Playwright Chromium → `node scripts/gate.mjs`) — the same gate the pre-push hook runs, so local green == CI
+  green == release green. `pnpm/action-setup` reads `packageManager` from package.json, single source of truth.
+- New live-host script `scripts/verify-workspace-shortcuts-host.mjs` (wired into `gate-host`): asserts the
+  search shortcut, the add-workspace flow, and its reset path against a real `dsh web` host. Note: the official
+  picker is a **native chooser bridge** (the component always renders null; the chooser is a system dialog), so
+  the contract asserts state transitions rather than DOM dialogs.
+- `gate-host.mjs` two fixes: force `npm run build` before packing (the package ships the prebuilt `lib/`; packing
+  without building tests a stale bundle after src changes), and desktop-CLI stderr noise is no longer misread
+  as the version line.
+- The search dialog's keyboard listener moved to the capture phase: host window-level handlers could intercept
+  Escape in the bubble phase, leaving the dialog un-closeable on real hosts (reproduced live).
+
+### Tests
+
+- New specs: `slot-mirror`, `official-slot-shadow`, `session-title-lifecycle`; rewritten:
+  `official-sidebar-activate` (timing matrix + timeout fallback), `session-title-provider` (official loader
+  injection, single-slot semantics), `settings-registration` (late-official matrix, mirrored rows).
+  Full suite: 53 files / 394 tests green (was 50 / 354).
+- Radius ratchet baseline +2: `999px` (pill switch track) and `50%` (thumb) — shape semantics, not scale steps.
+
 ## 1.11.0 - 2026-10-14
 
 1.10.0 shipped with six registered follow-ups; this release clears four of them and cashes in two older

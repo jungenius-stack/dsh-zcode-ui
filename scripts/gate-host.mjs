@@ -5,7 +5,7 @@
  *
  * 与 `scripts/gate.mjs` 的分工：那个是**每次提交都跑**的快速档（约 55 秒，类型检查 + 断言 + vitest + 11 个真机布局脚本）；
  * 这个是**只在改动宿主交互时才跑**的重型档——它会打包插件、装进一个隔离 DSH_HOME、起一个真实 `dsh web`，
- * 再跑三个活宿主脚本（约 1～2 分钟）。
+ * 再跑四个活宿主脚本（约 1～2 分钟）。
  *
  * 前置条件（详见 docs/KNOWN-ISSUES.md §5 / §10）：
  *   - Node 22.22.x：**不要**把 DSH 自带的 Node 24 放到 PATH 前面，它在 macOS 上加载不了 rolldown 原生绑定；
@@ -30,14 +30,29 @@ if (cli === undefined) {
 }
 
 const versionResult = spawnSync(cli, ['--version'], { encoding: 'utf8' })
-const reported = `${versionResult.stdout ?? ''}${versionResult.stderr ?? ''}`.trim().split('\n').pop()?.trim() ?? ''
+// 桌面 CLI 是 Electron 垫片：在被其它 App 环境变量污染（NODE_OPTIONS/ELECTRON_RUN_AS_NODE）时
+// 会先往 stderr 打一行 ERROR 再输出版本。因此不能取「最后一行」，要扫全部行找版本号。
+const reported = `${versionResult.stdout ?? ''}`
+  .split('\n')
+  .map(line => line.trim())
+  .filter(line => /^\d+\.\d+\.\d+/.test(line))
+  .pop() ?? ''
 if (!/^\d+\.\d+\.\d+/.test(reported)) {
-  console.error(`无法从 \`${cli} --version\` 读到版本号，实测输出：${reported}`)
+  console.error(`无法从 \`${cli} --version\` 读到版本号，实测输出：${`${versionResult.stdout ?? ''}${versionResult.stderr ?? ''}`.trim()}`)
   process.exit(1)
 }
 console.log(`宿主 CLI：${cli}\n宿主机版本：${reported}`)
 
 const packDir = mkdtempSync(path.join(tmpdir(), 'dcu-gate-host-'))
+// 先构建再打包：`files` 里发的是 lib/ 预构建产物，src 改动后不 build 就 pack，
+// 测的会是旧 bundle（2026-10-14 实测踩坑：移植后直接 gate:host，活宿主跑的全是旧代码，
+// 症状是「官方侧栏渲染、插件条目 abdicated」，与真实回归极难区分）。
+console.log('构建插件（npm run build）…')
+const build = spawnSync('npm', ['run', 'build'], { encoding: 'utf8', stdio: 'inherit' })
+if (build.status !== 0) {
+  console.error('构建失败，中止活宿主门禁。')
+  process.exit(build.status ?? 1)
+}
 console.log('打包插件（npm pack）…')
 const pack = spawnSync('npm', ['pack', '--pack-destination', packDir], { encoding: 'utf8' })
 if (pack.status !== 0) {

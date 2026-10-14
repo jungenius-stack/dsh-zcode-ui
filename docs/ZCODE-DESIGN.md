@@ -682,3 +682,41 @@ DOM 推导的 `aria-level` + 纯结构层统一标 `presentation`。判据写进
 它排在 `ZCODE_DARK` 之后，按两段切会让亮色夹具拿不到任何圆角/字号令牌（实测表现为
 输入壳圆角 16px 变 0px、字号静默回退，而页面照样渲染、只是量错）。
 
+## 16. 2026-10-14：insert-only 与槽位镜像（1.12.0）
+
+### 16.1 为什么放弃「禁用 + 顶替」
+
+1.11.0 及之前的架构是 patch 里 `disabled: true` 官方侧栏/设置壳，插件以更低优先级
+注册同名槽顶替。它在渲染链最后一环是断的：目录拾取器等**宿主共享槽**的镜像条目经
+`ctx.slots.inject` 包裹注册，而 inject 生效的前提是宿主侧声明存在——官方侧栏被禁用后
+声明消失，镜像永远不渲染（证据链见 KNOWN-ISSUES §23.1：状态翻转 ✅、效果器 ✅、
+无抛错 ✅、SlotOutlet 空 ❌）。单测的假 slots 建模不了 inject 生命周期，354 个用例
+全绿掩盖断链。
+
+### 16.2 新架构：官方保持启用 + 自有命名空间镜像
+
+- patch 只 insert，不禁用。官方侧栏/设置壳/官方标题提供方全部保持登记。
+- 插件把官方共享槽**镜像**进自有命名空间（`sidebar.codex.*` / `settings.codex.*`）：
+  `mirrorSlot` 经 inject 包裹实时同步官方条目（inject 的声明前提这次满足——官方活着）；
+  `withSlotAliases` 在渲染时把组件内部的 `renderSlot('sidebar.workspaces')` 重定向到
+  `renderSlot('sidebar.codex.workspaces')`。官方条目因此出现在插件界面里，而插件自己的
+  贡献（管理操作、归档行为）叠加在其后。
+- `registerAfterOfficialWave`：等官方声明就绪再注册（避免共享声明冲突）；超时 3 秒只
+  注册自有槽——官方晚到不冲突，停用插件官方原样回来。六个时序组合（早/晚 × 反复启停 ×
+  超时回退 × 停用取消）全部有单测。
+- 设计代价：渲染组件内部读的是别名后的自有槽，**props 透传依赖上游 SlotOutlet 行为**；
+  上游若改解析逻辑需要同步验证（KNOWN-ISSUES §23.6 已登记看护手段）。
+
+### 16.3 视觉系统影响
+
+新表面的令牌纪律不变：developerTools 开关行沿用设置页 sp-* tokens 与 --dsw-alias-*
+配色；胶囊轨道 999px 与拇指 50% 是**形状语义**（开关的全圆不是圆角标度上的档位），
+已在圆角棘轮基线登记。紧凑顶栏的旧版宿主分支（无内联页签但有 crumbCurrent）复用同一
+34px 控件带几何，只有选择器形态不同——不新增第二套间距。
+
+### 16.4 键位与官方入口的共生
+
+web 宿主组合键是 Mod+Alt+Key（macOS 上 Mod=Cmd；桌面端是 Cmd+Key，见宿主文档
+keybindings 表）——本插件**不再自行解析键位**：按钮的 aria-keyshortcuts 与键帽后缀
+统一读官方快捷键目录（shortcut-catalog.ts），目录晚到就等目录，官方条目启停跟随
+影子桥接的 entries 信号。插件零键位硬编码。

@@ -211,6 +211,8 @@ test('搜索保留未知插件，空结果不会误选页面，条目分组覆�
   expect(generalItemGroup('default-permission')).toBe('permissions')
   expect(generalItemGroup('composer-enter')).toBe('editor')
   expect(generalItemGroup('new-preference')).toBe('general')
+  expect(generalItemGroup('permission')).toBe('permissions')
+  expect(generalItemGroup('developer-tools')).toBe('general')
   expect(settingsGroup('plugins')).toBe('integrations')
   expect(settingsGroup('plugin-config')).toBe('integrations')
 })

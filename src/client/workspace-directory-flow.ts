@@ -32,7 +32,10 @@ export function registerWorkspaceDirectoryFlow(ctx: Context): void {
       offEntry = () => {}
       entry = next
       if (!next || Object.keys(next.children ?? {}).length > 0) return
-      offEntry = register({ name: WORKSPACE_DIRECTORY_FLOW, inject: next.inject, store: next.store, locale: next.locale }, next.component)
+      // priority -1：转发条目必须能 shadow 同槽的任何默认优先级注册（最低优先级者渲染），
+      // 且避免与其它默认优先级注册触发「single slot already has a registration at
+      // priority 0」冲突（活宿主实测）。
+      offEntry = register({ name: WORKSPACE_DIRECTORY_FLOW, priority: -1, inject: next.inject, store: next.store, locale: next.locale } as Parameters<typeof register>[0], next.component)
     }
     reconcile()
     const off = ctx.slots.subscribe('sidebar.workspaces.directoryFlow', reconcile)

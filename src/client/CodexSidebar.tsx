@@ -284,8 +284,10 @@ const SidebarSearch = forwardRef<SidebarSearchHandle, SidebarSearchProps>(functi
       if (event.key === 'ArrowUp') { event.preventDefault(); setActiveIndex(index => Math.max(index - 1, 0)); return }
       if (event.key === 'Enter') { const entry = results[activeIndex]; if (entry !== undefined) { event.preventDefault(); entry.run() } }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => { window.removeEventListener('keydown', onKeyDown) }
+    // 捕获相：弹窗打开期间键盘归弹窗。挂冒泡相会被宿主先注册的窗口级 Escape/方向键
+    // 处理器拦截（活宿主实测：Escape 在真机上关不掉弹窗）。
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => { window.removeEventListener('keydown', onKeyDown, true) }
   }, [activeIndex, close, open, results])
 
   if (!open) return null

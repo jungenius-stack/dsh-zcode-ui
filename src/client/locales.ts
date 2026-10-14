@@ -5,6 +5,10 @@ export const NS = 'zcode.ui'
 
 export const zh = {
   'workspace.addFailed': '无法添加工作区',
+  'workspace.add': '添加工作区',
+  'settings.developerTools.title': '显示代码工作视图',
+  'settings.developerTools.description': '开启后，显示轨迹、本轮代码差异，可选择完整的 Agent 预设切换',
+  'settings.developerTools.error': '保存失败，请重试',
   'workspace.retry': '重试',
   'workspace.chooseAgain': '重新选择',
   'navigation.back': '后退',
@@ -305,6 +309,10 @@ export const zh = {
 
 export const en: Record<keyof typeof zh, string> = {
   'workspace.addFailed': 'Could not add workspace',
+  'workspace.add': 'Add workspace',
+  'settings.developerTools.title': 'Show coding view',
+  'settings.developerTools.description': 'Shows trajectory, code diffs, and all Agent presets',
+  'settings.developerTools.error': 'Could not save. Please try again.',
   'workspace.retry': 'Retry',
   'workspace.chooseAgain': 'Choose again',
   'navigation.back': 'Back',

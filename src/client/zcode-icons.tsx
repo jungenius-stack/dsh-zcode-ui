@@ -12,7 +12,7 @@ import {
   Archive, ArrowLeft, Bot, Box, Bug, CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight,
   CircleHelp, Clock, Copy, Cpu, Download, Eye, EyeOff, Folder, FolderOpen, FolderPlus, GitBranch,
   Hammer, Link2, LoaderIcon, MessageCircle, MessageCirclePlus, MessageSquare, MoreHorizontal,
-  PanelLeft, PanelLeftOpen, PanelRight, Pencil, Pin, Puzzle, ScanLine, Search, Settings,
+  PanelLeft, PanelLeftOpen, PanelRight, Pencil, Pin, Plus, Puzzle, ScanLine, Search, Settings,
   SlidersHorizontal, Sparkles, SquarePen, Store, Telescope, Trash2, User, Users,
   type LucideIcon,
 } from 'lucide-react'
