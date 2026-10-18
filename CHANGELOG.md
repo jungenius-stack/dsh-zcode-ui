@@ -4,6 +4,104 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.4 - 2026-10-18
+
+**Two composer visuals aligned with ZCode** (user-specified):
+
+- **The bottom-left plus only gets its circular background on hover/keyboard focus.**
+  The host's `.yhfFVG_add` uses `--dsw-specific-selector` as a permanent rest background
+  (a grey disc that reads as an always-on halo). It is now transparent at rest and restores
+  the host semantic token `--dsw-alias-interactive-bg-hover-solid` on `hover` /
+  `focus-visible`, with a 120 ms background transition.
+- **The “back to bottom” button is centred.** The host's `.icaHSq_toBottomSlot` pins it to
+  the right with `flex-end` and reserves a 195 px right padding; we override both
+  (`justify-content:center`, `padding-right:0`), so its centre lands on the conversation
+  centre (measured 755 px instead of 1058 px).
+- New `composer-visuals.ts` (app-level style injection), host anchors `_add` /
+  `_toBottomSlot`, four design assertions, and a style-block budget entry.
+
+> CSS properties only: no DOM changes, no click-behaviour changes. Light/dark both use
+> host semantic tokens.
+
+## 1.15.3 - 2026-10-18
+
+**Long sessions no longer animate the sidebar collapse/expand.** After 1.15.2 plus the
+session-kit patch, the user reported mouse responsiveness was clearly better but collapsing
+the sidebar still took ~3 s. In the isolated instance the DOM width changes in 281–290 ms,
+and headed Chrome at 4K/2x with 44 images shows the first visual change at 344–385 ms.
+We could not reproduce 3 s; the remainder is the app's real session scale/host re-render.
+
+### Fixed
+
+- **Node-count guard in `beginSidebarMotion`**: if the sidebar frame has more than
+  **8,000** descendants, skip the 180 ms motion and settle immediately. On long sessions
+  layout/paint costs an order of magnitude more than the animation; playing it only adds
+  wait and dropped frames. Normal sessions (<8,000) keep the animation.
+- New constant `SIDEBAR_MOTION_MAX_ELEMENTS`; `verify-sidebar-transition` still passes
+  (its fixture is a normal session, so the animated path is preserved).
+- session-kit patch extended with a 200 ms heading-element cache (`headingForTopic`);
+  one `run` drops from 742 ms/6 to 437 ms/4 in the isolated instance.
+
+> Honest boundary: the app's 3 s is not reproduced. The next decision needs two observations:
+> is it "no movement at all for 3 s" or "slow motion for 3 s", and is a **new small
+> conversation** also 3 s? Those select different fixes.
+
+## 1.15.2 - 2026-10-18
+
+**Same scene, different phase: opening a long session.** After 1.15.1 the user reported
+no improvement. Re-watching the recording showed the dominant cost was the **white-screen
+startup / long-session restore**, not hover. A trace showed the foreign-surface sentinel's
+incremental scan still running **92 frames / 796 ms** on open: the conversation has 1,466
+unregistered foreign elements, 844 of them sharing the `icaHSq_flowItem` prefix, and every
+one called `getComputedStyle`.
+
+### Fixed
+
+- **Sample at most 4 elements per foreign prefix** instead of checking every sibling.
+  The sentinel only needs evidence that a prefix drifts; exhaustive checking remains in
+  `findForeignDrift()` for tests and explicit audits.
+- Plugin scan on opening the same long session: **796 ms / 92 frames → 16 ms / 2 frames**;
+  click-to-complete-content **1.5 s → 1.06 s** (isolated web instance, same session).
+- Regression test: 200 same-prefix elements must trigger at most 6 `getComputedStyle` calls.
+
+> Honest boundary: the session has 490 steps / 23k nodes; host rendering still accounts for
+> 0.8–1.1 s in the trace, and the remaining launch time is Electron/host-side. A plugin has
+> no authority to virtualize the host transcript. See KNOWN-ISSUES §58.7.
+
+## 1.15.1 - 2026-10-18
+
+**Fixes the fourth report of "the page stutters when the mouse moves over messages".**
+The cause was neither the host nor the long DOM itself, but this plugin's foreign-surface
+sentinel: it observed every childList on `document.body` and ran `getComputedStyle` over
+the whole conversation (20k+ nodes). The host mounts/unmounts a hover action bar on message
+hover (one childList), so every hover triggered a 282 ms rAF full scan. Full attribution and
+measurements: KNOWN-ISSUES §58.
+
+### Fixed
+
+- **The foreign-surface sentinel now scans incrementally.** Only added subtrees are queued
+  (removals do not trigger), walked with an explicit stack, capped at 8 ms per frame and
+  deduplicated with a `WeakSet`; the initial scan uses the same queue instead of scanning
+  the whole tree synchronously.
+- **The baseline is no longer cached as `null`.** On the first frame the plugin can run before
+  the sidebar mounts; the old code cached `null` and then cleared the queue on every flush,
+  so it never scanned anything.
+- **New performance regression test** `tests/foreign-surface-observer.spec.ts` (5 cases):
+  no synchronous full scan at init; a hover action bar scans only its 5 added nodes; changes
+  outside a surface are ignored; transient nodes removed before the next frame are skipped
+  without false warnings; unregistered foreign roots still warn.
+
+### Measured (real long session: 23,154 nodes / 839 flow units / 5,172 CSS rules)
+
+| Metric | Before | After |
+| --- | --- | --- |
+| Style recalc per hover move | 11.5 ms | **0.50 ms** |
+| Task time per hover move | 14 ms | **1.43 ms** |
+| `getComputedStyle` during hover | full scan every time | **0 calls** |
+| Typing, 15 edits `ScriptDuration` | 0.25 s | **0.045 s** |
+
+> No token or visual changes; skin version stays 1.4.0. Reload the desktop page to pick it up.
+
 ## 1.15.0 - 2026-10-18
 
 A round of **design-audit remediation**: four structural faults found by an external

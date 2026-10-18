@@ -54,8 +54,8 @@ export const HOST_ANCHOR_GROUPS: readonly HostAnchorGroup[] = [
   },
   {
     scope: '[data-composer-card]',
-    consequence: '发送键会退回宿主默认配色，输入壳的主色与尺寸规则失效',
-    anchors: ['[class$=_primary]'],
+    consequence: '发送键会退回宿主默认配色，加号的悬停底与输入壳尺寸规则失效',
+    anchors: ['[class$=_primary]', '[class*="_add"]'],
   },
 ]
 
@@ -83,6 +83,7 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: '_footer', why: '同上' },
   { anchor: '_selected', why: '只在菜单项被选中时出现' },
   { anchor: '_rail', why: '只在输入框有附件时出现' },
+  { anchor: '_toBottomSlot', why: '只在会话未位于底部时渲染（回到底部按钮出现时）' },
   { anchor: '_workspace', why: '只在 hero 的工作区行存在时渲染（无工作区时整行不渲染）' },
 ]
 

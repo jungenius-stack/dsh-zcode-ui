@@ -57,6 +57,15 @@ const restStates = new WeakMap<HTMLElement, boolean>()
 /** 动画标记：取值 'collapse' | 'expand'，由 CSS 消费。 */
 const SIDEBAR_MOTION_ATTRIBUTE = 'data-dcu-sidebar-motion'
 /**
+ * 超过这个节点数就**不播开合动画，直接落定**。
+ *
+ * 动画的每一帧都要重绘内容列；长会话（实测 2 万节点以上、含大量图片）里
+ * 排版/绘制比 180ms 动画本身贵一个数量级，播放动画只会让用户多等几秒。
+ * 这里用「打开侧栏时 frame 的后代总数」做一次性判断，不引入每帧成本。
+ * 阈值取 8,000：普通会话仍保留动画，长会话优先响应。
+ */
+const SIDEBAR_MOTION_MAX_ELEMENTS = 8000
+/**
  * 旧版位移变量名。2026-10-16 起位移改由 JS 直接写内容列的 transform（原因见
  * `beginSidebarMotion` 里的长注释），本变量**不再写入**，只在清理路径上移除历史残留
  * （热更新或旧版本页面可能还留着它）。
@@ -379,6 +388,8 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
   const win = frame.ownerDocument.defaultView
   if (win === null || prefersReducedMotion(win)) return false
   if (frame.hasAttribute('data-dragging')) return false
+  // 长会话：排版/绘制比动画贵得多，直接落定（见 SIDEBAR_MOTION_MAX_ELEMENTS）。
+  if (frame.getElementsByTagName('*').length > SIDEBAR_MOTION_MAX_ELEMENTS) return false
   const columns = markColumns(frame)
   if (columns === undefined) return false
   const expandedWidth = targetExpandedWidth(frame)

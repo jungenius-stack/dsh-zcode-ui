@@ -51,6 +51,7 @@ import { TurnNavigator } from './TurnNavigator.tsx'
 import { registerInputHistory } from './InputHistoryDock.tsx'
 import { prefillNewConversation, createDraftPresenceSource } from './new-conversation-draft.ts'
 import { observeComposerToolMenus } from './composer-tool-menus.ts'
+import { installComposerVisuals } from './composer-visuals.ts'
 import { hasConnectWorkspace, hasOpenWorkspace, hasStartSession, recentWorkspaceId, workspaceBaselinesReady } from './workspace-compat.ts'
 import { HostActionError, type HostAction, UserFacingError } from './user-error.ts'
 import { finishSessionMove, requestSessionMove, sessionMoveErrorKey, SessionMoveRequestError } from './session-move.ts'
@@ -159,6 +160,8 @@ export function apply(ctx: ClientContext): void {
   // 还有会话区的轮次导航与页签滑块。挂在侧栏上时，侧栏一旦不挂载，那两处会静默失去过渡。
   ctx.effect(() => installThemeStyle(), 'zcode-ui-for-dsh: theme stylesheet')
   ctx.effect(() => syncZCodeTheme(), 'zcode-ui-for-dsh: theme mirror')
+  // 输入区静态视觉：加号的圆形底只在 hover/focus 出现；“回到底部”居中。
+  ctx.effect(() => installComposerVisuals(), 'zcode-ui-for-dsh: composer visuals')
   // 实验性：消息离屏跳过。**默认关闭**（需 localStorage dcu-virtual-skip=1）。
   // 它改变宿主消息区的渲染行为，故不走常驻路径；结构不符时自身空转，不做任何写入。
   // 依据与风险见 src/client/virtual-skip.ts 头部注释与 docs/KNOWN-ISSUES.md §43。

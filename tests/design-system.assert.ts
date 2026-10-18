@@ -1158,6 +1158,7 @@ const STYLE_BLOCK_BUDGET: Record<string, number> = {
   'InputHistoryDock.tsx': 1,
   'TurnNavigator.tsx': 1,
   'composer-tool-menus.ts': 1,
+  'composer-visuals.ts': 1,
   'composer-width.ts': 1,
   'conversation-header.ts': 1,
   'new-conversation-style.ts': 1,
@@ -1472,3 +1473,25 @@ assert.deepEqual(
   + '`var(--tok, #hex)` 仅在 `--tok` **确实定义过**时豁免 —— 令牌名打错就是静默硬编码。',
 )
 console.log('✓ 颜色字面量全量扫描：CSS 声明与 JS 赋值均无未登记字面量')
+
+// ── 11. 输入区视觉：加号 hover-only / 回到底部居中 ─────────────────────────────
+// 用户要求（2026-10-18）：加号的圆形底只在 hover/focus 出现；回到底部按钮居中。
+// 这里锁住两条意图，防止后续样式重构把它们悄悄改回常驻圆/靠右。
+const composerVisuals = read('composer-visuals.ts')
+assert.ok(
+  composerVisuals.includes(':not(:hover):not(:focus-visible)'),
+  '加号的圆形底必须只在 hover/focus-visible 出现（静止态透明）',
+)
+assert.ok(
+  composerVisuals.includes('var(--dsw-alias-interactive-bg-hover-solid)'),
+  '加号 hover 的圆形底必须走宿主语义令牌，不能硬编码颜色',
+)
+assert.ok(
+  composerVisuals.includes('justify-content:center'),
+  '回到底部按钮必须居中（覆盖宿主的 flex-end）',
+)
+assert.ok(
+  composerVisuals.includes('padding-right:0'),
+  '回到底部槽的 195px 右内边距必须清零，否则只是“内容盒居中”仍偏左',
+)
+console.log('✓ 输入区视觉：加号圆底 hover-only、回到底部居中')
