@@ -4,6 +4,41 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.9 - 2026-10-19
+
+**The real cause of the "a rail on each side": two UI plugins installed in one profile.**
+
+Stopped guessing at CSS and compared environments instead. The decisive evidence:
+
+```
+web profile     : dsh-zcode-ui
+desktop profile : @michengai/dsh-codex-ui + dsh-zcode-ui   ← what your app runs
+```
+
+`dsh-zcode-ui` is a fork of `@michengai/dsh-codex-ui`, and both packages register
+`id: 'turn-navigator'` into `conversation.session.header.utilities`. The slot registry keys
+entries by "package + id", so the same id renders as **two parallel rails**; they scroll and
+collapse out of sync, which reads as "one on each side, drifting". The sidebar slots had an
+`already declared` fallback all along — this one never did.
+
+**Why the previous five rounds all missed**: my isolated instance runs the `web` profile (only
+zcode-ui), so the environment was **always clean** and no scan could ever find the artefact. That
+pushed me through a chain of hypotheses (running indicator → collapse ghost → timestamp vs archive
+icon slot → official-navigator marking), each fixing something real but unrelated. Diffing the two
+profiles hit it in one step.
+
+**Fix** (`turn-rail-dedupe.ts`): when several `.dcu-turn-navigator` elements exist, keep only the
+first in document order (the one mounted first is normally the skin the user is actually running)
+and mark the rest with `data-dcu-turn-rail-stale`; when only one remains, clear the mark. It does
+not depend on the other package's name or class names, so switching skins leaves nothing behind.
+The rule uses `.dcu-root [data-dcu-turn-rail-stale]` specificity rather than `!important` — the
+structural-debt ratchet caught that, which is the budget doing its job.
+
+A/B verified: with two rails, A=`block` / B=`none`; after removing A, B restores to `block`.
+Assertions added for the rule, the mount, and the stale-driven mechanism; baseline resynced.
+
+Skin content version 1.4.4 → **1.4.5**.
+
 ## 1.15.8 - 2026-10-19
 
 **Two turn-navigation rails existed at once — the real cause of the "both sides drift".**

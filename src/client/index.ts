@@ -47,6 +47,7 @@ import { registerSettingsPage } from './settings-page-registration.ts'
 import { observeSlimSidebar } from './sidebar-width.ts'
 import { observeConversationHeader } from './conversation-header.ts'
 import { observeOfficialTurnNavigators } from './official-turn-navigator.ts'
+import { dedupeTurnRails } from './turn-rail-dedupe.ts'
 import { TurnNavigator } from './TurnNavigator.tsx'
 import { registerInputHistory } from './InputHistoryDock.tsx'
 import { prefillNewConversation, createDraftPresenceSource } from './new-conversation-draft.ts'
@@ -192,6 +193,7 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => observeComposerToolMenus({ search: t('home.projectSearch'), empty: t('home.projectEmpty') }), 'zcode-ui-for-dsh: composer tool menus')
   ctx.effect(() => observeConversationHeader(), 'zcode-ui-for-dsh: conversation header')
   ctx.effect(() => observeOfficialTurnNavigators(), 'zcode-ui-for-dsh: official turn navigator')
+  ctx.effect(() => dedupeTurnRails(), 'zcode-ui-for-dsh: turn rail dedupe')
   const newConversationDraft = createDraftPresenceSource(ctx.sessions.list, () => {
     const id = currentSessionId(ctx.sessions.list.getSnapshot())
     const binding = id === undefined ? undefined : ctx.sessions.binding(id as SessionId)

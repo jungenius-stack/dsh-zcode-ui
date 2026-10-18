@@ -283,6 +283,13 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
 @media(max-width:640px){[data-conversation-scroll]{--dcu-composer-shadow:0 0 0 1px rgba(13,13,13,.06),0 2px 8px rgba(13,13,13,.06),0 4px 24px 8px rgba(13,13,13,.04)}}
 @media(forced-colors:active){[data-conversation-scroll] [data-composer-card]{outline:1px solid CanvasText}}
 html[data-dcu-official-turn-navigator-supported=true] .dcu-turn-navigator,html:has([data-dcu-official-turn-navigator]) .dcu-turn-navigator{display:none}
+/* 2026-10-19：同一 profile 里可能同时装着 @michengai/dsh-codex-ui 与 dsh-zcode-ui（实测 desktop
+   profile 两者并存）。两个包往同一个 slot 注册同一个 id 'turn-navigator'，slot 表按「包+id」
+   区分，于是渲染出**两条**索引栏 —— 用户看到的就是「左右各一条、位置对不上」。
+   这里做最后一道兜底：一旦出现两个自绘索引栏，只保留 DOM 中第一个（先注册者），
+   后来者整体退场。用 nth-of-type 而非包名判断，避免依赖对方的类名/版本。 */
+.dcu-root [data-dcu-turn-rail-stale]{display:none}
+/* 多出一条索引栏时由 turn-rail-dedupe.ts 打标退场；单条时无标记，规则不生效。 */
 /* 输入区把 clearance 设成 24px 后，旧镜像公式会变成 -28px，整条导航滑进侧栏。至少留 12px，贴在会话列内侧。 */
 [data-dcu-official-turn-navigator]{right:auto!important;left:max(12px,calc(12px - (var(--dsh-composer-side-clearance) + 16px)))!important}
 /* 左移后的预览朝聊天内容区展开，外观和动画继续使用宿主规则。 */

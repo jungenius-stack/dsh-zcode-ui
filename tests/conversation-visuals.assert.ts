@@ -57,6 +57,17 @@ assert.match(navigator, /left:16px/, '悬停气泡必须出现在刻度右边')
 assert.doesNotMatch(sidebar, /TurnNavigator\.module\.css/, '不得依赖宿主私有 CSS 注入标记判断官方导航')
 assert.doesNotMatch(sidebar, /:has\(>\[data-chat-flow\]\)>:first-child>nav/, '不得依赖宿主会话子树层级定位官方导航')
 assert.match(sidebar, /html\[data-dcu-official-turn-navigator-supported=true\] \.dcu-turn-navigator/, '已知运行时支持官方导航时必须独立隐藏旧版刻度')
+// 2026-10-19：同 profile 可能同时装 @michengai/dsh-codex-ui 与 dsh-zcode-ui，两者都往
+// conversation.session.header.utilities 注册 id 'turn-navigator'，slot 表按「包+id」区分
+// → 渲染出两条索引栏（实测 desktop profile 并存）。turn-rail-dedupe 负责让后来者退场。
+assert.match(sidebar, /\.dcu-root \[data-dcu-turn-rail-stale\]\{display:none\}/, '多出的索引栏必须有退场规则（用特异性而非 !important，避免撞结构债预算）')
+{
+  const entry = readFileSync('src/client/index.ts', 'utf8')
+  assert.match(entry, /dedupeTurnRails\(\)/, '索引栏去重必须在插件启动时挂载')
+  const dedupe = readFileSync('src/client/turn-rail-dedupe.ts', 'utf8')
+  assert.match(dedupe, /data-dcu-turn-rail-stale/, '去重模块必须使用 stale 标记驱动退场')
+  assert.match(dedupe, /存在多条|rails\.length <= 1/, '去重必须处理单条/多条两种状态')
+}
 assert.match(sidebar, /html:has\(\[data-dcu-official-turn-navigator\]\) \.dcu-turn-navigator/, '检测到实际官方导航时也必须隐藏旧版自定义刻度')
 assert.match(sidebar, /\[data-dcu-official-turn-navigator\]\{right:auto!important;left:max\(12px,calc\(12px - \(var\(--dsh-composer-side-clearance\) \+ 16px\)\)\)!important\}/, '官方轮次导航必须留在会话列内，不能因正 clearance 滑进侧栏')
 assert.doesNotMatch(sidebar, /\[data-dcu-official-turn-navigator\]>div:first-child/, '镜像样式不得依赖官方导航内部 div 层级')

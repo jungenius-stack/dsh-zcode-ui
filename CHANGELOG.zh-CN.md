@@ -4,6 +4,39 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.15.9 - 2026-10-19
+
+**「左右两侧索引栏」的真正根因：同一个 profile 里装了两个 UI 插件。**
+
+不再猜样式，改为对照环境差异。决定性证据：
+
+```
+web profile     : dsh-zcode-ui
+desktop profile : @michengai/dsh-codex-ui + dsh-zcode-ui   ← 你的 App 用的是这个
+```
+
+`dsh-zcode-ui` 是 `@michengai/dsh-codex-ui` 的 fork，两个包都往
+`conversation.session.header.utilities` 注册 `id: 'turn-navigator'`。slot 注册表按
+「包 + id」区分，所以同一 id 会**渲染成两条并排的索引栏**；两者滚动/折叠时序不同步，
+看起来就是「左右各一条、会漂」。侧栏那组插槽早有 `already declared` 兜底，
+`turn-navigator` 这一处一直没兜。
+
+**前五轮为什么全错**：我的独立实例跑的是 `web` profile（只装 zcode-ui），所以环境**永远
+干净**，怎么扫都扫不出横线；于是我不断换假设（运行指示器 → 折叠残影 → 时间与归档图标
+同槽 → 官方导航漏检），每次都改到真实但不相关的缺陷上。这一轮先比对两个 profile 的差异，
+才一步命中。
+
+**修法**（`turn-rail-dedupe.ts`）：页面里出现多条 `.dcu-turn-navigator` 时，只保留文档顺序里
+最先出现的那一条（先挂载者通常是用户当前实际在用的皮肤），其余打 `data-dcu-turn-rail-stale`
+退场；回到单条时自动清标记恢复。不依赖对方的包名或类名，皮肤切换也不会残留。
+退场规则用 `.dcu-root [data-dcu-turn-rail-stale]` 的特异性实现，不加 `!important`
+（结构债棘轮正好把它拦下来了，说明预算在起作用）。
+
+A/B 实测：两条并存时 A=`block` / B=`none`；删掉 A 后 B 自动恢复 `block`。
+新增断言锁定「退场规则存在 + 去重已挂载 + 用 stale 标记驱动」，并已同步基线。
+
+皮肤内容版本 1.4.4 → **1.4.5**。
+
 ## 1.15.8 - 2026-10-19
 
 **两条轮次索引栏同时存在（"左右两侧漂移"的真正根因）。**
