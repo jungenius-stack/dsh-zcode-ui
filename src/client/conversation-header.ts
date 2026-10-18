@@ -15,9 +15,9 @@ export const HEADER_SESSION_MENU_EVENT = 'dcu-header-session-menu'
 // 只收缩 crumbs（min-width:0）。标题截断依赖宿主 .crumbs{overflow:hidden} 和
 // .crumb{text-overflow:ellipsis}，插件不重复写 overflow。控件带恒为 34px 单行。
 export const CONVERSATION_HEADER_STYLE = `
-header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
+header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
 /* 1.1.37：没有内联页签但存在面包屑的旧版宿主，同样按 34px 控件带重排（紧凑顶栏覆盖面）。 */
-header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:10px;min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
 header:has([data-dcu-inline-tabs]):after{display:none;content:none}
 header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]):after{display:none;content:none}
 header:has([data-dcu-inline-tabs]) [class*="titleRow"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleRow"],header:has([data-dcu-inline-tabs]) [class*="titleCluster"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleCluster"]{display:contents}
@@ -36,7 +36,7 @@ header [data-dcu-tab-slider]{position:absolute;left:0;top:0;height:26px;border-r
    这里只在紧凑顶栏存在时扣回 3px，不搬 DOM、不跟展开/收起跳动。 */
 body[data-dsh-sidebar-collapsed]:has([data-dcu-inline-tabs]) [data-dsh-toggle-cluster]{top:calc(3px + env(safe-area-inset-top))}
 body[data-dsh-sidebar-collapsed][data-dsh-title-bar-compat]:has([data-dcu-inline-tabs]) [data-dsh-toggle-cluster]{top:calc(var(--dsh-title-bar-strip, 40px) + 3px)}
-header [data-dcu-inline-tabs] [role=tab]{box-sizing:border-box;position:relative;z-index:1;height:26px;padding:3px 10px;margin:0;line-height:20px;color:var(--dsw-alias-label-tertiary);border:0;box-shadow:none;background:transparent;font-size:var(--dsw-font-size-caption);white-space:nowrap}
+header [data-dcu-inline-tabs] [role=tab]{box-sizing:border-box;position:relative;z-index:1;height:26px;padding:3px var(--dcu-space-2);margin:0;line-height:20px;color:var(--dsw-alias-label-tertiary);border:0;box-shadow:none;background:transparent;font-size:var(--dsw-font-size-caption);white-space:nowrap}
 header [data-dcu-inline-tabs] [role=tab][aria-selected=true],header [data-dcu-inline-tabs] [role=tab][data-state=active]{color:var(--dsw-alias-button-info-fill);font-weight:500}
 header [data-dcu-inline-tabs] [role=tab]+[role=tab]{border-left:1px solid var(--dsw-alias-border-subtle)}
 header [data-dcu-inline-tabs] [role=tab]:after,header [data-dcu-inline-tabs] [role=tab]:before{display:none!important;content:none!important;background:transparent!important;height:0!important}

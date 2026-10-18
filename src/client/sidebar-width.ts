@@ -56,11 +56,31 @@ const restStates = new WeakMap<HTMLElement, boolean>()
 
 /** 动画标记：取值 'collapse' | 'expand'，由 CSS 消费。 */
 const SIDEBAR_MOTION_ATTRIBUTE = 'data-dcu-sidebar-motion'
-/** 位移量变量（px），由 CSS 消费。 */
+/**
+ * 旧版位移变量名。2026-10-16 起位移改由 JS 直接写内容列的 transform（原因见
+ * `beginSidebarMotion` 里的长注释），本变量**不再写入**，只在清理路径上移除历史残留
+ * （热更新或旧版本页面可能还留着它）。
+ */
 const SIDEBAR_SHIFT_VAR = '--dcu-sidebar-shift'
 /** 宿主侧栏列 / 内容列标记，由 CSS 消费。 */
 const SIDEBAR_COLUMN_ATTRIBUTE = 'data-dcu-sidebar-column'
 const CENTER_COLUMN_ATTRIBUTE = 'data-dcu-center-column'
+
+/**
+ * 清除内容列上的位移动画痕迹（内联 transform / transition）。
+ *
+ * 位移改走内联 transform 后，「落定」「取消」「卸载」三条路径都必须把内联值撤掉，
+ * 否则残留的 transform 会盖住 CSS 规则、让内容列停在半程位置。
+ * 同时顺手移除历史遗留的 `--dcu-sidebar-shift`（旧版本会写在 frame 上）。
+ */
+function clearCenterShift(frame: HTMLElement): void {
+  const center = frame.querySelector<HTMLElement>(`[${CENTER_COLUMN_ATTRIBUTE}]`)
+  if (center !== null) {
+    center.style.removeProperty('transform')
+    center.style.removeProperty('transition')
+  }
+  frame.style.removeProperty(SIDEBAR_SHIFT_VAR)
+}
 
 /** 记下插件改写前的宿主列宽。已经带初始化标记的列宽是本插件留下的，不能当成宿主原值。 */
 export function rememberHostSidebar(frame: HTMLElement): void {
@@ -77,7 +97,7 @@ export function rememberHostSidebar(frame: HTMLElement): void {
 export function restoreHostSidebar(frame: HTMLElement): void {
   cancelSidebarMotion(frame)
   frame.removeAttribute(SIDEBAR_MOTION_ATTRIBUTE)
-  frame.style.removeProperty(SIDEBAR_SHIFT_VAR)
+  clearCenterShift(frame)
   clearColumnMarkers(frame)
   frame.removeAttribute('data-dcu-codex-sidebar-initialized')
   frame.style.removeProperty('--dcu-sidebar-expanded-width')
@@ -276,12 +296,21 @@ function clearColumnMarkers(frame: HTMLElement): void {
   frame.querySelector(`[${CENTER_COLUMN_ATTRIBUTE}]`)?.removeAttribute(CENTER_COLUMN_ATTRIBUTE)
 }
 
-/** 动画基准轨道：收起动画停在展开几何，展开动画停在收起几何。 */
+/**
+ * 动画期间把轨道钉回**目标几何**（2026-10-14 架构修正）。
+ *
+ * 宿主状态翻转后会写回它自己的列值（可能是 0px 而不是 56px），动画期间这会把轨道带偏。
+ * 本函数在每个飞行帧把轨道重新钉成「本次动画的目标宽度」，于是宽度全程恒定，
+ * 落定时无需再改宽度 → 落定零重排。
+ *
+ * 历史：旧实现钉的是「动画基准」（收起钉展开几何、展开钉收起几何），
+ * 落定时才切到目标宽度，导致落定那一刻整列文本重排（8000 条实测 137ms）。
+ */
 function pinMotionBase(frame: HTMLElement, kind: 'collapse' | 'expand'): void {
   const tracks = parseSidebarGrid(frame.style.gridTemplateColumns)
   if (tracks === undefined) return
-  const base = kind === 'collapse' ? targetExpandedWidth(frame) : CODEX_SIDEBAR_RAIL_PX
-  const next = `${base}px ${tracks.middle} ${tracks.details}`
+  const target = kind === 'collapse' ? CODEX_SIDEBAR_RAIL_PX : targetExpandedWidth(frame)
+  const next = `${target}px ${tracks.middle} ${tracks.details}`
   if (frame.style.gridTemplateColumns === next) return
   writeFrameTrackPaused(frame, next)
 }
@@ -290,7 +319,7 @@ function pinMotionBase(frame: HTMLElement, kind: 'collapse' | 'expand'): void {
 function cancelMotionStyles(frame: HTMLElement): void {
   cancelSidebarMotion(frame)
   frame.removeAttribute(SIDEBAR_MOTION_ATTRIBUTE)
-  frame.style.removeProperty(SIDEBAR_SHIFT_VAR)
+  clearCenterShift(frame)
 }
 
 /** 取消飞行中的动画（不落定——调用方自己决定落到哪）。 */
@@ -323,7 +352,7 @@ function settleMotion(frame: HTMLElement, collapsed: boolean): void {
   }
   try {
     frame.removeAttribute(SIDEBAR_MOTION_ATTRIBUTE)
-    frame.style.removeProperty(SIDEBAR_SHIFT_VAR)
+    clearCenterShift(frame)
     if (tracks !== undefined) frame.style.gridTemplateColumns = `${width}px ${tracks.middle} ${tracks.details}`
     if (handle !== null) handle.style.left = `${width}px`
     if (collapsed && frame.ownerDocument.documentElement.hasAttribute('data-windows-titlebar')) {
@@ -359,6 +388,9 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
   const duration = readMoveDuration(frame)
   const motion: SidebarMotion = { kind, timer: 0 }
   motions.set(frame, motion)
+  // 计时起点：**写轨道之前**。同步重排会在下面那次强制布局里发生，
+  // 由此得到的耗时才是「切换轨道真实阻塞了主线程多久」。
+  const reflowStarted = win.performance.now()
 
   const handle = frame.querySelector<HTMLElement>('[data-side="sidebar"]')
   const tracks = parseSidebarGrid(frame.style.gridTemplateColumns)
@@ -373,9 +405,18 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
     void frame.offsetWidth
   }
   try {
-    // 基准轨道：收起=展开几何（内容列留在宽轨道上位移），展开=收起几何。
-    const base = collapsed ? expandedWidth : CODEX_SIDEBAR_RAIL_PX
-    if (tracks !== undefined) frame.style.gridTemplateColumns = `${base}px ${tracks.middle} ${tracks.details}`
+    // 动画期间轨道**直接切到目标几何**（2026-10-14 架构修正）。
+    //
+    // 旧做法是把轨道钉在「动画基准」（收起=展开几何、展开=收起几何），让内容列留在宽轨道上位移。
+    // 问题：会话列宽度在动画期间是一个值、落定后是另一个值 → **落定那一刻整列文本重新排版**。
+    // 实测 8000 条消息（4 万节点）落定重排 137ms，用户感知是「收起后卡一下」。
+    //
+    // 现在的做法：一开始就切到目标几何（宽度只变这一次，且必然发生——宿主状态真的翻了），
+    // 之后宽度全程恒定；起点的「视觉位置」改由 transform 伪造（见 CodexSidebar.tsx 的位移规则，
+    // 取 half-shift 的原因也在那里）。于是落定时只需移除 transform 与 shift 变量，
+    // 不再改宽度 → **落定零重排**。
+    const target = collapsed ? CODEX_SIDEBAR_RAIL_PX : expandedWidth
+    if (tracks !== undefined) frame.style.gridTemplateColumns = `${target}px ${tracks.middle} ${tracks.details}`
     // 手柄先钉到收起视觉位（56px）：展开时它由宿主按自己的宽度挂载（如 280），
     // 随后在动画标记挂上后交给 left 过渡滑到展开位；收起时它随宿主卸载，存在则直接钉位。
     if (handle !== null) handle.style.left = `${CODEX_SIDEBAR_RAIL_PX}px`
@@ -388,12 +429,18 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
     if (pauseFrame) frame.style.transition = frameTransition
     if (handle !== null && handleTransition !== undefined) handle.style.transition = handleTransition
   }
-  frame.style.setProperty(SIDEBAR_SHIFT_VAR, `${shift}px`)
-  frame.setAttribute(SIDEBAR_MOTION_ATTRIBUTE, kind)
-  // 手柄位移：left 过渡从收起视觉位滑到展开位，与内容列 transform 同曲线同步。
-  // （写在动画标记之后，过渡规则才生效；transform 方向由 CSS 规则决定，不适用于手柄。）
-  if (handle !== null && !collapsed) handle.style.left = `${expandedWidth}px`
-
+  // 关键时序（2026-10-14 长对话修复）：轨道切换引起的**整页重排**必须真的付掉，
+  // 动画才能跑满；否则它会被这次重排整个吃掉。
+  //
+  // 实测 8000 条消息（4 万节点）分步计时：
+  //   写轨道 = 0ms（只改样式）｜同帧强读 offsetWidth = 24ms（仅同步样式计算）
+  //   ｜**等到下一帧 = 432ms**（真正的重排 + 绘制在这里）
+  // 若 motion 标记与轨道写在同一帧，180ms 的位移动画会在 432ms 的重排期间"走完"，
+  // `animationend` 随即触发 → 用户看到「点了没反应，直接跳过去」。
+  //
+  // 因此：本帧只负责切轨道（把重排交给这一帧），**下一帧才挂 motion 标记起跑动画**。
+  // 这样动画时间轴从一个已经排好版的干净环境开始，能完整跑满 180ms。
+  void frame.offsetWidth
   let done = false
   const finish = (): void => {
     if (done) return
@@ -401,10 +448,63 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
     win.clearTimeout(motion.timer)
     settleMotion(frame, collapsed)
   }
-  // 快路径：transform 过渡自然结束；兜底：页面不可见/过渡被跳过时超时落定。
-  columns.center.addEventListener('transitionend', (event) => {
-    if (event.target === columns.center && event.propertyName === 'transform') finish()
-  }, { once: true })
+  const beginAnimation = (): void => {
+    if (!frame.isConnected || motions.get(frame) !== motion) return
+    // 位移动画（2026-10-16 性能修正）：**直接给内容列写 transform**，不再写 CSS 变量。
+    //
+    // 旧写法是把 `--dcu-sidebar-shift` 写在 frame 上、由 keyframes 的 var() 消费。
+    // 该变量是**未注册的继承型自定义属性**：写在 frame 上时 Chromium 无法预知谁会用 var()
+    // 消费它，只能作废 frame 全部后代的样式——真实宿主里 frame 是会话区祖先，长对话下
+    // 后代 1.2 万个（实测：frame 写一次 44ms ／ 只含侧栏的子元素 4ms）。
+    // 而 transform 是**非继承属性**，写它只作废该元素自身（实测 0.3ms）。
+    // 另外 @keyframes 里含 var() 会让动画无法交给合成器；去掉后整次开合的样式重算
+    // 从 172.6ms 降到 90.4ms、重算次数 17000 降到 8000。详见 KNOWN-ISSUES §27。
+    //
+    // 起点必须**无过渡地**落上去，否则浏览器会把「从 0 到起点」也当成一次过渡。
+    const startX = collapsed ? shift / 2 : -shift / 2
+    columns.center.style.transition = 'none'
+    columns.center.style.transform = `translateX(${startX}px)`
+    void columns.center.offsetWidth
+    frame.setAttribute(SIDEBAR_MOTION_ATTRIBUTE, kind)
+    // 交回 CSS 的过渡规则（本规则只过渡 transform），从起点平滑归零到天然终点。
+    columns.center.style.removeProperty('transition')
+    columns.center.style.transform = 'translateX(0px)'
+    // 手柄位移：left 过渡从收起视觉位滑到展开位，与内容列 transform 同曲线同步。
+    // （写在动画标记之后，过渡规则才生效；transform 方向由 CSS 规则决定，不适用于手柄。）
+    if (handle !== null && !collapsed) handle.style.left = `${expandedWidth}px`
+    // 快路径：内容列的位移动画自然结束即落定。
+    // 由 animationend 改回 transitionend：位移改走 transition（见上），且监听必须挂在
+    // **起点已落、过渡已开始之后**，否则拿不到结束事件。
+    columns.center.addEventListener('transitionend', (event) => {
+      if (event.target === columns.center && event.propertyName === 'transform') finish()
+    }, { once: true })
+  }
+  // 起跑**排到下一帧**：本帧留给轨道切换引发的整页重排（长对话下可达数百毫秒），
+  // 下一帧才挂 motion 标记，动画时间轴因此从干净环境开始、能完整跑满。详见上方注释。
+  //
+  // 自适应跳过（2026-10-14，2026-10-17 收紧阈值）。
+  //
+  // 长对话下重排本身就比动画时长还贵（8000 条实测 228–300ms vs 动画 180ms）。
+  // 此时再播动画只会让用户多等「建合成层 + 180ms 滑动」，总时长反而更长。
+  //
+  // 2026-10-17 第三次报告后收紧：原来只在 `blocked > duration`（180ms）时跳过，
+  // 但实测 8000 条时「点到首帧」已经是 121ms——用户早就感到卡了。此时再花 180ms
+  // 播一段动画，总感知延迟 300ms，比直接到位更糟。
+  //
+  // 新阈值取**动画时长的一半**：一旦阻塞已经吃掉半个动画时间，
+  // 「快而静止」就优于「慢而勉强有动画」。这仍是纯测量驱动，
+  // 不引入节点数阈值或魔法节点常量；阈值本身锚定在 duration 上，随动效档位自动缩放
+  // （例如 reduced-motion 下 duration≈0，行为照旧）。
+  win.requestAnimationFrame(() => {
+    const blocked = win.performance.now() - reflowStarted
+    if (blocked > duration / 2) {
+      // 内容太重：跳过动画直接到位（用户看到的是「点一下 → 到位」，而不是长时间僵住）。
+      finish()
+      return
+    }
+    beginAnimation()
+  })
+  // 超时兜底：动画起跑失败（标记被移除 / 帧被吞 / 页面不可见）时仍要落定。
   motion.timer = win.setTimeout(finish, duration + 120)
   return true
 }

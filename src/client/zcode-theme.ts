@@ -53,14 +53,41 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
   /* 浮层三件套同样挂在 :root：工具菜单与 Git 弹窗经 portal 渲染到 body，不在
      .dcu-root / .dcu-settings-page / .dcu-home 任一侧栏作用域内，挂在作用域上，
      var() 会解析失败并静默走字面量回退（与 --dcu-primary、--dcu-state-* 同因）。 */
-  --dcu-tip-bg:#ffffff;--dcu-tip-border:rgba(13,13,13,.1);--dcu-tip-shadow:0 8px 24px rgba(13,13,13,.12);
+  /* 2026-10-18（红队复核）：--dcu-tip-hover 原先只被消费、从未定义——靠 var() 的 fallback
+     勉强生效（CodexWorkspaceBrowser 的 .dcu-wb-tip-pin:hover）。补齐定义，语义同侧栏 hover。 */
+  --dcu-tip-bg:#ffffff;--dcu-tip-border:rgba(13,13,13,.1);--dcu-tip-shadow:0 8px 24px rgba(13,13,13,.12);--dcu-tip-hover:rgba(13,13,13,.05);
+  /* 浮层专用文字色板：与 --dcu-tip-bg **成对**定义（ZCode 的 tooltip / tooltip-foreground 做法）。
+     为什么不能复用侧栏色板：侧栏底是 #f0f0f0，浮层底是 #ffffff，同一个 tertiary
+     搬过去对比度会变。此前实测暗色下 secondary 3.99:1 / tertiary 3.68:1 均掉线。
+     亮底实测：#262626 15.13:1 ／ #5c5c5c 6.69:1 ／ #686868 5.57:1，全部 ≥AA。 */
+  --dcu-tip-primary:#262626;--dcu-tip-secondary:#5c5c5c;--dcu-tip-tertiary:#686868;
+  /* 键帽文字：ZCode Kbd 组件用 text-muted-foreground，本仓按侧栏底重取。
+     实测（底 = #f0f0f0 叠 3% 中性 = #e9e9e9）：#5c5c5c = 5.51:1 ✅ AA。
+     tertiary #686868 只有 4.59:1，看似达标但余量太小，暗色档直接掉到 4.14:1 —— 故不分档都不用它。 */
+  --dcu-kbd-foreground:#5c5c5c;
+  /* 选中行内的次要文字：选中底 #e5e5e5 上 tertiary #686868 只有 4.42:1（<AA），
+     提到 secondary #5c5c5c = 5.31:1 ✅。只影响选中行，普通底色下的取值不变。
+     2026-10-18（红队复核）：删掉 --dcu-selected-tertiary —— 它零消费（全仓唯一命中是定义
+     与断言里的成对正则），属投机档位。本仓对此有明文纪律（见下方尺寸档那段：
+     「零消费的档位是投机设计」），同轮一边删投机档位、一边留着它自相矛盾。
+     将来真需要选中态的第三档，再加回来并同时给出消费点。 */
+  --dcu-selected-secondary:#5c5c5c;
 }
 body[data-ds-dark-theme],.theme-zai-dark{
   --dcu-state-success-text:#46bf72;--dcu-state-error-text:#ff5c5c;--dcu-state-warn-text:#ff8a30;
   --dcu-state-error-fill:#ff5c5c;--dcu-state-error-fill-hover:#ff7070;
   /* 浮层三件套（底色/描边/投影）也在暗色下重取：它们挂在 :root 而不是侧栏作用域，
      是为了让 portal 到 body 的浮层（工具菜单、Git 弹窗）也拿得到——见上面亮色那段的说明。 */
-  --dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);--dcu-tip-shadow:0 8px 24px rgba(0,0,0,.4);
+  --dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);--dcu-tip-shadow:0 8px 24px rgba(0,0,0,.4);--dcu-tip-hover:rgba(255,255,255,.06);
+  /* 暗底 #2b2b2b 实测：#d4d4d4 9.55:1 ／ #9a9a9a 5.03:1 ／ #a3a3a3 5.61:1，全部 ≥AA。
+     注意 secondary 取 #9a9a9a 而非侧栏的 #888888——后者在 #2b2b2b 上只有 3.99:1。 */
+  --dcu-tip-primary:#d4d4d4;--dcu-tip-secondary:#9a9a9a;--dcu-tip-tertiary:#a3a3a3;
+  /* 暗色档实测（底 = #161616 叠 5% 白 = #222222）：
+     secondary #888888 = 4.49:1（差 0.01 掉线，不能用）、#9a9a9a = 5.65:1 ✅ AA。 */
+  --dcu-kbd-foreground:#9a9a9a;
+  /* 选中底 #2d2d2d 上 tertiary #828282 只有 3.58:1（<AA），secondary #888888 也只有 3.89:1，
+     两者都掉线，故统一提到 #9a9a9a = 4.89:1 ✅。同上，只保留有消费点的 secondary。 */
+  --dcu-selected-secondary:#9a9a9a;
 }
 /* ── 动效令牌 ─────────────────────────────────────────────────────────────
    2026-10-13 起：原先全站收敛为「180ms ease-out」一条曲线。那是一致，但没有意图——
@@ -72,15 +99,63 @@ body[data-ds-dark-theme],.theme-zai-dark{
      退出 exit      内容消失——加速离场，不要拖住下一个动作。
      按压 press     只有按下瞬间的位移，比反馈更短，做出「手感」。
 
+   ── 2026-10-17 曲线修正（用户反馈「动效不够丝滑」）─────────────────────────
+   反馈与移动档此前用 cubic-bezier(.4,0,.2,1)。查 ZCode 编译产物
+   （/Applications/ZCode.app/.../styles-Cg6LSa5A.css）后确认这是**错的**：
+
+     --ease-out:    cubic-bezier(0, 0, .2, 1)     ← ZCode 的 .ease-out 用这条
+     --ease-in-out: cubic-bezier(.4, 0, .2, 1)    ← 我们误用的其实是「缓入缓出」
+
+   两者前 10% 时间的进度相差 **12 倍**（2.6% vs 30.4%），实测 180ms 位移：
+
+     曲线                    起步 30ms 内已走
+     .4,0,.2,1（旧·错）        2px / 92px  ← 用户感知「点了不跟手」
+     0,0,.2,1（ease-out·正确）  26px / 92px
+     .2,0,0,1（enter）          42px / 92px
+
+   缓入缓出适合「有来有回」的循环动画；单向位移（侧栏开合、行高展开）用它会显得滞重。
+   本仓的 feedback / move 全部是单向变化，因此统一改为 ease-out。
+   反向测试见 tests/design-system.assert.ts（改回 .4,0,.2,1 即判红）。
+
    全部落在 ZCode 要求的「快、低戏剧性」区间（90–180ms），不使用带过冲的弹簧曲线：
    cubic-bezier(.2,0,0,1) 是减速曲线，没有回弹；.4,0,1,1 是加速曲线，同样无过冲。
    与色板不同，动效不分明暗——挂 :root，供侧栏、设置页、新会话页共同消费。 */
 :root{
-  --dcu-motion-feedback-duration:120ms;--dcu-motion-feedback-ease:cubic-bezier(.4,0,.2,1);
-  --dcu-motion-move-duration:180ms;--dcu-motion-move-ease:cubic-bezier(.4,0,.2,1);
+  --dcu-motion-feedback-duration:120ms;--dcu-motion-feedback-ease:cubic-bezier(0,0,.2,1);
+  --dcu-motion-move-duration:180ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
   --dcu-motion-enter-duration:160ms;--dcu-motion-enter-ease:cubic-bezier(.2,0,0,1);
   --dcu-motion-exit-duration:120ms;--dcu-motion-exit-ease:cubic-bezier(.4,0,1,1);
   --dcu-motion-press-duration:90ms;--dcu-motion-press-ease:cubic-bezier(.2,0,0,1);
+}
+/* ── 间距标度（2026-10-16 补，对齐 ZCode DESIGN.md §Spacing）────────────────────
+ *
+ * ZCode 把间距列为设计系统的独立一层：基准单位 4px，推荐节奏
+ * 4 紧贴图标/文字 → 8 紧凑控件内边距与行内间隙 → 12 密集列表项与菜单行
+ * → 16 标准卡片与面板内边距 → 20–24 较大分区与对话框内部，
+ * 并明令「Prefer a small set of repeated gaps and paddings instead of arbitrary values」。
+ *
+ * 本插件此前**没有这一层**：几何值直接写字面量，于是长出了 5/7/9/14/18/22px 这类
+ * 一次性数字（共 39 处离刻度间距），同一份界面里同义间距出现两三种值——
+ * 这正是 ZCode 那条规则要防的「arbitrary values」。它们不是错，但没有体系：
+ * 改动时没人知道该跟哪个值，于是继续长新的。
+ *
+ * 只登记**真正在用**的档位（2026-10-16 收尾自检删掉了 10 个零消费的投机档位）：
+ * 第一版按 ZCode 的完整标度预置了 7 个间距档 + 8 个尺寸档，但自检发现其中
+ * space-half / space-5 与**全部 8 个尺寸档**在代码里 0 处消费——
+ * 那是「为将来准备好档位」的投机设计（AGENTS.md 第 2 条：只写解决问题的最少代码）。
+ * 档位是**用出来**的，不是**定出来**的：真需要 20px 时加一行即可，
+ * 而预置死令牌只会让后来人以为"这些档位有约定俗成的用法"。
+ * 保留下来的 5 档都有实际消费点（space-1..4、6 共 40 处）。
+ *
+ * 与圆角令牌（--dsw-radius-*）的分工：圆角是 Tailwind 语义档位（sm/md/lg/xl），
+ * 间距是线性标度，故这里用数值命名（space-1..space-4/6 对应 4/8/12/16/24）。
+ * 命名不随界面字号缩放——ZCode 要求「图标、间距、圆角等 rem 几何不得随字号缩放」。 */
+:root{
+  --dcu-space-1:4px;      /* 紧贴图标/文字 */
+  --dcu-space-2:8px;      /* 紧凑控件内边距、行内间隙 */
+  --dcu-space-3:12px;     /* 密集列表项、菜单行 */
+  --dcu-space-4:16px;     /* 标准卡片与面板内边距 */
+  --dcu-space-6:24px;     /* 对话框内部、较大分区 */
 }
 /* 加载转圈的共享基元（ZCode 原版复刻，2026-10-13）。
  *
@@ -110,6 +185,20 @@ body[data-ds-dark-theme],.theme-zai-dark{
 .dcu-state--with-icon{display:flex;align-items:flex-start;gap:8px}
 .dcu-state--with-icon>.dcu-state-icon{flex:none;width:16px;height:16px;margin-top:2px;color:inherit}
 @keyframes dcu-spin{to{transform:rotate(360deg)}}
+/* 文档隐藏时暂停动效（移植自 ZCode styles.css:84-92 的 html[data-document-hidden]）。
+ *
+ * 上游原文的根因：「窗口 hidden 时 CSS 动画无法结算，DocumentTimeline 会持有期间被移除的
+ * 元素及整棵子树，后台流式输出时内存无上限累积、恢复可见才释放。」
+ * 长对话 + 后台流式输出正是这个泄漏最容易放大的现场。
+ *
+ * 与下面 prefers-reduced-motion 的分工：本块解决**内存**（页面不可见期间不创建动画对象），
+ * 那块解决**可访问性**（用户偏好不要动效）。触发条件无关，不能合并——
+ * 用户开着动效偏好时后台照样会累积。
+ *
+ * 用星号通配是本条**唯一**正当的场景：它必须在隐藏期间覆盖**任何**元素的动画，
+ * 包括宿主与第三方插件的（正是它们的动画对象泄漏）。范围限定在
+ * html[data-document-hidden] 下，且该属性只在页面不可见时存在，所以日常零开销。 */
+html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-document-hidden] *::after{transition:none!important;animation:none!important}
 /* 令牌化的副产品：减少动态效果不再需要逐个元素写 transition:none —— 把五档时长一起归零，
    所有消费方自动跟随。各处残留的 transition:none 块保留（它们同时覆盖未令牌化的宿主元素）。 */
 @media (prefers-reduced-motion:reduce){
@@ -119,21 +208,66 @@ body[data-ds-dark-theme],.theme-zai-dark{
   :root:root .dcu-about-progress-fill[data-wave=true]{animation:none;width:28%}
   :root:root .dcu-spin{animation:none}
 }
-/* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。 */
+/* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。
+
+   2026-10-18（设计审计 P1-1）：secondary 由 #5c5c5c 压到 **#595959**。
+   原因：第三档（tertiary）与第二档的明度差塌了。§14.1 为了让 tertiary 达到 AA，
+   把它从 L*41.6 抬到 44.0，正好顶到 secondary 旁边 —— 档间 ΔL* 只剩 4.9，
+   在 .dcu-wb-section-label（secondary）与紧邻其下的 .dcu-wb-empty（tertiary）
+   同字号直接相邻的场景里，两者对比只有 1.20:1，肉眼几乎相同。
+   审计的结论是「带宽耗尽 → 减需求（空态改条件渲染）」；复算表明带宽没有耗尽，
+   **空间在 secondary 一侧**（往 primary 推不受 AA 地板约束）：
+     secondary #595959 → L*37.8，ΔL*(s,t)=6.2，对比度 sidebar 6.15 / hover 5.56，
+     primary↔secondary 仍差 22.7（远大于 6）。
+   取 6.2 而非更大值，是为了不把 primary 与 secondary 的区别也压没。 */
 .dcu-root,.dcu-settings-page,.dcu-home{
-  --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#5c5c5c;
-  --dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252;
+  --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#595959;
+  --dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;
+  /* 2026-10-18（红队复核澄清身份）：--dcu-sidebar-icon 是**图标色**，不是「第四档文字」。
+     全仓消费点只有 SVG（菜单图标 / 文件夹 / 设置入口），无一处用作文字。
+     故它适用 WCAG 非文本 3:1，不适用文字的 4.5:1，也不参与「三档灰 ΔL*≥6」的档间判据。
+     实测：#525252 on #f0f0f0 = 6.86:1（远超 3:1）。
+     ⚠ 已知副作用：P1-1 把 secondary 压到 #595959 后，图标与 secondary 的明度差从
+     4.2 缩到 2.9。这是**可接受**的——图标是装饰/提示，与正文不是并列层级，
+     且两者从不并排表达同一语义。若将来出现「图标必须与文字明确区分」的场景，
+     把 icon 压到 #454545 可把 ΔL 拉开到 8.5（on #f0f0f0 8.41:1），代价是图标更重。 */
+  --dcu-sidebar-icon:#525252;
   --dcu-sidebar-hover:rgba(13,13,13,.05);--dcu-sidebar-selected:rgba(13,13,13,.05);
-  --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-focus:#0b7fff;
+  /* 2026-10-18（设计审计 P1-2）：表面分离两套主题机制统一为「填充差 ~1.07 + 边线 ~1.45」。
+     实测亮色原本靠填充差 1.073（#f0f0f0 vs 画布 #f8f8f8），边线只有 1.24；
+     暗色反之靠边线（1.31），填充差几乎为 0。切主题时边界强度会突变。
+     注：审计给的暗色基线「#3f3f40 / 1.72」在全仓不存在（grep 0 命中），实测合成值是
+     rgba(255,255,255,.1) over #161616 = #2d2d2d / 1.31 —— 按实测校准，不采信报告数字。
+     亮色边线 alpha .1 → .18：合成 #cdcdcd，对比 1.45（原 1.24）。 */
+  --dcu-sidebar-border:rgba(13,13,13,.18);--dcu-focus:#0b7fff;
   --dcu-surface:rgba(13,13,13,.03);
 }
-/* Zai Dark —— 宿主暗色属性或 ZCode 暗色 class 命中任一即切换。 */
+/* Zai Dark —— 宿主暗色属性或 ZCode 暗色 class 命中任一即切换。
+
+   2026-10-18（P1-1，同上）：secondary 由 #888888 抬到 **#969696**。
+   暗色档更糟——ΔL*(secondary,tertiary) 只有 **2.3**（1.08:1，等于没有第三档）。
+   方向必须与亮色相反：暗色下往 primary（更亮）推才有空间。
+   取 #969696 而非刚够的 #939393：后者的 ΔL 是 6.6，但在选中底 #2d2d2d 上
+   secondary 只有 4.48:1（差 0.02 掉出 AA）；#969696 得 ΔL=7.7 且选中底 4.66:1，
+   同时 sidebar 6.12 / hover 5.38 全部达标。primary↔secondary 仍差 22.8。 */
 body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,body[data-ds-dark-theme] .dcu-home,
 .theme-zai-dark .dcu-root,.theme-zai-dark .dcu-settings-page,.theme-zai-dark .dcu-home{
-  --dcu-sidebar-background:#161616;--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;
-  --dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3;
+  --dcu-sidebar-background:#161616;--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#969696;
+  --dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;
+  /* 暗色侧 icon 同属「图标色」身份（见亮色侧说明）。实测 #a3a3a3 on #161616 = 7.17:1。
+     P1-1 后与 secondary(#969696) 的明度差从 10.3 缩到 4.9；同样是可接受的，理由同亮色侧。
+     注意暗色方向相反：icon 比 secondary 更亮，所以若要拉开应继续提亮而非压暗。 */
+  --dcu-sidebar-icon:#a3a3a3;
   --dcu-sidebar-hover:rgba(255,255,255,.05);--dcu-sidebar-selected:rgba(255,255,255,.1);
-  --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-focus:#4099ff;
+  /* 2026-10-18（P1-2，暗色侧）：两套主题的**表面分离机制**统一到「边线承担主区分」。
+     原先亮色靠填充差（1.073）、暗色靠边线（1.31），切主题时边界强度会突变。
+     一度试过把暗色 sidebar 提亮到 #1c1c1c 去造 1.06 的填充差，但**副作用不可接受**：
+     底色一亮，tertiary #828282 立刻从 4.71 掉到 4.43（<AA），三档灰必须连锁重取
+     （实测需 secondary 升到 #a0a0a0 才保住 ΔL≥6）。大面积底色的亮度是承重约束，
+     不能为了对齐一套机制去动它。
+     故改为：暗色底色保持 #161616，边线 alpha .1 → .16（合成 #3b3b3b，对比 1.31 → 1.62）。
+     与亮色侧 .18（合成 #c7c7c7 / 1.48）方向一致、量级同档，两套主题的边界强度不再突变。 */
+  --dcu-sidebar-border:rgba(255,255,255,.16);--dcu-focus:#4099ff;
   --dcu-surface:rgba(255,255,255,.05);
 }
 `

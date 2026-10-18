@@ -48,6 +48,20 @@ export const FOREIGN_FOOTER_ANCHORS = [
   '.cm-num',
   '.cm-peak-classic',
   '.cm-peak-classic-chip',
+  // ── compact 峰值条（2026-10-16 补，本轮实机抓到）──────────────────────────
+  // dsh-cost-meter 的 `peakStyle` 有 `classic` / `compact` 两条渲染分支，**默认是 compact**：
+  // 它渲染 `.cm-peak-strip > .cm-peak-track + .cm-peak-chip`，而 `classic` 才渲染
+  // `.cm-peak-classic*`。契约此前只登记了 classic 分支，于是**默认路径完全没有被覆盖**——
+  // 实机后果：`.cm-peak-chip` 带 `white-space:nowrap` 且无 `min-width`，不肯收缩，
+  // 把 `.cm-peak-strip` 顶到 237px（容器 208px），整条 `.dcu-foot` 溢出 13px、右侧文字被裁掉。
+  // 运行时哨兵当时**正确报了警**（"契约锚点缺失 …样式覆盖已静默失效"），但没人处理，
+  // 说明「报警」这一层是好用的、缺的是把两条分支都登记进来。这次一并补上。
+  '.cm-peak-strip',
+  '.cm-peak-chip',
+  // 另两条渲染分支的文字标签（`rail` 双形态，2026-10-16 一并登记）。
+  // 与 compact/classic 同因：它们也把语义色写在**文字**上，须按契约第 1 条收敛到色阶。
+  '.cm-peak-rail-label',
+  '.cm-peak-rail-classic-label',
 ] as const
 
 /** 外来内容的识别前缀（当前只有 dsh-cost-meter 的 `cm-*`）。 */

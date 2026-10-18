@@ -6,11 +6,31 @@ import { NS } from './locales.ts'
 import type { PrefillResult, DraftPresenceSource } from './new-conversation-draft.ts'
 export type { PrefillResult } from './new-conversation-draft.ts'
 
+/**
+ * 四个建议卡共用**唯一**图标色。
+ *
+ * 2026-10-18（设计审计 P0-1）：原先每张卡各带一个高饱和 hex
+ * （蓝 `#27aaff` / 紫 `#a478e8` / 绿 `#44bd83` / 橙 `#f48235`），是从上游 Codex
+ * 的建议卡 fork 时一起搬过来的。ZCode 的语言里颜色只有两种身份——**明度档** 与
+ * **唯一语义色（橙，峰值状态）**；再引入四个装饰性色相等于造出第三种身份，
+ * 直接稀释唯一语义色的信号强度。四张卡靠图标形状区分即可。
+ *
+ * 同时它是全仓亮色档唯一不达 3:1 的图标：实测蓝 2.54 / 紫 3.27 / 绿 2.37 /
+ * 橙 2.60（on `#ffffff`），全部低于非文本对比度要求。收成单色顺带修掉这一点。
+ *
+ * ⚠ 这里必须用**宿主 `--dsw-alias-*` 令牌**，不能用 `--dcu-sidebar-icon`：
+ * 本组件经 portal 挂到宿主 hero 区（`[data-phase=hero] …`, 见下方 useEffect），
+ * 不在 `.dcu-root / .dcu-settings-page` 作用域内 —— 实测 `--dcu-sidebar-icon`
+ * 在 hero 区未定义，`var()` 会解析失败回退成继承色（黑）。宿主令牌挂在
+ * `:root:root`，作用域全覆盖，与同目录 `new-conversation-style.ts` 的既有写法一致。
+ */
+const ICON_COLOR = 'var(--dsw-alias-menu-icon)'
+
 const categories = [
-  { id: 'explore', label: 'home.explore', tasks: [{ label: 'home.explore.task1', prompt: 'home.explore.prompt1' }, { label: 'home.explore.task2', prompt: 'home.explore.prompt2' }], Icon: ZIconTelescope, color: '#27aaff' },
-  { id: 'build', label: 'home.build', tasks: [{ label: 'home.build.task1', prompt: 'home.build.prompt1' }, { label: 'home.build.task2', prompt: 'home.build.prompt2' }], Icon: ZIconHammer, color: '#a478e8' },
-  { id: 'review', label: 'home.review', tasks: [{ label: 'home.review.task1', prompt: 'home.review.prompt1' }, { label: 'home.review.task2', prompt: 'home.review.prompt2' }], Icon: ZIconScanLine, color: '#44bd83' },
-  { id: 'fix', label: 'home.fix', tasks: [{ label: 'home.fix.task1', prompt: 'home.fix.prompt1' }, { label: 'home.fix.task2', prompt: 'home.fix.prompt2' }], Icon: ZIconBug, color: '#f48235' },
+  { id: 'explore', label: 'home.explore', tasks: [{ label: 'home.explore.task1', prompt: 'home.explore.prompt1' }, { label: 'home.explore.task2', prompt: 'home.explore.prompt2' }], Icon: ZIconTelescope },
+  { id: 'build', label: 'home.build', tasks: [{ label: 'home.build.task1', prompt: 'home.build.prompt1' }, { label: 'home.build.task2', prompt: 'home.build.prompt2' }], Icon: ZIconHammer },
+  { id: 'review', label: 'home.review', tasks: [{ label: 'home.review.task1', prompt: 'home.review.prompt1' }, { label: 'home.review.task2', prompt: 'home.review.prompt2' }], Icon: ZIconScanLine },
+  { id: 'fix', label: 'home.fix', tasks: [{ label: 'home.fix.task1', prompt: 'home.fix.prompt1' }, { label: 'home.fix.task2', prompt: 'home.fix.prompt2' }], Icon: ZIconBug },
 ] as const
 const hints = { workspace: 'home.workspace', draft: 'home.draft', busy: 'home.busy' } as const
 type Category = typeof categories[number]['id']
@@ -40,7 +60,7 @@ export function SuggestionCards({ t, prefill, hasDraft = false }: PropsLocale<ty
     if (result === 'workspace') document.querySelector<HTMLButtonElement>('[data-phase=hero] [class*="_heroWorkspaceRow"]>button')?.click()
   }
   return <section className="dcu-home-suggestions" data-has-draft={hasDraft} aria-hidden={hasDraft} aria-label={t('home.suggestions')}>
-    <div className="dcu-home-cards">{categories.map(({ id, label, Icon, color }) => <button type="button" key={id} disabled={hasDraft} className="dcu-home-card" style={{ '--dcu-home-icon': color } as CSSProperties} aria-pressed={selected === id} onClick={() => { setSelected(selected === id ? undefined : id); setHint('ready') }}>
+    <div className="dcu-home-cards">{categories.map(({ id, label, Icon }) => <button type="button" key={id} disabled={hasDraft} className="dcu-home-card" style={{ '--dcu-home-icon': ICON_COLOR } as CSSProperties} aria-pressed={selected === id} onClick={() => { setSelected(selected === id ? undefined : id); setHint('ready') }}>
       <Icon aria-hidden="true" /><span>{t(label)}</span>
     </button>)}</div>
     {/* 所有分区共用同一网格单元，按最长内容预留高度，展开和切换不重新撑高居中区域。 */}

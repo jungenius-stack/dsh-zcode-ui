@@ -164,8 +164,14 @@ export function SessionState({ pendingInteraction, unread, running, t }: Pick<Se
     return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction}><span className="dcu-wb-pending-dot" aria-hidden="true" /><span className="dcu-wb-pending-label">{label}</span></span>
   }
   if (unread) return <span className="dcu-wb-unread" role="img" aria-label={t('sessions.unread')} />
-  // 运行中：ZCode Spinner（LoaderIcon，size-4，1s linear 由 .dcu-spin 提供）。见 zcode-icons 的 ZIconLoading。
-  if (running) return <span className="dcu-wb-running" role="img" aria-label={t('sessions.running')}><ZIconLoading size={16} className="dcu-spin" aria-hidden="true" /></span>
+  // 运行中：ZCode 会话行的真实写法是 `LoaderIcon size-3.5 animate-spin text-foreground-subtle`
+  // （workspace-grouped-tasks/task-row.tsx:246-247）。两个参数此前对不上：
+  //   ① 尺寸：ZCode 用 size-3.5 = 14px（--spacing 4px × 3.5），本仓写成了 16px（size-4）；
+  //   ② 位置：ZCode 把它放在**右侧元信息区**（标题之后、时间之前），与未读点同一条泳道；
+  //      本仓放在行首 16×20 状态槽。行首槽是本仓既有架构（置顶/未读/确认态共用），
+  //      挪走会牵连多条断言与悬停接管，故**保留位置、只对齐尺寸**，差异登记在 KNOWN-ISSUES §29。
+  // 颜色：ZCode 用 text-foreground-subtle；本仓按侧栏底色重取为 --dcu-sidebar-tertiary（AA 达标，见 §3.1）。
+  if (running) return <span className="dcu-wb-running" role="img" aria-label={t('sessions.running')}><ZIconLoading size={14} className="dcu-spin" aria-hidden="true" /></span>
   return null
 }
 

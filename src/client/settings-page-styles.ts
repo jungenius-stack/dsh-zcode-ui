@@ -1,6 +1,26 @@
 /**
  * Codex 设置页的局部 tokens 与布局，不覆盖宿主其他弹窗。
  *
+ * ── -sp-* 令牌收归（2026-10-14）──────────────────────────────────────────────
+ * 背景：KNOWN-ISSUES §22.3 登记的「两套并行命名空间」。逐项核对后确认，
+ * 其中 6 个在明暗两套下的**计算值都与宿主语义令牌逐一相等**（用真实 Chromium 比对过
+ * computed value，见交付说明），即它们只是宿主令牌的复制品。复制品会漂移——
+ * 改宿主色板时设置页不会跟着变。现改为引用宿主令牌，零视觉变更、单一真源：
+ *   -sp-bg        -> --dsw-alias-bg-base
+ *   -sp-card      -> --dsw-alias-settings-card-fill
+ *   -sp-border    -> --dsw-alias-border-l2
+ *   -sp-text      -> --dsw-alias-label-primary
+ *   -sp-hover     -> --dsw-alias-interactive-bg-hover
+ *   -sp-active    -> --dcu-sidebar-selected
+ *
+ * 两个例外保留为字面量，并注明**为什么令牌化不了**（而不是「暂时懒得改」）：
+ *   -sp-muted：亮色要 #6b6b6b（等于 static-400），但暗色要 #8f8f8f，
+ *     而 #8f8f8f 在暗色主题下**没有任何令牌等于它**——静态色阶在明暗之间是**反向**的
+ *     （static-500 亮色是 #8f8f8f、暗色却是 #5c5c5c），按档位号引用会拿到相反的值。
+ *   -sp-muted-on-card：亮色同样 #6b6b6b；暗色 #9a9a9a 等于暗色下的 static-300，
+ *     但亮色下 static-300 是 #545454，一个令牌覆盖不了两套。
+ * 强行令牌化必然改变暗色外观，故保留字面量。这两档的对比度取值理由见下。
+ *
  * --sp-muted 与 --sp-muted-on-card 必须分开（2026-10-14）：同一处文字落在两种底色上，
  * 而「色阶必须按实际所在底色取值」是本仓的既定制度（docs/ZCODE-DESIGN.md §9.3）。
  * 此前搜索框的图标与占位符直接用 --sp-muted，而它的底是 --sp-card——
@@ -17,8 +37,8 @@
  * verify-settings-geometry 量到错误宽度而假失败。
  */
 export const settingsPageStyles = `
-.dcu-settings-page{--sp-bg:#f8f8f8;--sp-nav:var(--dcu-sidebar-background,#f0f0f0);--sp-card:#ffffff;--sp-border:rgba(13,13,13,.1);--sp-text:#262626;--sp-muted:#6b6b6b;--sp-muted-on-card:#6b6b6b;--sp-hover:rgba(13,13,13,.05);--sp-active:rgba(13,13,13,.05);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
-body[data-ds-dark-theme] .dcu-settings-page{--sp-bg:#161616;--sp-nav:var(--dcu-sidebar-background,#161616);--sp-card:#2b2b2b;--sp-border:rgba(255,255,255,.1);--sp-text:#d4d4d4;--sp-muted:#8f8f8f;--sp-muted-on-card:#9a9a9a;--sp-hover:rgba(255,255,255,.05);--sp-active:rgba(255,255,255,.1);color-scheme:dark}
+.dcu-settings-page{--sp-bg:var(--dsw-alias-bg-base);--sp-nav:var(--dcu-sidebar-background,#f0f0f0);--sp-card:var(--dsw-alias-settings-card-fill);--sp-border:var(--dsw-alias-border-l2);--sp-text:var(--dsw-alias-label-primary);--sp-muted:#6b6b6b;--sp-muted-on-card:#6b6b6b;--sp-hover:var(--dsw-alias-interactive-bg-hover);--sp-active:var(--dcu-sidebar-selected);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
+body[data-ds-dark-theme] .dcu-settings-page{--sp-muted:#8f8f8f;--sp-muted-on-card:#9a9a9a;color-scheme:dark}
 .dcu-settings-page *{box-sizing:border-box}
 .dcu-settings-page button,.dcu-settings-page input{font:inherit}
 .dcu-settings-page button{cursor:pointer}
@@ -27,9 +47,9 @@ body[data-ds-dark-theme] .dcu-settings-page{--sp-bg:#161616;--sp-nav:var(--dcu-s
 /* macOS 普通窗口的原生按钮覆盖 Web 内容；沿用宿主标题栏安全区，仅抬高设置导航。 */
 html[data-platform=darwin]:not([data-fullscreen]) .dcu-settings-nav{padding-top:calc(var(--dsh-frame-top-clearance,48px) + 8px)}
 body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigation,#d4d4d4);--sp-muted:var(--dcu-sidebar-secondary,#888888);--sp-hover:var(--dcu-sidebar-hover,rgba(255,255,255,.05));--sp-active:var(--dcu-sidebar-selected,rgba(255,255,255,.1));--sp-border:var(--dcu-sidebar-border,rgba(255,255,255,.1))}
-.dcu-settings-back{display:flex;align-items:center;flex-shrink:0;gap:8px;width:100%;height:32px;padding:0 8px;border:0;border-radius:8px;background:transparent;color:var(--sp-text);text-align:left;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-settings-back{display:flex;align-items:center;flex-shrink:0;gap:8px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--dsw-radius-lg);background:transparent;color:var(--sp-text);text-align:left;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 .dcu-settings-back:hover,.dcu-settings-link:hover{background:var(--sp-hover)}
-.dcu-settings-search{display:flex;align-items:center;gap:8px;padding:5px 9px;margin:12px 0 18px;background:var(--sp-card,#fff);border:1px solid var(--sp-border);border-radius:8px;color:var(--sp-muted-on-card)}
+.dcu-settings-search{display:flex;align-items:center;gap:8px;padding:var(--dcu-space-2);margin:var(--dcu-space-3) 0 var(--dcu-space-4);background:var(--sp-card,#fff);border:1px solid var(--sp-border);border-radius:var(--dsw-radius-lg);color:var(--sp-muted-on-card)}
 .dcu-settings-search:focus-within{border-color:var(--dcu-focus,#0b7fff)}
 .dcu-settings-search input{width:100%;min-width:0;border:0;background:transparent;color:var(--sp-text);outline:none;font-size:var(--dsw-font-size-caption)}
 .dcu-settings-search input[type=search]{appearance:none;padding:0;border-radius:0;box-shadow:none;line-height:20px}
@@ -37,7 +57,7 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-search input::placeholder{color:var(--sp-muted-on-card)}
 .dcu-settings-group{flex-shrink:0;margin:0 0 16px}
 .dcu-settings-group-label{margin:0 8px 4px;color:var(--sp-muted);font-size:var(--dsw-font-size-sm);font-weight:500}
-.dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 8px;border:0;border-radius:8px;overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dsw-font-size-base)!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 8px;border:0;border-radius:var(--dsw-radius-lg);overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dsw-font-size-base)!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 /* Codex Desktop SidebarItem / SidebarSection：30px 行高、1px 行距、内收焦点圈。 */
 .dcu-settings-link+.dcu-settings-link{margin-top:1px}
 .dcu-settings-back:focus-visible,.dcu-settings-link:focus-visible{outline-offset:-2px}
@@ -62,15 +82,18 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-row+.dcu-settings-row{border-top:1px solid var(--sp-border)}
 .dcu-settings-row>[data-slot]{display:contents}
 .dcu-settings-row>[data-slot]>*{padding:12px 0!important;border-bottom:0!important;margin:0!important;min-width:0}
-.dcu-settings-row button{font-size:var(--dsw-font-size-caption);border-radius:8px}
+.dcu-settings-row button{font-size:var(--dsw-font-size-caption);border-radius:var(--dsw-radius-lg)}
 .dcu-settings-row input{max-width:100%}
 .dcu-settings-document{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;font-size:var(--dsw-font-size-base);line-height:20px}
 .dcu-settings-developer-tools{display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;padding:12px 0;font-size:var(--dsw-font-size-base);line-height:20px}
 .dcu-settings-developer-tools-copy{min-width:0}
 .dcu-settings-developer-tools-title{font-size:var(--dsw-font-size-base);line-height:20px;font-weight:400;color:var(--sp-text)}
 .dcu-settings-developer-tools-description{margin-top:4px;font-size:var(--dsw-font-size-caption);line-height:18px;color:var(--sp-muted)}
-.dcu-settings-developer-tools-error{margin-top:4px;font-size:var(--dsw-font-size-caption);line-height:18px;color:#f87171}
-.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:36px;height:20px;padding:2px;border:0;border-radius:999px;background:var(--dsw-alias-border-l3,rgba(127,127,127,.35));cursor:pointer;outline:none}
+/* 2026-10-18（设计审计 P0-3）：原为字面量 #f87171 —— 亮色档 on #f8f8f8 只有 2.60:1
+   （AA 需 4.5），且是全仓唯一没走令牌的错误文字色。改为语义令牌后亮 6.15:1 / 暗 5.98:1。
+   令牌挂在 :root（不是侧栏作用域），设置页 portal 到 body 也能取到 —— 同 zcode-theme.ts 的说明。 */
+.dcu-settings-developer-tools-error{margin-top:4px;font-size:var(--dsw-font-size-caption);line-height:18px;color:var(--dcu-state-error-text)}
+.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:36px;height:20px;padding:2px;border:0;border-radius:999px;background:color-mix(in srgb,var(--dcu-primary,#000) 30%,transparent);cursor:pointer;outline:none}
 .dcu-settings-switch:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
 .dcu-settings-switch[aria-checked=true]{background:var(--dsw-alias-brand-primary,#000)}
 .dcu-settings-switch:disabled{cursor:default;opacity:.5}
@@ -78,11 +101,11 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-switch[aria-checked=true] .dcu-settings-switch-thumb{background:var(--dsw-alias-label-primary-foreground,#fff);transform:translateX(16px)}
 .dcu-settings-document-copy{min-width:0}
 .dcu-settings-document p{margin:4px 0 0;font-size:var(--dsw-font-size-sm);color:var(--sp-muted);overflow-wrap:anywhere}
-.dcu-settings-document button{flex:none;min-height:32px;padding:6px 14px;border:0;border-radius:8px;background:var(--sp-hover);color:var(--sp-text);font:inherit;font-size:var(--dsw-font-size-caption);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-settings-document button{flex:none;min-height:32px;padding:6px var(--dcu-space-3);border:0;border-radius:var(--dsw-radius-lg);background:var(--sp-hover);color:var(--sp-text);font:inherit;font-size:var(--dsw-font-size-caption);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 .dcu-settings-document button:hover:not(:disabled){background:color-mix(in srgb,var(--sp-text) 14%,transparent)}
 .dcu-settings-document button:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:3px}
 .dcu-settings-document button:disabled{opacity:.55;cursor:wait}
-.dcu-settings-trigger{appearance:none;box-sizing:border-box;display:flex;align-items:center;border:0;border-radius:8px;background:transparent;color:var(--dcu-sidebar-navigation,inherit);height:36px;min-height:36px;padding:0 4px;width:100%;font:400 14px/20px var(--dsw-font-family);text-align:left;cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+.dcu-settings-trigger{appearance:none;box-sizing:border-box;display:flex;align-items:center;border:0;border-radius:var(--dsw-radius-lg);background:transparent;color:var(--dcu-sidebar-navigation,inherit);height:36px;min-height:36px;padding:0 4px;width:100%;font:400 14px/20px var(--dsw-font-family);text-align:left;cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 .dcu-settings-trigger-content{display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:8px;align-items:center;width:100%;min-width:0}
 .dcu-settings-trigger-content svg{display:block;width:16px;height:16px;color:var(--dcu-sidebar-icon,currentColor);transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 .dcu-settings-trigger:hover{background:var(--dcu-sidebar-hover,rgba(127,127,127,.12));color:var(--dcu-sidebar-primary,inherit)}

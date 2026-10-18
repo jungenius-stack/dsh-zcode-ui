@@ -49,7 +49,15 @@ export const ZCODE_LIGHT: TokenMap = {
   '--dsw-static-neutral-bluish-75': '#f0f0f0',
   '--dsw-static-neutral-bluish-60': '#f0f0f0',
   '--dsw-static-neutral-bluish-50': '#f8f8f8',
-  '--dsw-static-neutral-bluish-00': '#ffffff',
+  // ⚠ 这不是「白色」，而是**与背景反向的前景色**（ZCode 的 foreground-inverse 角色）。
+  // 宿主 `Tooltip.module.css` 直接拿它当**文字色**：
+  //   .bubble{background:var(--dsw-alias-tooltip-bg);color:var(--dsw-static-neutral-bluish-00)}
+  // 本仓此前把它当纯白 #ffffff，于是亮色下变成「#f0f0f0 灰底 + #ffffff 白字」= 1.14:1，
+  // 用户实测「简介背景板灰色、字体白色，看不清」。
+  // ZCode 的做法是**成对定义**（--color-tooltip / --color-tooltip-foreground）：
+  //   亮 #f0f0f0 + #0d0d0d = 17.05:1 ／ 暗 #2b2b2b + #f8f8f8 = 13.33:1
+  // 故此处取「亮底下的深前景」#0d0d0d，与 --dsw-alias-tooltip-label 同值。
+  '--dsw-static-neutral-bluish-00': '#0d0d0d',
   '--dsw-static-neutral-bluish-1000': '#0d0d0d',
 
   '--dsw-alias-bg-base': '#f8f8f8',
@@ -270,6 +278,7 @@ export const ZCODE_DARK: TokenMap = {
   '--dsw-static-neutral-bluish-75': '#2b2b2b',
   '--dsw-static-neutral-bluish-60': '#2b2b2b',
   '--dsw-static-neutral-bluish-50': '#d4d4d4',
+  // 暗底(#2b2b2b)需要浅前景 —— 与 ZCode --color-tooltip-foreground 暗档一致（#f8f8f8，13.33:1）。
   '--dsw-static-neutral-bluish-00': '#f8f8f8',
   '--dsw-static-neutral-bluish-1000': '#161616',
 

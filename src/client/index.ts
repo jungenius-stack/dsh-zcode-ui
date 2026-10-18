@@ -57,6 +57,8 @@ import { finishSessionMove, requestSessionMove, sessionMoveErrorKey, SessionMove
 import { hasArchiveSessionDelete } from './archive-session-delete.ts'
 import { installSkin, SKIN_VERSION } from './zcode-skin.ts'
 import { installThemeStyle, syncZCodeTheme } from './zcode-theme.ts'
+import { installVirtualSkip } from './virtual-skip.ts'
+import { installDocumentHiddenMotionPause } from './document-hidden-motion-pause.ts'
 import { observeHostAnchors } from './host-anchor-contract.ts'
 import { observeForeignSurfaces } from './foreign-surface-discovery.ts'
 
@@ -157,6 +159,14 @@ export function apply(ctx: ClientContext): void {
   // 还有会话区的轮次导航与页签滑块。挂在侧栏上时，侧栏一旦不挂载，那两处会静默失去过渡。
   ctx.effect(() => installThemeStyle(), 'zcode-ui-for-dsh: theme stylesheet')
   ctx.effect(() => syncZCodeTheme(), 'zcode-ui-for-dsh: theme mirror')
+  // 实验性：消息离屏跳过。**默认关闭**（需 localStorage dcu-virtual-skip=1）。
+  // 它改变宿主消息区的渲染行为，故不走常驻路径；结构不符时自身空转，不做任何写入。
+  // 依据与风险见 src/client/virtual-skip.ts 头部注释与 docs/KNOWN-ISSUES.md §43。
+  ctx.effect(() => installVirtualSkip(), 'zcode-ui-for-dsh: virtual skip (experimental)')
+  // 文档隐藏时暂停动效（移植自 ZCode）。同样必须是**应用级**：它要覆盖的不只是插件自己的
+  // 动画，还有宿主与第三方插件的——正是它们的动画对象在后台流式输出期间被 DocumentTimeline
+  // 持有、无法回收。挂在组件上会让覆盖范围随该组件是否挂载而变。
+  ctx.effect(() => installDocumentHiddenMotionPause(), 'zcode-ui-for-dsh: hidden motion pause')
   // 上游哈希类名锚点的存在性自检：改名时响亮报警，而不是让界面悄悄少一块。
   ctx.effect(() => observeHostAnchors(), 'zcode-ui-for-dsh: host anchor sentinel')
   // 外来表面发现哨兵：新插件装进来若不达标，控制台报警并给出处置建议（不自动改别人）。

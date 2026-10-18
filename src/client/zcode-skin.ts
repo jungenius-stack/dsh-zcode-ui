@@ -28,8 +28,17 @@
 
 import { renderTokenBlock, ZCODE_DARK, ZCODE_LIGHT, ZCODE_STRUCTURAL } from './zcode-tokens.ts'
 
-/** 皮肤版本；改动令牌口径时递增，便于排查线上残留。 */
-export const SKIN_VERSION = '1.2.0'
+/**
+ * 皮肤版本；**改动令牌口径时递增**，便于排查线上残留。
+ *
+ * 与 package.json 的版本是**两条独立序列**，不要试图对齐：
+ * 包版本跟着功能/移植走（如 1.13.0），皮肤版本只在「令牌口径或样式表内容发生变化」时递增。
+ * 历史：1.0.0（初版）→ 1.2.0（收敛离标度几何）→ 1.3.0（见下）。
+ * 2026-10-14 → 1.3.0：圆角字面量全部收归令牌、设置页 `--sp-*` 收归宿主语义令牌、
+ * 菜单/浮层密度按宪章 §Menus 对齐（壳 lg + 项 md + p-1 + gap-0.5）。
+ * 这三项都改变了样式表产出的声明，实机若仍挂着旧版可从 `data-dsh-zcode-skin` 一眼看出。
+ */
+export const SKIN_VERSION = '1.4.0'
 
 /** 注入到 `<html>` 上的标记属性，用于确认皮肤已激活。 */
 export const SKIN_ATTRIBUTE = 'data-dsh-zcode-skin'
