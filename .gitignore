@@ -15,3 +15,7 @@ node_modules
 # 因此一律不入库。
 debug/
 
+# 真实会话回放数据（2026-10-18）：由 scripts/extract-session-replay.py 从本机会话导出，
+# 1.7MB，内容含真实对话正文与本机绝对路径。它是性能脚本的输入素材，不是仓库资产，
+# 任何脚本都不应硬依赖它（现在也确实没有引用）。重新生成方式见那个 .py 的注释。
+scripts/fixtures/real-session-messages.json
