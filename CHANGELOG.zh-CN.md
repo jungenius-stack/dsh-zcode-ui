@@ -4,6 +4,31 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.15.7 - 2026-10-18
+
+**会话行的时间与归档图标抢同一个位置（"索引横条漂移"的真实根因）。**
+
+`.dcu-wb-session-time` 与 `.dcu-wb-quick-actions` **都是 `position:absolute; right:8px`**，
+两条都贴在行的同一个右边缘。归档图标的顶条是 `13×3.3` 的 `rect`（lucide archive 的第一笔），
+叠在时间的数字上，看上去就是「时间左边飘着一条短横线」。
+
+更糟的是时间宽度随文本变化（`1小时` 宽 42px、`1天` 宽 29px），于是每行的 `time.x`
+都不同 —— 横线的位置逐行偏移，这才是「漂移」而非「错位」的原因。实测重叠 20px。
+
+- **时间保持贴右**（`right:8px`，ZCODE-DESIGN §3.1 的契约），改为**归档图标让位**：
+  `quick-actions` 从 `right:8px` 移到 `right:56px`，落到时间左侧。时间不需要挪，
+  因此 `padding-right`、触屏分支与既有 120px 预留全部保持原值。
+
+**为什么前两轮没修到**：我一直以为那是「运行指示器」或「折叠残影」，先后改了
+`quick-actions` 的 `visibility` 和折叠过渡态的 `visibility`（两者本身也是对的，
+`opacity:0` 在合成层里确实没被剔除），但**都没有触及真正的重叠**。这一轮靠实测
+`overlap = 20px` 才定位到同槽竞争。
+
+实测：修复前各行 `time.x` = `190 / 203 / 203 …`（随字数浮动，且与 `qa.x=204` 重叠 20px）；
+修复后全部 `time.x = 156`、`overlap = 0`。新增三条断言并已用回注 bug 反向验证会红。
+
+皮肤内容版本 1.4.2 → **1.4.3**。
+
 ## 1.15.6 - 2026-10-18
 
 **新建页左右两侧的拖拽手柄重叠、指示条跟着鼠标上下漂。**

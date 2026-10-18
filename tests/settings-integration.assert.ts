@@ -244,6 +244,13 @@ assert.match(workspaceBrowser, /\.dcu-wb-section\+\.dcu-wb-section\{margin-top:1
 assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '会话标题必须使用刻度 base（14px）')
 assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '项目标题必须使用刻度 base（14px）与常规字重，不能显得过黑')
 assert.match(workspaceBrowser, /dcu-wb-session-time/, '会话行右侧必须显示紧凑相对时间')
+// 2026-10-18：时间与行内 quick-actions（归档图标）曾同时用 right:8px，实测完全重叠 20px——
+// 归档图标的顶条是 13×3.3 的 rect，叠在时间的数字上，就是「时间左边飘着一条短横线」的观感，
+// 而且时间宽度随文本浮动（1小时 42px / 1天 29px），横线遂逐行偏移。
+// 契约：时间继续贴右（ZCODE-DESIGN §3.1），由 quick-actions 让位到它左侧，两者不得同槽。
+assert.match(workspaceBrowser, /\.dcu-wb-session-time\{position:absolute;right:8px/, '会话行时间必须贴在右侧（ZCODE-DESIGN §3.1）')
+assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:56px/, '归档图标必须让位到时间左侧（right:56px），不得与时间共用 right:8px')
+assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:8px/, '归档图标不得回到 right:8px（会重新压住时间，造成横线漂移）')
 assert.match(workspaceBrowser, /<SessionTime time=\{formatCompactTime\(session\.updatedAt, t, now\)\}/, '项目内会话必须把行内短格式相对时间画在右侧')
 assert.match(workspaceBrowser, /dcu-wb-tip/, '会话必须提供 Codex 风格悬停卡片')
 // 2026-10-12 实测反馈：会话行的时长已在行内右侧常驻、所属项目已由树形层级表达，悬停卡不再重复这两项。

@@ -4,6 +4,37 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.7 - 2026-10-18
+
+**The session-row timestamp and the archive icon were fighting over the same slot — the real cause
+of the "index bar drift".**
+
+Both `.dcu-wb-session-time` and `.dcu-wb-quick-actions` were `position:absolute; right:8px`, pinned
+to the same right edge of the row. The archive icon's top bar is a `13×3.3` `rect` (the first stroke
+of lucide's archive icon), landing on top of the timestamp digits — which is what "a short dash
+floating left of the time" actually was.
+
+Worse, the timestamp width varies with its text (`1小时` is 42px, `1天` is 29px), so every row had a
+different `time.x` — the dash shifted row by row. That is drift, not misalignment. Measured overlap:
+20px.
+
+- **The timestamp stays flush right** (`right:8px`, the ZCODE-DESIGN §3.1 contract); instead the
+  **archive icon yields**: `quick-actions` moved from `right:8px` to `right:56px`, landing left of
+  the timestamp. The timestamp itself is untouched, so `padding-right`, the touch branch and the
+  existing 120px reservation all keep their original values.
+
+**Why the previous two rounds missed it**: I assumed it was the running indicator or a collapsed-state
+ghost, and changed `visibility` on `quick-actions` and on the collapsing `expanded-shell` (both were
+individually correct — `opacity:0` really does fail to be culled in some compositor paths — but
+neither touched the actual overlap). Only measuring `overlap = 20px` located the shared-slot
+conflict.
+
+Measured: before, `time.x` was `190 / 203 / 203 …` (floating, overlapping `qa.x = 204` by 20px);
+after, every row has `time.x = 156` and `overlap = 0`. Three assertions added and verified by
+re-introducing the bug.
+
+Skin content version 1.4.2 → **1.4.3**.
+
 ## 1.15.6 - 2026-10-18
 
 **The two drag handles on the new-task page overlapped, and their indicator bar tracked the pointer
