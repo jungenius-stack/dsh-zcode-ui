@@ -7,10 +7,15 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// 2026-10-18：新增 0.2.1-rc.2（桌面版 App 实际内嵌的宿主机版本）。
+// 白名单的用途是「宿主版本静默漂移时立刻红」，不是「只认证过旧版本」——
+// 宿主升级后必须显式登记新版本并跑一遍，否则活宿主门禁永远跑不起来。
+// 注意：本仓 devDependencies 仍锁 0.2.0-rc.2（类型与断言的编译基线），
+// 二者可以不同：一个是**运行**宿主，一个是**编译**基线。
 const cli = process.env.DCU_DSH_BIN
 const tarball = process.env.DCU_E2E_TARBALL
 const version = process.env.DCU_E2E_VERSION
-if (!cli || !tarball || !['0.1.2-rc.1', '0.1.5-rc.1', '0.1.5-rc.2', '0.1.5-rc.3', '0.1.7-rc.1', '0.1.7-rc.2', '0.2.0-rc.1', '0.2.0-rc.2'].includes(version)) throw new Error('需要 DCU_DSH_BIN、DCU_E2E_TARBALL 和精确的 DCU_E2E_VERSION')
+if (!cli || !tarball || !['0.1.2-rc.1', '0.1.5-rc.1', '0.1.5-rc.2', '0.1.5-rc.3', '0.1.7-rc.1', '0.1.7-rc.2', '0.2.0-rc.1', '0.2.0-rc.2', '0.2.1-rc.2'].includes(version)) throw new Error('需要 DCU_DSH_BIN、DCU_E2E_TARBALL 和精确的 DCU_E2E_VERSION')
 const repo = fileURLToPath(new URL('../', import.meta.url))
 // 版本守卫分两条路径：
 //   ① 权威来源：`<cli> --version`。桌面版 App 的 CLI 就是可用的 dsh，但它把宿主打进 app.asar，

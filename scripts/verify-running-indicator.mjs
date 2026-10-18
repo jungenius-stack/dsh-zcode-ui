@@ -1,8 +1,10 @@
 /**
  * 运行中指示器 = 本地 ZCode 3.15.1 的原版复刻（2026-10-13）。
  *
- * ZCode 侧栏的「加载小转圈」= Spinner 组件（packages/ui/src/components/ui/spinner.tsx）：
- * lucide-react 1.17.0 的 LoaderIcon + size-4 + Tailwind animate-spin，主题原文
+ * ZCode 侧栏「会话运行中」的真实写法不是 Spinner 组件，而是 task-row.tsx:246 的内联
+ * `LoaderIcon size-3.5 animate-spin text-foreground-subtle`（14px）。Spinner 组件
+ * （size-4）只用于 TaskListLoadingHint 这类**列表加载中**提示，二者尺寸不同、不可混用。
+ * 图标本体仍是 lucide-react 的 LoaderIcon + Tailwind animate-spin，主题原文
  * `--animate-spin: spin 1s linear infinite`、`@keyframes spin{to{transform:rotate(360deg)}}`。
  *
  * 本脚本在真实 Chromium 里渲染侧栏运行中指示器，逐项断言复刻参数不得漂移——
@@ -35,7 +37,7 @@ const LOADER_PATHS = [
 const { renderToStaticMarkup } = await import('react-dom/server')
 const React = await import('react')
 const { LoaderIcon } = await import('lucide-react')
-const iconHtml = renderToStaticMarkup(React.createElement(LoaderIcon, { size: 16, className: 'dcu-spin' }))
+const iconHtml = renderToStaticMarkup(React.createElement(LoaderIcon, { size: 14, className: 'dcu-spin' }))
 
 const browser = await chromium.launch({ headless: true })
 try {
@@ -66,10 +68,10 @@ try {
   })
   assert.deepEqual(m.paths, LOADER_PATHS, '图标必须是 ZCode loader.mjs 的 8 芒原版路径')
   assert.equal(m.viewBox, '0 0 24 24', 'viewBox 必须是 lucide 原版 24 视箱')
-  assert.equal(Number(m.width), 16, '尺寸必须是 ZCode 的 size-4（16px）')
-  assert.equal(Number(m.height), 16, '尺寸必须是 ZCode 的 size-4（16px）')
-  assert.equal(m.rectW, 16, '实际渲染宽度必须是 16px')
-  assert.equal(m.rectH, 16, '实际渲染高度必须是 16px')
+  assert.equal(Number(m.width), 14, '尺寸必须是 ZCode 会话行的 size-3.5（14px）')
+  assert.equal(Number(m.height), 14, '尺寸必须是 ZCode 会话行的 size-3.5（14px）')
+  assert.equal(m.rectW, 14, '实际渲染宽度必须是 14px')
+  assert.equal(m.rectH, 14, '实际渲染高度必须是 14px')
   assert.equal(m.strokeWidth, '2px', '描边必须是 lucide 原版 2（24 视箱）')
   assert.equal(m.cap, 'round', '线帽必须是 lucide 原版 round')
   assert.equal(m.join, 'round', '线接必须是 lucide 原版 round')
@@ -82,7 +84,7 @@ try {
   assert.ok(!m.transitionProperty.includes('width') && !m.transitionProperty.includes('height'), '转圈不得过渡尺寸（只允许 transform 旋转）')
   assert.equal(m.boxW, 16, '占位必须是 16px 的文件夹格')
   assert.equal(m.boxH, 20, '占位必须是 20px 的文件夹格')
-  assert.equal(m.offsetTop, 2, '图标必须在格内垂直居中（(20-16)/2 = 2px）')
+  assert.equal(m.offsetTop, 3, '图标必须在格内垂直居中（(20-14)/2 = 3px）')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   const reduced = await page.evaluate(() => {
     const svg = document.querySelector('.dcu-wb-running svg')
@@ -92,7 +94,7 @@ try {
   assert.equal(reduced.animation, 'none', '减少动态效果必须停静止帧')
   assert.equal(reduced.opacity, '1', '减少动态效果下图标不得消失（信息保留）')
   assert.equal(reduced.transform, 'none', '减少动态效果下不得残留旋转')
-  console.log('✓ 运行中指示器：ZCode 原版复刻逐项一致（8 芒 LoaderIcon / size-4 / 2px 描边 / #686868 / 1s linear infinite / 停静止帧）')
+  console.log('✓ 运行中指示器：ZCode 原版复刻逐项一致（8 芒 LoaderIcon / size-3.5=14px / 2px 描边 / #686868 / 1s linear infinite / 停静止帧）')
 } finally {
   await browser.close()
 }

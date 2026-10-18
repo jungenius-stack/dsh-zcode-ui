@@ -46,6 +46,10 @@ const LAYOUT = [
   ['scripts/verify-upstream-style-regressions.mjs', []],
   ['scripts/verify-state-shells.mjs', []],
   ['scripts/verify-a11y-and-overflow.mjs', []],
+  // 2026-10-18：关系型/全量型断言（设计审计 §07 的 A2/A3/A4/A6）。
+  // 与上面 16 个「单点阈值」脚本互补——那一批量的是「某个值对不对」，
+  // 这一个量的是「两个值之间的关系对不对」（缩进、组界、滚动边界、色板单一真源）。
+  ['scripts/verify-tree-hierarchy-relations.mjs', []],
 ]
 
 /** 去掉 ANSI 颜色码：vitest 的 `FAIL` 带颜色时前面是转义序列，会破坏行首匹配。 */

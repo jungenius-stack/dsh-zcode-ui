@@ -14,6 +14,23 @@ const theme = readFileSync(new URL('../src/client/zcode-theme.ts', import.meta.u
 
 const sidebarStylesheet = sidebar.match(/const stylesheet = `([\s\S]*?)`/)?.[1]
 assert.ok(sidebarStylesheet, '必须能读取侧栏样式，避免防回归检查被跳过')
+
+// ── 模板串截断守卫（2026-10-16，同一个坑已踩三次）──
+// 上面的提取正则是**非贪婪**的：只要 CSS 模板串内部出现一个反引号，它就在那里提前收尾、
+// **静默截断**。后果是 tsdown 构建失败、宿主报 failed to import，而断言套件**全绿**——
+// 因为所有 `assert.doesNotMatch(sidebarStylesheet, ...)` 只看到截断后的前半段。
+// 用四个确定性判据把它挡在构建之前（这些判据都不依赖"截断点在哪"）：
+{
+  const backticks = (sidebar.match(/`/g) ?? []).length
+  assert.equal(backticks % 2, 0, `CodexSidebar.tsx 的反引号必须成对，实测 ${backticks} 个（奇数说明有 CSS 模板串被内部反引号截断）`)
+  const opens = (sidebarStylesheet.match(/\{/g) ?? []).length
+  const closes = (sidebarStylesheet.match(/\}/g) ?? []).length
+  assert.equal(opens, closes, `侧栏 CSS 花括号必须配平（{ ${opens} / } ${closes}）——不配平说明模板串被提前截断`)
+  const cOpen = (sidebarStylesheet.match(/\/\*/g) ?? []).length
+  const cClose = (sidebarStylesheet.match(/\*\//g) ?? []).length
+  assert.equal(cOpen, cClose, `侧栏 CSS 注释必须闭合（/* ${cOpen} / */ ${cClose}）——不闭合说明截断落在注释里`)
+  assert.ok(sidebarStylesheet.trimEnd().endsWith('}'), '侧栏 CSS 必须以规则结尾——否则说明模板串被提前截断')
+}
 assert.doesNotMatch(sidebarStylesheet, /billing-(?:trigger|rail-button)/, '侧栏不得改写费用插件入口样式')
 
 assert.ok(sidebar.includes('.dcu-settings-seat [data-slot="settings.trigger"]>svg{color:var(--dcu-sidebar-icon)}'), '设置图标必须使用侧栏颜色，穿过宿主 slot 包装定位图标')
@@ -120,10 +137,68 @@ assert.match(sidebar, /body\[data-we-appwindow\]\[data-we-sidebar-glass\] \.dcu-
 assert.match(theme, /--dcu-tip-bg:#ffffff/, '浅色悬停卡片必须是浅底，不得写死深色')
 assert.match(theme, /--dcu-tip-bg:#2b2b2b/, '暗色悬停卡片必须使用 ZCode 的中性深灰背景')
 // 2026-10-13 更新：ZCode 的 foreground-subtle/subtlest 是叠在**白底**上推导的，落到侧栏 #f0f0f0 上
-// 实测只有 3.93:1 / 2.32:1（低于 WCAG AA 4.5:1）。此处按侧栏底色重新取值：secondary #5c5c5c(5.87:1)、
-// tertiary #686868(4.89:1)。见 docs/KNOWN-ISSUES.md §3.1 设计变更登记。
-assert.match(theme, /--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#5c5c5c;[\s\S]*?--dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;--dcu-sidebar-icon:#525252/, '浅色侧栏必须使用达标的中性灰文字层级（primary #262626 / secondary #5c5c5c / tertiary #686868 / icon #525252，均 ≥4.5:1）')
-assert.match(theme, /--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#888888;[\s\S]*?--dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;--dcu-sidebar-icon:#a3a3a3/, '暗色侧栏必须使用达标的中性灰文字层级（primary #d4d4d4 / secondary #888888 / tertiary #828282 / icon #a3a3a3，均 ≥4.5:1）')
+// 实测只有 3.93:1 / 2.32:1（低于 WCAG AA 4.5:1）。此处按侧栏底色重新取值。
+// 2026-10-18（设计审计 P1-1，CODE-040）：原断言把三档的具体 hex 写成契约，于是「调 secondary
+// 修明度塌陷」会先撞红门禁——而最该守的两件事（**每档都达 AA**、**相邻档可分辨**）反倒没被断言。
+// 改为锁意图：从主题里取出实际值，断言 ①两套主题每档 on 各自底色 ≥4.5:1
+// ②同一字号相邻两档的明度差 ΔL* ≥ 6（否则「有第三档」在视觉上不成立）。
+function srgbToLinear(channel: number): number {
+  const c = channel / 255
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+}
+function luminance(hex: string): number {
+  const h = hex.replace('#', '')
+  const [r, g, b] = [0, 2, 4].map(i => srgbToLinear(Number.parseInt(h.slice(i, i + 2), 16)))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+function contrastRatio(fg: string, bg: string): number {
+  const [a, b] = [luminance(fg), luminance(bg)]
+  const [hi, lo] = a > b ? [a, b] : [b, a]
+  return (hi + 0.05) / (lo + 0.05)
+}
+/** CIE L*（明度感知轴），用于判断「两档能不能被看出区别」。 */
+function lightness(hex: string): number {
+  const y = luminance(hex)
+  return y > 0.008856 ? 116 * y ** (1 / 3) - 16 : 903.3 * y
+}
+const sidebarTiers = ((): { bg: string; primary: string; secondary: string; tertiary: string; icon: string }[] => {
+  const read = (block: string, name: string): string => {
+    const m = new RegExp('--dcu-sidebar-' + name + ':(#[0-9a-fA-F]{6})').exec(block)
+    assert.ok(m !== null, `主题块里必须定义 --dcu-sidebar-${name}`)
+    return m[1]
+  }
+  const lightStart = theme.indexOf('.dcu-root,.dcu-settings-page,.dcu-home{')
+  const darkStart = theme.indexOf('body[data-ds-dark-theme] .dcu-root')
+  assert.ok(lightStart >= 0 && darkStart > lightStart, '主题必须同时定义亮/暗两套侧栏色板')
+  const lightBlock = theme.slice(lightStart, darkStart)
+  const darkBlock = theme.slice(darkStart)
+  return [lightBlock, darkBlock].map(block => ({
+    bg: read(block, 'background'),
+    primary: read(block, 'primary'),
+    secondary: read(block, 'secondary'),
+    tertiary: read(block, 'tertiary'),
+    icon: read(block, 'icon'),
+  }))
+})()
+for (const [index, tiers] of sidebarTiers.entries()) {
+  const name = index === 0 ? '浅色' : '暗色'
+  for (const tier of ['primary', 'secondary', 'tertiary'] as const) {
+    const ratio = contrastRatio(tiers[tier], tiers.bg)
+    assert.ok(ratio >= 4.5, `${name}侧栏 ${tier} ${tiers[tier]} on ${tiers.bg} 必须 ≥4.5:1（实测 ${ratio.toFixed(2)}:1）`)
+  }
+  // 相邻两档必须可分辨：**这是「三档灰」这个设计成立的前提**，比记死某个 hex 重要得多。
+  // 2026-10-18 之前的实测是 ΔL* 4.9(亮)/2.3(暗)，第三档在视觉上不存在 —— 正是 P1-1 要修的。
+  // 2026-10-18（红队复核）：icon 是**图标色**不是第四档文字（全仓只用于 SVG），
+  // 因此不参与上面的「文字档 ΔL*≥6」，改按 WCAG 非文本 3:1 单独守。
+  // 这条断言的意义：P1-1 把 secondary 移近 icon 后，若有人顺手把 icon 也调淡，
+  // 图标会跌破 3:1 —— 而那是一条真实的 a11y 底线，不能靠「不参与文字判据」逃掉。
+  const iconRatio = contrastRatio(tiers.icon, tiers.bg)
+  assert.ok(iconRatio >= 3, `${name}侧栏图标色 ${tiers.icon} on ${tiers.bg} 必须 ≥3:1（非文本图形底线，实测 ${iconRatio.toFixed(2)}:1）`)
+  const pToS = Math.abs(lightness(tiers.primary) - lightness(tiers.secondary))
+  const sToT = Math.abs(lightness(tiers.secondary) - lightness(tiers.tertiary))
+  assert.ok(pToS >= 6, `${name}侧栏 primary 与 secondary 的明度差必须 ≥6 ΔL*（实测 ${pToS.toFixed(1)}）`)
+  assert.ok(sToT >= 6, `${name}侧栏 secondary 与 tertiary 的明度差必须 ≥6 ΔL*（实测 ${sToT.toFixed(1)}）——小于此值第三档等于不存在`)
+}
 // 2026-10-12 设计变更登记：ZCODE-DESIGN §2 只定义了 primary/secondary/tertiary/icon 四档，
 // 没有"导航比标题更淡"的独立层级——`--dcu-sidebar-navigation` 现与 primary 同值，主菜单直接用 primary。
 // 因此不再断言"导航必须更淡"，改为断言主菜单的字重与取色（意图：常规字重、不用主标题色）。
@@ -141,7 +216,8 @@ assert.match(sidebar, /browserStorage\(\)/, '扩展分组偏好必须复用统�
 assert.match(sidebar, /\.dcu-extension-panel,.dcu-extension-leading svg\{animation:none;transition:none\}/, '扩展动画必须遵循减少动态效果设置')
 // 2026-10-12 设计变更登记：任务频道/定时页签由"整行切换器"改为 ZCode 的分段控件
 //（`--dcu-surface` 底 + 1px 边框 + 8px 圆角 + 2px 内衬），不再用 border-bottom 分隔。
-assert.match(sidebar, /\.dcu-im-tabs\{[^}]*background:var\(--dcu-surface\);border:1px solid var\(--dcu-sidebar-border\);border-radius:8px/, '任务频道定时页签必须是 ZCode 分段控件（surface 底 + 边框 + 8px 圆角）')
+// 2026-10-14：圆角允许写成 var(--dsw-radius-lg)（值同为 8px），锁意图不锁写法。
+assert.match(sidebar, /\.dcu-im-tabs\{[^}]*background:var\(--dcu-surface\);border:1px solid var\(--dcu-sidebar-border\);border-radius:(?:8px|var\(--dsw-radius-lg\))/, '任务频道定时页签必须是 ZCode 分段控件（surface 底 + 边框 + 8px 圆角）')
 assert.match(sidebar, /\.dcu-im-tab\{[^}]*font:500 12px\/18px/, '任务频道定时页签使用刻度 sm(12px)，不再与主导航同级字号')
 assert.match(sidebar, /\.dcu-im-tab\[data-on=true\]\{[^}]*background:var\(--dcu-sidebar-selected\)/, '选中页签必须用底色区分（ZCode 分段控件不再用字重加粗）')
 assert.match(sidebar, /\.dcu-extension-items::before\{content:"";position:absolute;left:-12px/, '扩展树线必须与父级图标中心对齐')
@@ -172,3 +248,37 @@ assert.ok(tickMarkSize(2, 5, true).width < 8, '悬停其他条时，原来的选
 assert.match(navigator, /data-hovering/, '轨道悬停时必须进入仅高亮悬停条的状态')
 assert.match(navigator, /\[data-hovering=true\] \.dcu-turn-link\[aria-current=true\]/, '悬停时不得继续强调原来的选中刻度')
 assert.match(navigator, /transition:width var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/, '刻度长短切换属尺寸变化，必须使用移动档曲线')
+
+// ── 2026-10-17 模板串截断守卫补强（第四次踩同一个坑）──────────────────────────
+// 已踩历史：§13 / §19 / §26.6 / §27.7，本轮是第五次。
+// 上面四条判据全部拦不住**本轮这种形态**：截断由一个**成对**的反引号造成
+// （注释里写了 `both` 指代 CSS 属性），于是：
+//   · 反引号奇偶 = 偶数 ✓（成对）
+//   · 花括号仍配平 ✓（截断点在注释里，前后各自平衡）
+//   · 注释闭合 ✓、以 } 结尾 ✓
+// 结果：`const stylesheet` 只剩 3440 字符（真实应为 25453），
+// 后面 2 万字符的 CSS 全部泄漏成 JS，而断言套件**全绿**。
+//
+// 新增确定性判据：**CSS 模板串里不允许出现成对反引号形式的"代码引用"**。
+// 更根本的一条：模板串必须包含它应有的关键规则——截断必然让尾部规则消失。
+{
+  const mustHave = [
+    '.dcu-root{',
+    '.dcu-head{',
+    '.dcu-menu{',
+    '@keyframes dcu-sidebar-compact-in',
+    '.dcu-root.dcu-compact .dcu-compact-shell',
+  ]
+  for (const rule of mustHave) {
+    assert.ok(sidebarStylesheet.includes(rule),
+      `侧栏 CSS 必须包含 "${rule}"——缺失说明模板串被提前截断（当前只截到 ${sidebarStylesheet.length} 字符）`)
+  }
+  // 体积下界：完整侧栏样式约 25k 字符；截断后只剩 3.4k。用宽松下界拦住"腰斩"，
+  // 而不是锁死具体数值（那样每次加规则都要改断言）。
+  assert.ok(sidebarStylesheet.length > 15000,
+    `侧栏 CSS 不应短于 15000 字符（实测 ${sidebarStylesheet.length}）——过短说明模板串被截断`)
+  // HTML 标签泄漏检测：CSS 里出现 JSX 标签说明字符串边界错了。
+  assert.doesNotMatch(sidebarStylesheet, /<span|<div|className=/,
+    '侧栏 CSS 中不得出现 JSX 标记——出现即说明模板串边界错位、CSS 与 JS 混流')
+}
+console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX 泄漏')

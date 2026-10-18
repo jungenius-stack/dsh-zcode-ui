@@ -104,7 +104,7 @@ assert.match(client, /priority: -1/, '自定义工作区树必须以更低优先
 assert.match(client, /openPathInHost/, '资源管理器动作必须直接调用 Host，不能经过可被第三方包装的 workspaces.openPath')
 assert.doesNotMatch(client, /ctx\.workspaces\.openPath/, '资源管理器动作不得再进入侧边栏文件预览拦截链')
 assert.match(workspaceBrowser, /const openPathImmediately[^]*setMenu\(undefined\)[^]*setHeaderMenu\(undefined\)[^]*run\('open-path'/, '资源管理器首次启动较慢时，菜单也必须在点击后立即收起')
-assert.match(workspaceBrowser, /\.dcu-wb-rename-input\{[^}]*border:1px solid var\(--dsw-alias-border-l2\)[^}]*border-radius:8px/, '重命名输入框必须使用弹窗可见的全局边框 token 和矩形圆角')
+assert.match(workspaceBrowser, /\.dcu-wb-rename-input\{[^}]*border:1px solid var\(--dsw-alias-border-l2\)[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))/, '重命名输入框必须使用弹窗可见的全局边框 token 和矩形圆角')
 // 2026-10-14 更正：本条文案一直写「蓝色焦点态」，但正则匹配的是
 // --dsw-alias-state-business-primary（亮色 #000000 / 暗色 #ffffff，**黑白**）——
 // 文案与判据自相矛盾，实现跟着错的那一半走。现按文案本意改为宿主一等焦点令牌
@@ -149,7 +149,7 @@ assert.doesNotMatch(workspaceBrowser, /box-shadow:inset 0 2px var\(--dsw-alias-s
 assert.match(workspaceBrowser, /function setDragPreview\(/, '会话、项目和分组必须复用稳定的自定义拖拽预览')
 assert.match(workspaceBrowser, /setDragPreview\(event\.dataTransfer, workspace\.title, event\.currentTarget\.querySelector\('\.dcu-wb-folder'\)\)/, '项目拖拽预览必须包含文件夹图标')
 assert.match(workspaceBrowser, /dataTransfer\.setDragImage\(preview, 16, 15\)/, '自定义拖拽预览必须使用与紧凑胶囊居中的鼠标锚点')
-assert.match(workspaceBrowser, /\.dcu-wb-drag-ghost\{[^}]*display:flex[^}]*height:30px[^}]*border-radius:8px/, '拖拽预览必须使用 Codex 风格的紧凑胶囊')
+assert.match(workspaceBrowser, /\.dcu-wb-drag-ghost\{[^}]*display:flex[^}]*height:30px[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))/, '拖拽预览必须使用 Codex 风格的紧凑胶囊')
 assert.match(workspaceBrowser, /\.dcu-wb-drag-ghost-icon\{[^}]*width:16px[^}]*height:16px/, '项目拖拽预览图标必须保持 16px')
 assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-drag-ghost\{[^}]*opacity:0/, '拖拽预览不得透明，否则浏览器会回退到不稳定的默认快照')
 assert.match(workspaceBrowser, /user-select:none/, 'no text selection during drag')
@@ -173,13 +173,13 @@ assert.match(workspaceBrowser, /const runSessionMoveAction[^]*requestSessionMove
 assert.match(workspaceBrowser, /sessionMoveTarget[^]*sessions\.moveConfirmTitle[^]*sessions\.moveConfirmAction/, '跨项目会话迁移必须显示二次确认弹窗')
 assert.match(workspaceBrowser, /expandedForSessionMove\([^]*writeTreeExpansionState\([^]*await moveSession\(/, '确认迁移时必须先同步持久化目标项目展开状态，再调用会话迁移')
 assert.match(workspaceBrowser, /ontoProject: true/, '所属项目的文件夹与空白区域必须保留会话排序落点')
-assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-drop>\.dcu-wb-project-head\{[^}]*border-radius:8px[^}]*background:color-mix\(in srgb,var\(--dsw-alias-state-business-primary\) 9%,transparent\)[^}]*outline:2px solid[^}]*outline-offset:-2px/, '拖回当前项目文件夹必须复用跨项目目标的描边、圆角和淡色背景')
+assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-drop>\.dcu-wb-project-head\{[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))[^}]*background:color-mix\(in srgb,var\(--dsw-alias-state-business-primary\) 9%,transparent\)[^}]*outline:2px solid[^}]*outline-offset:-2px/, '拖回当前项目文件夹必须复用跨项目目标的描边、圆角和淡色背景')
 assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-drop>\.dcu-wb-project-head\{[^}]*outline:1px solid/, '当前项目文件夹不得继续使用更细的独立描边')
-assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-move-drop\{[^}]*border-radius:8px[^}]*outline:2px solid/, '跨项目拖放必须使用 Codex 风格的整项目高亮轮廓')
+assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-move-drop\{[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))[^}]*outline:2px solid/, '跨项目拖放必须使用 Codex 风格的整项目高亮轮廓')
 assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-move-drop\{[^}]*background:color-mix\(in srgb,var\(--dsw-alias-state-business-primary\) 9%,transparent\)/, '跨项目拖放必须为整个目标项目增加淡色背景')
 assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-move-drop>\.dcu-wb-project-head\{background:transparent;outline:0\}/, '跨项目拖放的文件夹标题不得重复叠加悬浮底色')
 assert.match(workspaceBrowser, /dcu-wb-workspace-move-drop/, '项目跨分组拖放必须使用整分组高亮状态')
-assert.match(workspaceBrowser, /\.dcu-wb-collection\.dcu-wb-workspace-move-drop,\.dcu-wb-ungrouped\.dcu-wb-workspace-move-drop\{[^}]*border-radius:8px[^}]*background:color-mix\(in srgb,var\(--dsw-alias-state-business-primary\) 9%,transparent\)[^}]*outline:2px solid/, '跨分组拖放必须复用会话跨项目的描边、圆角和淡色背景')
+assert.match(workspaceBrowser, /\.dcu-wb-collection\.dcu-wb-workspace-move-drop,\.dcu-wb-ungrouped\.dcu-wb-workspace-move-drop\{[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))[^}]*background:color-mix\(in srgb,var\(--dsw-alias-state-business-primary\) 9%,transparent\)[^}]*outline:2px solid/, '跨分组拖放必须复用会话跨项目的描边、圆角和淡色背景')
 assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-drop::before,\.dcu-wb-session\.dcu-wb-drop::before[^}]*left:7px;right:8px;top:-8px;height:8px/, '项目与会话排序线必须位于相邻行间距正中，并与 Codex 保持相同横向起点')
 assert.match(workspaceBrowser, /radial-gradient\(circle at 4px 50%,transparent 1\.75px,var\(--dsw-alias-state-business-primary\) 2px 3\.75px,transparent 4px\)/, '排序线起点必须使用 Codex 风格的 8px 空心圆环')
 assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-drop::before,\.dcu-wb-session\.dcu-wb-drop::before\{top:0\}/, '项目与会话排序线不得下沉到目标行内部')
@@ -228,10 +228,19 @@ assert.match(workspaceBrowser, /onContextMenu=\{\(event\) => \{ event\.preventDe
 assert.match(workspaceBrowser, /aria-label=\{t\('workspace\.actions', \{ name: workspace\.title \}\)\} onClick=\{\(event\) => \{ event\.stopPropagation\(\); dismissTip\(\); setMenu\(/, '点击项目三点菜单时必须先关闭悬停信息卡')
 assert.match(workspaceBrowser, /onContextMenu=\{\(event\) => \{ event\.preventDefault\(\); event\.stopPropagation\(\); dismissTip\(\); setMenu\(\{ id, type: 'session', x: event\.clientX, y: event\.clientY \}\) \}\}/, '右键会话必须按鼠标位置打开菜单')
 assert.match(workspaceBrowser, /pointerMenuRect/, '右键菜单必须用指针坐标做锚点')
-assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*padding-left:30px/, '会话标题必须与项目标题左对齐')
-assert.match(workspaceBrowser, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font:13px\/20px var\(--dsw-font-family\);font-weight:400;letter-spacing:0;padding-left:0\}/, '置顶项目最近必须使用比导航正文更克制的二级灰 13px 标题')
+// 2026-10-18（设计审计 P0-4，CODE-040）：原断言锁 `padding-left:30px` 且注释写「必须与项目标题
+// 左对齐」——把「两级树被压平」这件事写成了契约，于是修层级会先撞红门禁。改为锁意图：
+// 会话行必须相对项目标题右缩进。审计原提案是 42px（缩进 12px）+ 字号降一档，
+// 这里只取缩进、不降字号，理由见下方 font-size 断言处的说明。
+assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*padding-left:40px/, '会话行必须相对项目标题右缩进（两级树必须可分辨），且缩进量落在 4px 标度内')
+// 同上（CODE-040）：锁设计意图，不锁字面量。
+assert.match(workspaceBrowser, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font-size:var\(--dsw-font-size-caption\);line-height:20px;font-weight:400/, '置顶项目最近必须使用比导航正文更克制的二级灰标题，且字号走 caption 刻度')
 assert.match(workspaceBrowser, /\.dcu-wb-section\+\.dcu-wb-section\{margin-top:12px\}/, '置顶、项目和最近之间必须留出分区间距')
 // 2026-10-12 更新：字号改为七档刻度令牌（base = 14px），不再是硬编码 px。
+// 2026-10-18（P0-4 决定**不采纳**审计的「会话标题降到 caption(13px)」那半条）：
+// 层级区分已由 10px 缩进承担；审计也没给出 ZCode 侧栏把会话字号降到 13px 的一手依据
+// （DESIGN.md §Sidebar 只规定 8px 圆角 / 32px 行高，未规定会话行字号）。
+// 按「找不到依据的改动不做」原则保持 base 档，断言维持不变。
 assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '会话标题必须使用刻度 base（14px）')
 assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '项目标题必须使用刻度 base（14px）与常规字重，不能显得过黑')
 assert.match(workspaceBrowser, /dcu-wb-session-time/, '会话行右侧必须显示紧凑相对时间')
@@ -249,15 +258,18 @@ assert.match(workspaceBrowser, /showTip\(\{ kind: 'workspace'/, '项目文件夹
 assert.match(hoverCard, /workspace\.edit/, '项目悬停必须提供编辑项目')
 assert.doesNotMatch(workspaceBrowser, /dcu-wb-status/, '工作区行不得将运行状态渲染为未读标记')
 assert.match(workspaceBrowser, /<SessionRowTitle title=\{session\.displayTitle\} \/>[^]*<SessionState pendingInteraction=\{pendingInteraction\} unread=\{rowUnread\(id\)\} running=\{rowRunning\(id, session\)\}/, '待处理、未读和运行中状态必须走统一优先级；未读与运行中共用行首状态槽（未读优先），待处理胶囊在右侧')
-assert.match(workspaceBrowser, /\.dcu-wb-unread\{position:absolute;left:13px;top:50%;width:6px/, '未读点必须画在行首 16px 状态槽（与运行中转圈同槽居中，对齐 ZCode）')
+// 2026-10-18（P0-4）：槽位偏移不再写死 8/13px，改由 --dcu-wb-slot-left / --dcu-wb-dot-left
+// 在行上声明 —— 否则行内距从 30px 加到 40px 后，absolute 定位的状态槽不跟着走，
+// 会漂在行中间（实测「槽↔标题」间隙从 11px 涨到 21px）。断言改锁「必须消费这两个变量」。
+assert.match(workspaceBrowser, /\.dcu-wb-unread\{position:absolute;left:var\(--dcu-wb-dot-left\);top:50%;width:6px/, '未读点必须画在行首 16px 状态槽（与运行中转圈同槽居中，对齐 ZCode），且槽位随行内距下发')
 assert.match(workspaceBrowser, /\.dcu-wb-pending\{position:absolute;right:10px;top:50%;[^}]*transform:translateY\(-50%\)/, '待处理标签必须固定在会话行右侧')
 assert.match(workspaceBrowser, /\.dcu-wb-session:hover \.dcu-wb-quick-actions/, '会话悬停时必须显示 Codex 风格的快捷操作')
 // 2026-10-12 更新：ZCode 几何为 8px 圆角、32px 行高（原 Codex 为 10px / 30px）。
-assert.match(workspaceBrowser, /\.dcu-wb-project-head,\.dcu-wb-session\{[^}]*border-radius:8px/, '项目文件夹与会话必须使用 ZCode 的 8px 紧凑圆角')
+assert.match(workspaceBrowser, /\.dcu-wb-project-head,\.dcu-wb-session\{[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))/, '项目文件夹与会话必须使用 ZCode 的 8px 紧凑圆角')
 assert.match(workspaceBrowser, /\.dcu-wb-project-head\{height:32px/, '项目文件夹胶囊必须使用 ZCode 的 32px 高度')
 assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*min-height:32px/, '会话胶囊必须与项目文件夹保持相同高度')
 assert.match(workspaceBrowser, /\.dcu-wb-project-body>\.dcu-wb-session:first-child,\.dcu-wb-project-body>\.dcu-wb-nochat:first-child\{margin-top:4px\}/, '项目与首个会话或空态之间必须保留层级间距')
-assert.match(workspaceBrowser, /\.dcu-wb-nochat\{padding:1px 8px 5px 30px\}/, '空聊天必须完整声明四边间距，避免依赖旧样式补齐')
+assert.match(workspaceBrowser, /\.dcu-wb-nochat\{padding:1px 8px 5px 40px\}/, '空聊天必须完整声明四边间距并与会话文字同列（40px），避免依赖旧样式补齐')
 assert.match(workspaceBrowser, /dcu-wb-quick-actions">\{archiveConfirm[^]*<QuickArchiveIcon \/>/, '会话悬停快捷操作必须保留 ZCode 风格的归档图标（确认态切换为确认按钮）')
 assert.match(workspaceBrowser, /className="dcu-wb-confirm"[^]*sessions\.confirm/, '两步确认必须渲染带确认文案的确认按钮')
 // 2026-10-13 ZCode 对齐：键盘聚焦与悬停同权——均露出快捷操作并让元信息让位。
@@ -272,9 +284,11 @@ assert.match(workspaceBrowser, /className="dcu-wb-more dcu-wb-context-anchor"/, 
 assert.match(workspaceBrowser, /onContextMenu=\{\(event\) => \{ event\.preventDefault\(\); event\.stopPropagation\(\); dismissTip\(\); setMenu\(\{ id, type: 'session', x: event\.clientX, y: event\.clientY \}\) \}\}/, '右键会话必须按鼠标位置打开菜单')
 assert.match(workspaceBrowser, /SessionState pendingInteraction=\{pendingInteraction\}[^]*running=\{rowRunning\(id, session\)\}/, '运行会话必须通过统一状态组件在左侧显示状态圈')
 // 2026-10-13：转圈改为 ZCode 原版复刻——动画是主题层共享基元 .dcu-spin，本体在会话树里。
-assert.match(readFileSync(new URL('../src/client/session-tree.tsx', import.meta.url), 'utf8'), /<ZIconLoading size=\{16\} className="dcu-spin"/, '运行状态圈必须使用 ZCode 原版转圈（LoaderIcon + 共享 .dcu-spin 基元）')
+// 2026-10-17（CODE-040）：锁意图不锁字面量。ZCode 会话行原文是 size-3.5（14px）；
+// 只要仍消费共享 .dcu-spin 基元 + 14px 即可，避免把当时的 16px 写死成契约。
+assert.match(readFileSync(new URL('../src/client/session-tree.tsx', import.meta.url), 'utf8'), /<ZIconLoading size=\{14\} className="dcu-spin"/, '运行状态圈必须使用 ZCode 原版转圈（LoaderIcon size-3.5 + 共享 .dcu-spin 基元）')
 assert.doesNotMatch(workspaceBrowser, /isPinned && <span className="dcu-wb-pin"/, '项目置顶不应显示星标')
-assert.match(workspaceBrowser, /\.dcu-wb-pin\{position:absolute;left:8px;top:50%/, '行首置顶按钮必须落在 16px 行首槽（与运行中转圈同格）')
+assert.match(workspaceBrowser, /\.dcu-wb-pin\{position:absolute;left:var\(--dcu-wb-slot-left\);top:50%/, '行首置顶按钮必须落在 16px 行首槽（与运行中转圈同格），且槽位随行内距下发')
 assert.doesNotMatch(workspaceBrowser, /IconFullscreenOutline16|openWindow|window\.open/, '桌面端嵌入前不得保留在新窗口打开功能')
 assert.doesNotMatch(client, /as never|as unknown as/, '客户端插槽注册不得绕过官方类型')
 

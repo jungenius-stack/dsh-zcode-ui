@@ -45,7 +45,12 @@ assert.doesNotMatch(header, /padding-top:0/, '顶栏控件不得再次贴到窗�
 assert.match(header, /header:has\(\[data-dcu-inline-tabs\]\)\{[^}]*border-bottom:0/, '紧凑顶栏必须彻底移除宿主底部分割线')
 assert.match(header, /\[data-dcu-inline-tabs\]\{box-sizing:border-box;[^}]*gap:0[^}]*height:28px[^}]*border:1px[^}]*border-radius:var\(--dsw-radius-lg\)/, '方案 1 外框必须是包含边框在内的 28px 分段控件')
 assert.match(header, /\[data-dcu-tab-slider\]\{[^}]*height:26px/, '分段滑块必须适配 28px 外框的内部高度')
-assert.match(header, /\[role=tab\]\{[^}]*height:26px[^}]*padding:3px 10px/, '分段页签必须适配 28px 外框的内部高度')
+// 2026-10-16 改为**意图式**：原先锁字面量 `padding:3px 10px`，属 CODE-040「把当时的实现值
+// 写成断言契约」——它把「横向恰好 10px」当成了契约，而真实意图是
+// 「页签在 28px 外框里垂直居中（26px + 3px）且横向有紧凑内边距」。
+// 横向间距已按 ZCode §Spacing 收归标度 var(--dcu-space-2)=8px，
+// 锁字面量会让这次合规的令牌化被误判成回归。
+assert.match(header, /\[role=tab\]\{[^}]*height:26px[^}]*padding:3px (?:10px|var\(--dcu-space-2\))/, '分段页签必须适配 28px 外框的内部高度（height 26px + 3px 垂直居中；横向走间距标度）')
 assert.match(header, /\[role=tab\]\+\[role=tab\]\{border-left:1px/, '分段控件内部必须保留轻量分隔')
 assert.match(header, /slider\.style\.width = `\$\{Math\.max\(0, tabBox\.width\)\}px`/, '选中背景必须覆盖当前文字分段')
 assert.doesNotMatch(header, /toggle-cluster.*\.(after|append|insertBefore)|translateY\(14/, '不得物理搬移或位移外部插件按钮')

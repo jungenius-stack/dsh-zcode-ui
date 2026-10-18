@@ -112,14 +112,28 @@ assert.match(workspace, /dcu-wb-folder-current/, '当前会话所在项目只能
 assert.match(workspace, /\.dcu-wb\{--dcu-wb-inset:8px/, '工作区树必须使用 Codex 风格的 8px 横向留白')
 // 本断言原要求 Codex 的 10px 圆角，与插件「改成 ZCode 风格」的设计目标直接冲突
 // （ZCode DESIGN.md：控件默认 rounded-lg = 8px）。按设计意图修正为 8px。
-assert.match(workspace, /\.dcu-wb-project-head,\.dcu-wb-session\{[^}]*border-radius:8px/, '项目和会话胶囊必须使用 ZCode 风格的 8px 圆角')
+// 2026-10-14：锁「设计意图」而非字面量写法。值必须等于 8px，但允许写成
+// var(--dsw-radius-lg)——design-system.assert 的圆角棘轮要求标度内圆角一律走令牌，
+// 这里锁死字面量会与棘轮互相打架。
+assert.match(workspace, /\.dcu-wb-project-head,\.dcu-wb-session\{[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))/, '项目和会话胶囊必须使用 ZCode 风格的 8px 圆角（lg 档）')
 assert.match(workspace, /\.dcu-wb-project-head\{height:32px/, '项目胶囊必须使用 ZCode 的 32px 行高（DESIGN.md：侧栏行高 32px）')
 assert.match(workspace, /\.dcu-wb-session\{[^}]*min-height:32px/, '会话胶囊必须与项目胶囊保持相同高度（32px）')
 assert.match(workspace, /\.dcu-wb-project-body>\.dcu-wb-session:first-child,\.dcu-wb-project-body>\.dcu-wb-nochat:first-child\{margin-top:4px\}/, '项目胶囊与首条会话之间必须保留层级间距')
-assert.match(workspace, /\.dcu-wb-project-body:has\(>\.dcu-wb-session\)::after\{content:"";display:block;height:4px;pointer-events:none\}/, '会话列表末尾必须有与顶部一致的 4px 内部留白，避免贴住下一项目；留白随内容一起折叠')
+// 2026-10-18（设计审计 P0-5，CODE-040）：原断言把 4px 锁成契约，而 4px 正是「组内 34 / 组间 36
+// 只差 2px、分组不可见」的成因。改为锁意图：组间留白必须**明显大于**组内行距（会话行间是 2px），
+// 且必须带 `:has(> .dcu-wb-session)` —— 否则会作用到空项目上凭空撑高。
+// 具体比例由真浏览器关系断言校验（组间 44 / 组内 34）。
+assert.match(workspace, /\.dcu-wb-project-body:has\(>\.dcu-wb-session\)::after\{content:"";display:block;height:12px;pointer-events:none\}/, '会话列表末尾的组间留白必须明显大于组内行距（12px），让分组在视觉上成立；留白随内容一起折叠')
 assert.match(workspace, /\.dcu-wb-tree\{[^}]*overflow-x:hidden/, '工作区树不得因长标题出现横向滚动条')
-assert.match(workspace, /\.dcu-wb-tree\{[^}]*padding-bottom:16px;scrollbar-gutter:auto/, '工作区树无滚动条时不得预留右侧滚动槽')
-assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font:13px\/20px var\(--dsw-font-family\);font-weight:400;letter-spacing:0;padding-left:0\}/, '置顶、项目和最近必须使用比导航正文更克制的 13px 二级标题排版')
+// 2026-10-18（设计审计 P0-6）：底部留白 16 → 24px，配合页脚上投影给滚动边界一个交代。
+// 「无滚动条时不得预留右侧滚动槽」这个原意保留（scrollbar-gutter:auto 仍在）。
+assert.match(workspace, /\.dcu-wb-tree\{[^}]*padding-bottom:24px;scrollbar-gutter:auto/, '工作区树底部必须为页脚投影留出空间（24px），且无滚动条时不预留右侧滚动槽')
+// 2026-10-17：断言从「锁死 13px 字面量」改为「锁设计意图」（CODE-040）。
+// 原写法把当时的实现值当契约，导致按 ZCode 宪章把字号收归七档刻度（caption = 14-1 = 13px，
+// 数值完全等价）时测试先红。现在锁两件事：①必须是刻度令牌而非字面量；②必须落在 caption 档。
+// 这样既拦住「随手改字号」，也允许在刻度内合法迁移。
+assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font-size:var\(--dsw-font-size-caption\);line-height:20px;font-weight:400/, '置顶、项目和最近必须使用比导航正文更克制的二级标题排版，且字号必须走 caption 刻度而非字面量')
+assert.doesNotMatch(workspace, /\.dcu-wb-section-label\{[^}]*font-size:1[0-9]px/, '二级标题不得使用字面量字号（ZCode 宪章：字号必须走系统刻度）')
 assert.match(workspace, /body\.animate\(\[from, to\], \{ duration: DISCLOSURE_EXIT_MS, easing: 'ease-out', fill: 'none' \}\)/, '展开收起必须使用宿主兼容的逐像素高度动画（缓动已统一为 ease-out）')
 assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);[^}]*padding-left:0\}/, '置顶、项目和最近必须与上方按钮的内容起点左对齐')
 assert.match(workspace, /deleteWorkspaceGroup\(current, deleteGroupId\)[\s\S]*t\('workspace\.deleteGroupAction'\)/, '删除分组弹窗的确认按钮必须使用独立文案')
@@ -138,12 +152,22 @@ assert.match(workspace, /\.dcu-wb-collection-head:hover\{background:var\(--dcu-s
 assert.match(workspace, /\.dcu-wb-collection-head\.dcu-wb-group-drop\{background:var\(--dcu-sidebar-hover\)\}/, '分组文件夹仅在项目拖放落点时显示背景')
 assert.match(workspace, /\.dcu-wb-collections\{[^}]*min-width:0/, '分组网格必须允许长标题收缩')
 assert.match(workspace, /\.dcu-wb-session\{[^}]*min-width:0;[^}]*overflow:hidden;[^}]*padding-right:28px/, '会话标题必须只为右侧状态图标预留宽度且可收缩')
-assert.match(workspace, /\.dcu-wb-session\{[^}]*padding-left:30px/, '会话标题必须与项目标题对齐：8px 行内边距 + 16px 文件夹 + 6px 间距')
-assert.match(workspace, /\.dcu-wb-running\{position:absolute;left:8px;top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '运行指示器占位必须与项目文件夹同一 16×20 格子')
+// 2026-10-18（设计审计 P0-4，CODE-040）：原断言锁 `padding-left:30px`，等价地把「会话与项目
+// 左对齐」写成了契约 —— 而那正是本次要修的缺陷（DSH 是 workspace→session 两级树，零缩进
+// 会让两级在视觉上塌成一级）。按本仓已有规范改锁**意图**：会话必须比项目标题明显右缩进，
+// 且缩进量落在 4px 标度上（避免再次出现 42px 这类离刻度值触发间距棘轮）。
+// 具体数值由 geometry 断言在真浏览器里量（见 tests 里 A2 关系断言），这里只守结构约定。
+assert.match(workspace, /\.dcu-wb-session\{[^}]*padding-left:40px/, '会话行必须相对项目标题右缩进（40px，4px 标度内），让两级树在视觉上可分辨')
+assert.match(workspace, /\.dcu-wb-running\{position:absolute;left:var\(--dcu-wb-slot-left\);top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '运行指示器占位必须与项目文件夹同一 16×20 格子，且槽位随行内距下发（P0-4）')
 // 2026-10-13：转圈本体改为 ZCode 原版 LoaderIcon（size-4=16px），不再是自绘 12px 圆环。
-assert.match(workspace, /\.dcu-wb-running svg\{display:block;width:16px;height:16px/, '转圈本体必须是 16px 的 LoaderIcon，居中画在文件夹格子里')
-assert.match(workspace, /\.dcu-wb-session-flat\[data-pinned=true\]:not\(:has\(\.dcu-wb-pending\)\),[^]*?\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{padding-left:30px\}/, '无项目缩进的会话必须为行首槽（置顶常显、转圈或未读点）让出与项目标题对齐的位置')
-assert.match(workspace, /\.dcu-wb-pin\{position:absolute;left:8px;top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '置顶按钮必须占运行转圈同一 16×20 行首格')
+// 2026-10-17（CODE-040）：改为锁设计意图——必须是行首 16px 格子里的 ZCode size-3.5（14px）图标，
+// 而不是锁死某个 px 字面量。ZCode 会话行原文是 `LoaderIcon size-3.5`（task-row.tsx:246）。
+assert.match(workspace, /\.dcu-wb-running svg\{display:block;width:14px;height:14px/, '转圈本体必须是 ZCode size-3.5（14px）的 LoaderIcon，居中画在 16px 行首格子里')
+// 2026-10-18（P0-4）：平铺行不参与树缩进，但带状态因子时必须让出行首槽（同树内会话行）。
+// 槽位偏移改由 --dcu-wb-slot-left / --dcu-wb-dot-left 下发，两者必须与 padding-left 同步，
+// 否则 absolute 定位的状态槽不会跟着移动，会漂在行中间（实测间隙 11px → 21px）。
+assert.match(workspace, /\.dcu-wb-session-flat\[data-pinned=true\]:not\(:has\(\.dcu-wb-pending\)\),[^]*?\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{--dcu-wb-slot-left:18px;--dcu-wb-dot-left:23px;padding-left:40px\}/, '无项目缩进的会话必须为行首槽（置顶常显、转圈或未读点）让出与会话标题对齐的位置，且槽位偏移同步')
+assert.match(workspace, /\.dcu-wb-pin\{position:absolute;left:var\(--dcu-wb-slot-left\);top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '置顶按钮必须占运行转圈同一 16×20 行首格，且槽位随行内距下发（P0-4）')
 assert.match(workspace, /\.dcu-wb-session\[data-pinned=true\]:not\(:has\(\.dcu-wb-unread\)\):not\(:has\(\.dcu-wb-running\)\):not\(:has\(\.dcu-wb-pending\)\) \.dcu-wb-pin\{display:grid\}/, '已置顶且行首槽空闲时常显图钉（ZCode showPinnedState 语义）')
 assert.match(workspace, /:not\(\.dcu-wb-session-flat\):not\(\.dcu-wb-session-top\):hover \.dcu-wb-pin[^}]*display:grid/, '常规行悬停时置顶按钮接管行首槽（ZCode pinAction 语义）')
 assert.match(workspace, /:hover \.dcu-wb-unread,[^}]*visibility:hidden/, '悬停接管时未读点为置顶按钮让位（ZCode hidden 语义）')

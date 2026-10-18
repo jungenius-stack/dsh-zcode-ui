@@ -56,16 +56,28 @@ try {
       card: shell.closest('[data-composer-card]').getBoundingClientRect().width,
       inner: shell.querySelector('[role=listbox]').getBoundingClientRect().width,
       marked: shell.querySelector('[data-dcu-tool-menu]') !== null,
-      radius: getComputedStyle(shell).borderRadius,
+      // 壳与项分别取：宪章要求壳 lg(8px) + 项 md(6px)，只量壳量不出项是否跟着降档。
+      shellRadius: getComputedStyle(shell).borderRadius,
+      radius: getComputedStyle(shell.querySelector('[role=option]')).borderRadius,
       background: getComputedStyle(shell).backgroundColor,
       font: getComputedStyle(shell.querySelector('[role=option]')).fontSize,
     }))
     const geometry = await measureSuggestions()
-    if (geometry.radius !== '12px' || geometry.font !== '13px' || geometry.background !== (dark ? 'rgb(43, 43, 43)' : 'rgb(255, 255, 255)')) throw new Error('建议菜单未套用 ZCode 外观（命令菜单 = rounded-xl；暗色底 = ZCode menu #2b2b2b）')
-    if (geometry.marked || geometry.outer !== geometry.card || geometry.inner !== geometry.outer - 10) throw new Error(`${mode}/${width}: 建议菜单没有铺满输入区`)
+    // 2026-10-14 修正：此前这里锁的是 '12px'，并注释「命令菜单 = rounded-xl」——
+    // 那个结论是错的。宪章 §Menus 明文：「Dropdown menus … use rounded-lg shells.
+    // This includes the main input's @ / suggestion panel; **it does not inherit the
+    // main-input exception**」。即建议菜单必须用 lg(8px)，12px 是把它误当主输入壳例外。
+    // ZCode 真值源 packages/ui/src/components/ui/dropdown-menu.tsx 亦为壳 rounded-lg + 项 rounded-md。
+    // 断言现在锁「宪章意图」（壳 lg + 项 md），不再锁旧字面量。
+    if (geometry.shellRadius !== '8px' || geometry.radius !== '6px') {
+      throw new Error(`${mode}/${width}: 菜单圆角不符合宪章（壳应为 rounded-lg 8px、项应为 rounded-md 6px，实得 壳=${geometry.shellRadius} 项=${geometry.radius}）`)
+    }
+    if (geometry.font !== '13px' || geometry.background !== (dark ? 'rgb(43, 43, 43)' : 'rgb(255, 255, 255)')) throw new Error('建议菜单未套用 ZCode 外观（字号 = caption；暗色底 = ZCode menu #2b2b2b）')
+    // 壳内衬由 5px 收到 4px（宪章 p-1 = 4px），故内滚动区与外壳的差值为 2×4=8。
+    if (geometry.marked || geometry.outer !== geometry.card || geometry.inner !== geometry.outer - 8) throw new Error(`${mode}/${width}: 建议菜单没有铺满输入区`)
     await page.locator('[data-composer-card]').evaluate(card => { card.style.width = '280px' })
     const resized = await measureSuggestions()
-    if (resized.outer !== 280 || resized.inner !== 270) throw new Error('建议菜单没有跟随输入框调宽')
+    if (resized.outer !== 280 || resized.inner !== 272) throw new Error('建议菜单没有跟随输入框调宽')
     await page.getByRole('option').click()
     if (await page.evaluate(() => window.chosen) !== '文件.ts') throw new Error('建议菜单的原回调失效')
     await page.evaluate(() => window.disposeMenus())

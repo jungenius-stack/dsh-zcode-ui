@@ -97,7 +97,8 @@ const verify = async () => {
     if (style.fontSize !== '13px' || style.lineHeight !== '18px' || style.fontSize !== chatStyle.fontSize || style.lineHeight !== chatStyle.lineHeight || style.color !== chatStyle.color) throw new Error('空状态字体不统一')
     const expectedColor = theme === 'dark' ? 'rgb(112, 120, 116)' : 'rgb(118, 126, 122)'
     if (style.color !== expectedColor || chatStyle.color !== expectedColor) throw new Error('空状态未使用三级灰 token')
-    if (chatStyle.padding !== '1px 8px 5px 30px') throw new Error('空聊天四边间距不符')
+    // 2026-10-18（P0-4）：左内距随会话行从 30 → 40px，空聊天行必须与它会话文字同列。
+    if (chatStyle.padding !== '1px 8px 5px 40px') throw new Error('空聊天四边间距不符')
     const body = empty.parentElement
     body.dataset.open = 'false'
     if (body.getBoundingClientRect().height !== 0) throw new Error('空分组收起残留间距')
@@ -130,10 +131,20 @@ const verify = async () => {
     const idleTitle = host.querySelector('#idle-session .dcu-wb-session-title').getBoundingClientRect()
     const runTitle = host.querySelector('#run-session .dcu-wb-session-title').getBoundingClientRect()
     const spin = host.querySelector('.dcu-wb-running').getBoundingClientRect()
-    if (Math.abs(spin.left - folder.left) > 0.5 || Math.abs(spin.width - folder.width) > 0.5) throw new Error(`转圈格子未与文件夹对齐: folder=${folder.left}/${folder.width} spin=${spin.left}/${spin.width}`)
-    if (Math.abs(idleTitle.left - projectTitle.left) > 0.5) throw new Error(`空闲会话文字未与项目文字对齐: ${idleTitle.left} vs ${projectTitle.left}`)
-    if (Math.abs(runTitle.left - projectTitle.left) > 0.5) throw new Error(`运行会话文字未与项目文字对齐: ${runTitle.left} vs ${projectTitle.left}`)
-    results.push({ name: '会话与项目对齐', error: Math.max(Math.abs(spin.left - folder.left), Math.abs(idleTitle.left - projectTitle.left), Math.abs(runTitle.left - projectTitle.left)), scrollError: 0 })
+    /* 2026-10-18（设计审计 P0-4）：这两条旧断言是「会话与项目标题左对齐」契约的产物，
+       而正是那个契约把两级树压平了（DSH 是 workspace→session 两级，ZCode 原文是平铺列表）。
+       现在的意图反过来了：
+         ① 会话文字必须**右缩进**于项目文字（层级可读）；
+         ② 行首转圈格子必须贴住它所在行的**文字**（槽位随 padding 一起移动），而不是
+            贴住项目行的文件夹左缘——否则图钉/转圈会漂在行中间（实测间隙 6→18px）。
+       ②的量法：转圈格子右缘 + 6px 行内 gap ≈ 会话文字左缘（gap 来自 .dcu-wb-session 的 gap:6px）。 */
+    if (Math.abs(spin.width - folder.width) > 0.5) throw new Error(`转圈格子尺寸必须与文件夹同宽: folder=${folder.width} spin=${spin.width}`)
+    const indent = idleTitle.left - projectTitle.left
+    if (indent < 8) throw new Error(`会话文字必须右缩进于项目文字 ≥8px（实测 ${indent.toFixed(1)}px）`)
+    if (Math.abs(idleTitle.left - runTitle.left) > 0.5) throw new Error(`有/无转圈时文字起点必须一致: ${idleTitle.left} vs ${runTitle.left}`)
+    const slotGap = runTitle.left - (spin.left + spin.width)
+    if (slotGap < 4 || slotGap > 10) throw new Error(`转圈格子与文字间隙必须保持紧凑(4-10px，实测 ${slotGap.toFixed(1)}px)，否则状态槽会漂在行中间`)
+    results.push({ name: '会话缩进与状态槽', error: Math.max(Math.abs(indent - 10), Math.abs(slotGap - 6)), scrollError: 0 })
   }
   {
     const host = document.createElement('div')
