@@ -4,6 +4,38 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.5 - 2026-10-18
+
+**Two ghost artefacts caused by transparent layers that were never actually culled.**
+
+Symptoms: icons overlapped in the sidebar's top-left corner; a short horizontal dash
+persistently shown to the right of session titles (longer titles push it further left).
+
+How it was diagnosed (reusable): boot an isolated real host and scan every thin element inside
+`.dcu-root` at 520 / 700 / 900 / 1280 px wide × unread × hover. **Neither artefact is visible in
+a standard environment** — both hid behind `opacity:0` alone, so they surface whenever the
+compositor or an accessibility mode fails to cull the transparent layer:
+
+- **Session `quick-actions`**: absolutely positioned at `right:8px`, containing the archive
+  icon's `13×3.3` `rect` (lucide archive's top bar) — **that is the dash**. The base state now
+  also sets `visibility:hidden`; hover / focus / menu-open / archive-confirming still restore it.
+- **Collapsed `expanded-shell`**: stays `display:flex` (occupying 240 px) and hides behind
+  `opacity:0` alone. The collapsing transition now sets `visibility` too, driven by the same
+  exit token (no hard-coded duration/curve, so the motion-token assertion still passes).
+
+Skin content version 1.4.0 → **1.4.1** (stylesheet output changed; `data-dsh-zcode-skin` tells
+you at a glance whether a stale build is still mounted).
+
+Also: `settings-integration.assert.ts` used to pin the confirming-state style to the closing
+brace `{opacity:1;pointer-events:auto}` (the CODE-040 "bake the current implementation into a
+contract" shape); it now allows extra properties, and a new assertion requires
+`visibility:hidden` in the base state so it cannot regress to opacity-only.
+
+> Honest boundary: neither artefact reproduces in a standard environment, so this is a
+> **defensive hardening backed by an evidence chain**, not "I watched it disappear". If it is
+> still there after a restart, the trigger is outside the matrix tried above — please report
+> whether those rows were running, or had just been pinned.
+
 ## 1.15.4 - 2026-10-18
 
 **Two composer visuals aligned with ZCode** (user-specified):

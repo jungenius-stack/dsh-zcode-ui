@@ -4,6 +4,32 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.15.5 - 2026-10-18
+
+**两处「透明层没被真正剔除」导致的残影**（截图反馈）。
+
+现象：侧栏左上角图标重合；会话行标题右侧常显一条短横线，越长的标题横线越靠左。
+
+排查方法（可复用）：起一个隔离的真实宿主，在 520 / 700 / 900 / 1280 四个宽度 ×
+unread × hover 下扫描 `.dcu-root` 内全部细元素。**标准环境下两处都不可见**——它们都只靠
+`opacity:0` 隐藏，一旦透明层在合成/辅助模式下没被真正剔除，就会显形：
+
+- **会话行 `quick-actions`**：绝对定位在 `right:8px`，内含归档图标 `13×3.3` 的 `rect`
+  （lucide archive 的顶条）——**那就是那条短横线**。基础态改为 `visibility:hidden`，
+  hover / focus / 菜单打开 / 归档确认四个状态照旧恢复。
+- **折叠后的 `expanded-shell`**：一直 `display:flex` 占位、靠 `opacity:0` 隐藏。折叠过渡态
+  同步加 `visibility`，走同一条 exit 令牌（不写死时长与曲线，设计令牌断言照旧通过），
+  不改变淡出节奏。
+
+皮肤内容版本 1.4.0 → **1.4.1**（样式表产出变化，`data-dsh-zcode-skin` 可一眼看出是否仍是旧版）。
+
+连带：`settings-integration.assert.ts` 原本把确认态样式锁到右花括号
+`{opacity:1;pointer-events:auto}`（CODE-040「把当时实现值写成契约」的形态），改为允许附加属性；
+并新增断言——基础态必须同时给 `visibility:hidden`，防止被改回「只靠 opacity」。
+
+> 诚实边界：标准环境复现不出这两处残影，因此这是**按证据链做的兜底加固**，不是「亲眼看到它消失」。
+> 如果你那边重启后仍在，说明触发条件不在已试矩阵内，请回报「那几行会话是否正在运行 / 是否刚被置顶」。
+
 ## 1.15.4 - 2026-10-18
 
 **输入区两处视觉对齐 ZCode**（用户指定）：
