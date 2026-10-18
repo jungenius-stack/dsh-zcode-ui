@@ -5,9 +5,46 @@
 set -e
 cd "$(dirname "$0")/.."
 
+# 为什么不能只写 `exec node`：
+# npm / pnpm 对 engines.node 只警告不阻止。PATH 上的 node 若低于要求（例如 22.12），
+# zlib.zstdCompress 不存在，门禁会以一条指向 tests/session-migration.spec.ts 的
+# `TypeError: The "original" argument must be of type function` 变红——报错完全看不出
+# 是版本问题。2026-10-18 实测踩过，找根因花了很久。这里在跑门禁之前先把版本挑对。
+#
+# 挑选顺序：PATH 上的 node → $DSH_GATE_NODE → ~/.workbuddy 下的任一满足版本。
+# 不用具体版本号硬编码：目录不存在就跳过，对其他机器无害。
+supports_engines() {
+  "$1" -e 'const [a, b] = process.versions.node.split(".").map(Number); process.exit((a === 22 && b >= 19) || a >= 24 ? 0 : 1)' 2>/dev/null
+}
+
 if ! command -v node >/dev/null 2>&1; then
   echo "pre-push: 找不到 node，无法执行门禁；装好 Node 后重试，或用 git push --no-verify 跳过。" >&2
   exit 1
 fi
 
-exec node scripts/gate.mjs
+NODE=$(command -v node)
+if ! supports_engines "$NODE"; then
+  NODE=""
+  if [ -n "${DSH_GATE_NODE:-}" ] && [ -x "$DSH_GATE_NODE" ] && supports_engines "$DSH_GATE_NODE"; then
+    NODE="$DSH_GATE_NODE"
+  fi
+fi
+if [ -z "$NODE" ]; then
+  for candidate in "$HOME"/.workbuddy/binaries/node/versions/*/bin/node; do
+    [ -x "$candidate" ] || continue
+    if supports_engines "$candidate"; then
+      NODE="$candidate"
+      break
+    fi
+  done
+fi
+
+if [ -z "$NODE" ]; then
+  echo "pre-push: 当前 node $(node --version) 不满足 package.json 的 engines.node（^22.19.0 || >=24.0.0）。" >&2
+  echo "  zlib.zstdCompress 在 22.15 之前不存在，门禁会以一条无关的 TypeError 变红。" >&2
+  echo "  修复：换 22.19+ 或 24+，或设置 DSH_GATE_NODE=/path/to/node。" >&2
+  echo "  跳过（仅限明知故犯）：git push --no-verify" >&2
+  exit 1
+fi
+
+exec "$NODE" scripts/gate.mjs
