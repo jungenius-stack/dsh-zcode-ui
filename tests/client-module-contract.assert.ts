@@ -5,7 +5,7 @@ const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.
   main?: string
   types?: string
   packageManager?: string
-  engines?: { node?: string }
+  engines?: { node?: string; dsh?: string }
   exports?: Record<string, unknown>
   files?: string[]
   dsh?: { client?: { inject?: string[] } }
@@ -54,7 +54,13 @@ assert.equal(manifest.dsh?.client?.inject?.includes('@deepseek-ai/dsh-client-ui-
 assert.equal(manifest.dsh?.client?.inject?.includes('@deepseek-ai/dsh-client-ui-slots'), false, '仅类型导入不得产生运行时模块声明')
 
 // fork 改用区间而非上游的显式 rc 枚举：DSH 版本门禁会静默 disable 不在 peer 范围内的插件。
-const supportedDshRange = '>=0.1.6-alpha.2 <0.3.0-0'
+//
+// 下界 = 构建基线（devDependencies 全部钉在 0.2.0-rc.2）：声明比构建基线更早的版本，
+// 等于对从未编译过的宿主做兼容承诺。2026-10-18 之前这里是 `>=0.1.6-alpha.2`，
+// 而本仓从未在 pre-0.2.0 上构建过。
+// 上界**不能**收窄到 `<0.2.1`：作者本人每天在 0.2.1-rc.2 上运行这个插件，
+// 收窄会让真实用户被版本门禁静默挡住；0.2.1 未进入构建矩阵这件事写在 CHANGELOG 里。
+const supportedDshRange = '>=0.2.0-rc.2 <0.3.0-0'
 const hostDevDshVersion = '0.2.0-rc.2'
 const versionedClientPackages = [
   '@deepseek-ai/dsh-client-locale',
@@ -73,6 +79,9 @@ for (const packageName of versionedClientPackages) {
   assert.equal(manifest.peerDependencies?.[packageName], supportedDshRange, `${packageName} 必须使用统一的 DSH Peer 范围`)
   assert.equal(manifest.devDependencies?.[packageName], hostDevDshVersion, `${packageName} 必须钉在当前宿主开发版本`)
 }
+// 官方插件市场只读 `engines.dsh`（存在时独占决定，peer 被忽略）；桌面安装门读 peer。
+// 两者不同源会让同一个插件在两个通道上得到两种兼容判断，因此在这里焊死。
+assert.equal(manifest.engines?.dsh, supportedDshRange, 'engines.dsh 必须与 peer 的 DSH 范围同源')
 assert.equal(manifest.peerDependencies?.['@deepseek-ai/dsh-client-runtime'], undefined, '客户端不再导入运行时包，不得写成 peer，否则桌面安装门会拿宿主版本去对这条范围')
 assert.equal(manifest.dsh?.client?.inject?.includes('@deepseek-ai/dsh-client-runtime'), false, '客户端不再 require 运行时包，不得写成 inject')
 assert.equal(manifest.devDependencies?.['@deepseek-ai/dsh-client-runtime'], undefined, '上游已停更该包，测试改用 0.2.0 生产的 SlotRegistry，不得再声明这条依赖')

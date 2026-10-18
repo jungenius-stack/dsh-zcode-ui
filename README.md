@@ -185,7 +185,7 @@ Four layers, all runnable locally. `npm run gate` chains them (~55s) and the `pr
 | Layer | Command | What it covers |
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
-| Unit / integration | `npm run test:unit` | 55 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Unit / integration | `npm run test:unit` | 56 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Contract assertions | `node tests/run-assertions.mjs` | 44 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Real-browser layout | `npm run test:layout` | 17 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
@@ -198,6 +198,7 @@ The layout scripts need Playwright's Chromium once: `./node_modules/.bin/playwri
 Recorded honestly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) — the file is the source of truth, and everything below is expanded there:
 
 - **Three assertions are skipped on purpose.** They validate the upstream monorepo's release contracts (`packages/`, `.github/workflows/`), which do not exist in this single-package fork. The files are kept with an explicit `SKIP` block rather than deleted, so "test missing" and "problem solved" stay distinguishable.
+- **Compatibility boundary: built on 0.2.0-rc.2, run daily on 0.2.1-rc.2.** `engines.dsh` and the 11 peers all start at `>=0.2.0-rc.2`, because `devDependencies` are pinned there and this repo has never compiled against an earlier host. The upper bound stays `<0.3.0-0` on purpose: the author uses the plugin on 0.2.1-rc.2 every day, and narrowing it would lock real users out through the DSH version gate — but 0.2.1 has not entered the build or the gate. That difference is stated here rather than hidden inside a range that looks generous.
 - **Four of the seven interface issues reported from real use are not this plugin's.** They were traced to the cost-meter and context-pilot plugins (duplicate cost display, cramped status bar) and to a host-built-in control; they are documented, not silently ignored.
 - **Two upstream issues ([#40](https://github.com/MichengAI/dsh-codex-ui/issues/40), [#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)) were probed and did not reproduce** at four window sizes on macOS. Neither is still open: upstream closed both as `completed` on 2026-10-13 (re-checked 2026-10-18). Non-macOS platforms, real display scaling, and full-screen/split-screen remain untested.
 - **CI runs the same gate as local.** `.github/workflows/ci.yml` runs `pnpm install --frozen-lockfile` and `node scripts/gate.mjs` on push and PR; the `pre-push` hook runs the identical command locally, so local green and CI green come from one source. The local `node_modules` is hand-patched to work around a `tsdown` dependency gap; a clean `npm install` may need that reapplied.

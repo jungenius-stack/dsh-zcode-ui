@@ -20,6 +20,27 @@
 
 > 只改 CSS 属性，不增删节点、不改点击行为。浅色/暗色都走宿主语义令牌。
 
+### 工程（同批收入）
+
+- **CI 入库。** `.github/workflows/ci.yml` 此前从未进入任何一次提交，而 README 与
+  KNOWN-ISSUES 都写着「没有 CI」——现在 push 与 PR 上跑的就是 `node scripts/gate.mjs`，
+  与 `pre-push` 钩子同源。
+- **文档基线自动化。** `scripts/baseline.mjs` 从磁盘算出全部静态计数写入
+  `docs/baseline.json`；`tests/docs-baseline.assert.ts` 做「磁盘 / 基线 / 文档」三方一致
+  断言，并校验每类句式的命中次数——句子被删时断言报红，而不是静默空转。会漂的动态数字
+  （用例数、通过 / 跳过）改为指向 `docs/BASELINE.md` 的实跑快照。
+- **结构债棘轮。** `tests/structure-budget.assert.mjs` 锁 1135 行文件与 48 处
+  `!important`，双向：涨了报红，降了也要求下调预算。
+- **运行时前置体检。** `tests/node-engines.assert.mjs` 把「Node < 22.19 时
+  `zlib.zstdCompress` 不存在」这条例难以归因的报错（表现为 session-migration 的
+  `TypeError`）前移到门禁第一层。
+- **跳过断言的理由可判定。** `release-pipeline.assert.mjs` 在跳过前先断言被跳过的对象
+  仍不存在，补齐即报红。
+- **兼容性声明。** `engines.dsh` 与 11 个 peer 的下界从 `>=0.1.6-alpha.2` 收到
+  `>=0.2.0-rc.2`（构建基线）；上界保持 `<0.3.0-0`——作者每天在 0.2.1-rc.2 上运行它，
+  但 `devDependencies` 仍钉在 0.2.0-rc.2，0.2.1 尚未进入构建与门禁。收窄上界会挡住
+  真实用户，放宽则等于假装验证过；这里选择把边界写清楚。
+
 ## 1.15.3 - 2026-10-18
 
 **长会话的侧栏开合不再播动画，直接落定。** 用户反馈 1.15.2 + session-kit

@@ -23,6 +23,31 @@ Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://g
 > CSS properties only: no DOM changes, no click-behaviour changes. Light/dark both use
 > host semantic tokens.
 
+### Engineering (folded into this release)
+
+- **CI is now in the repository.** `.github/workflows/ci.yml` had never been part of any
+  commit while both README and KNOWN-ISSUES said "No CI". Push and PR now run the same
+  `node scripts/gate.mjs` the `pre-push` hook runs.
+- **Documented numbers are generated, not transcribed.** `scripts/baseline.mjs` derives every
+  static count into `docs/baseline.json`; `tests/docs-baseline.assert.ts` asserts three-way
+  agreement (disk / baseline / docs) *and* the hit count of each pattern, so a deleted
+  sentence fails the gate instead of silently passing. Volatile counts (test cases,
+  pass/skip) now point at the run snapshot in `docs/BASELINE.md`.
+- **Structural-debt ratchet.** `tests/structure-budget.assert.mjs` pins the 1135-line file and
+  the 48 `!important` occurrences bidirectionally: growth fails, and so does shrinking
+  without lowering the budget.
+- **Runtime preflight.** `tests/node-engines.assert.mjs` moves the "Node < 22.19 lacks
+  `zlib.zstdCompress`" failure (which surfaces as an unrelated `TypeError` in
+  `session-migration`) to the first layer of the gate.
+- **Skip reasons are now decidable.** `release-pipeline.assert.mjs` asserts that the skipped
+  objects are still absent before skipping; filling any of them in turns the gate red.
+- **Compatibility declared.** `engines.dsh` and the lower bound of 11 peers moved from
+  `>=0.1.6-alpha.2` to `>=0.2.0-rc.2` (the build baseline). The upper bound stays
+  `<0.3.0-0`: the author runs the plugin daily on 0.2.1-rc.2, but `devDependencies` are still
+  pinned to 0.2.0-rc.2, so 0.2.1 has not entered the build or the gate. Narrowing the upper
+  bound would silently disable the plugin for real users via the DSH version gate; widening it
+  would claim verification that never happened. This release states the boundary instead.
+
 ## 1.15.3 - 2026-10-18
 
 **Long sessions no longer animate the sidebar collapse/expand.** After 1.15.2 plus the

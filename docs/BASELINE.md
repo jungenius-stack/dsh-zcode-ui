@@ -11,7 +11,7 @@
 | 断言脚本 | 44 | `tests/*.assert.{ts,mjs}` |
 | ├ TypeScript | 39 | `tests/*.assert.ts` |
 | └ ES Module | 5 | `tests/*.assert.mjs` |
-| vitest 文件 | 55 | `tests/*.spec.ts` |
+| vitest 文件 | 56 | `tests/*.spec.ts` |
 | 真机布局脚本 | 17 | `scripts/gate.mjs` 的 LAYOUT（与 package.json test:layout 交叉校验） |
 | 令牌 · 明 | 174 | `ZCODE_LIGHT` 键数 |
 | 令牌 · 暗 | 174 | `ZCODE_DARK` 键数 |
