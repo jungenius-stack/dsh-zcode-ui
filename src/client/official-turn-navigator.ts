@@ -82,8 +82,14 @@ export function observeOfficialTurnNavigators(doc: Document = document, fetchImp
     if (frame !== undefined) return
     frame = window.requestAnimationFrame(run)
   }
+  // 2026-10-18：官方轮次导航是**懒挂载**的。实测点击会话后，先是 <div class="JXrxFq_slot">
+  // 插入（此刻内部还是空的，querySelector('nav') 为 null），19ms 之后 nav 才被填进去。
+  // 旧实现只在挂载瞬间判定一次，那一帧 nav 还不存在 → 永远标不上 → 本插件以为「宿主没有
+  // 官方导航」，于是自绘的那条一直存在，视觉上就是「左右各一条索引栏」。
+  // 因此只要 childList 有变更就调度一次（markOfficialTurnNavigators 本身是幂等的，
+  // 且已被 rAF 合并），不再依赖那次注定落空的「插入节点自身匹配 nav」判定。
   const observer = new MutationObserver(records => {
-    if (turnNavigatorMutationRelevant(records)) schedule()
+    if (records.some(record => record.type === 'childList') || turnNavigatorMutationRelevant(records)) schedule()
   })
   observer.observe(doc.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] })
   schedule()
@@ -91,6 +97,8 @@ export function observeOfficialTurnNavigators(doc: Document = document, fetchImp
     if (!active) return
     if (supported) doc.documentElement.setAttribute(OFFICIAL_TURN_NAVIGATOR_SUPPORTED_ATTRIBUTE, 'true')
     else doc.documentElement.removeAttribute(OFFICIAL_TURN_NAVIGATOR_SUPPORTED_ATTRIBUTE)
+    // 探测结果只决定 CSS 兜底属性；真正的互斥依赖 nav 上的标记，这里补跑一次避免竞态。
+    schedule()
   })
   return () => {
     active = false

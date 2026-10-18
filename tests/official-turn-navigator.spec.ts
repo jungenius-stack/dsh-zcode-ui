@@ -94,7 +94,7 @@ test('运行时能力会独立关闭旧导航，避免私有 DOM 信号失效时
   expect(document.documentElement.hasAttribute('data-dcu-official-turn-navigator-supported')).toBe(false)
 })
 
-test('全局观察只对导航相关变更按帧调度', async () => {
+test('全局观察：任何 childList 变更都按帧调度（官方导航是懒挂载的）', async () => {
   document.body.append(officialNavigator())
   let queuedFrame: FrameRequestCallback | undefined
   const requestFrame = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
@@ -107,12 +107,18 @@ test('全局观察只对导航相关变更按帧调度', async () => {
   expect(requestFrame).toHaveBeenCalledTimes(1)
   queuedFrame?.(0)
 
+  // 2026-10-18：原先这条断言要求「插入无关 <p> 不调度」——正是这个优化造成漏检。
+  // 实测宿主先插入空的 <div class="JXrxFq_slot">，19ms 后才把 nav 填进去；
+  // 那次「填充」如果被过滤掉，官方导航就永远标不上，本插件会以为宿主没有官方刻度，
+  // 自绘的那条便一直存在（视觉上就是「左右各一条索引栏」）。
+  // 现在所有 childList 变更都会调度，rAF 已做合并，代价可忽略。
   document.body.append(document.createElement('p'))
   await Promise.resolve()
-  expect(requestFrame).toHaveBeenCalledTimes(1)
+  expect(requestFrame).toHaveBeenCalledTimes(2)
+  queuedFrame?.(0)
 
   document.body.append(officialNavigator())
   await Promise.resolve()
-  expect(requestFrame).toHaveBeenCalledTimes(2)
+  expect(requestFrame).toHaveBeenCalledTimes(3)
   stop()
 })

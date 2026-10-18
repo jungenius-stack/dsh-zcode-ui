@@ -4,6 +4,43 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.15.8 - 2026-10-19
+
+**两条轮次索引栏同时存在（"左右两侧漂移"的真正根因）。**
+
+用独立实例 + Playwright 录屏复现后定位到：宿主自带的轮次导航
+（`<nav class="JXrxFq_frame" aria-label="轮次导航">`，16 个 `button[data-index]`）
+**从未被本插件标记过**，于是「有官方导航就隐藏自绘导航」这条互斥规则永远不生效，
+两条索引栏一起存在。
+
+**为什么标不上——懒挂载时序**：
+
+```
++0ms     宿主先插入 <div class="JXrxFq_slot">（此刻内部是空的）
++19ms    才把 <nav> 填进这个 slot
+```
+
+旧实现的 MutationObserver 过滤条件是 `turnNavigatorMutationRelevant(records)`，而它对
+`addedNodes` 只做 `node.matches('nav')`：插入空 slot 那一帧 `querySelector('nav')` 为
+`null`，直接被判为「无关变更」丢掉；等 nav 真正被填入时，**没有任何记录再触发判定**。
+`markOfficialTurnNavigators` 于是永远看不到它。
+
+**修法**：任何 `childList` 变更都按帧调度（rAF 已合并，代价可忽略），不再依赖那次注定
+落空的「插入节点自身匹配 nav」判定；`capabilities` 探测返回后再补跑一次，避免异步属性竞态。
+
+**为什么前几轮全错**：依次把它当成「运行中指示器」「折叠残影」「时间与归档图标同槽」，
+三次都改到了真实但不相关的缺陷上。这次按你的要求起独立实例 + 录屏，把「悬停索引栏 → 展开
+目录 → 点片段」的完整动作跑了一遍，才看到真相。
+
+实测（1680×1000，独立实例）：修复前 `marked=false`、`ownDisplay=block`（两条并存）；
+修复后 `marked=true`、`ownDisplay=none`，只剩宿主那一条，16 个刻度全部在 `x=252`、
+`w=28`、间隔 10px，整齐无错落。
+
+单测：`official-turn-navigator.spec.ts` 里那条「插入无关 `<p>` 不应调度」的断言，正是这个
+优化留下的错误契约，已改为「任何 childList 变更都调度」，并用回注旧 filter 反向验证会红。
+
+皮肤内容版本 1.4.3 → **1.4.4**。
+
 ## 1.15.7 - 2026-10-18
 
 **会话行的时间与归档图标抢同一个位置（"索引横条漂移"的真实根因）。**

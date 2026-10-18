@@ -4,6 +4,46 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.8 - 2026-10-19
+
+**Two turn-navigation rails existed at once — the real cause of the "both sides drift".**
+
+Reproduced with an isolated instance plus Playwright screen recording. The host's own turn
+navigator (`<nav class="JXrxFq_frame" aria-label="轮次导航">`, 16 `button[data-index]`) was
+**never marked by this plugin**, so the mutual-exclusion rule ("hide our rail when the official one
+exists") never fired and both rails stayed on screen.
+
+**Why it never got marked — lazy mount timing**:
+
+```
++0ms     host appends <div class="JXrxFq_slot"> (still empty inside)
++19ms    only then fills the <nav> into that slot
+```
+
+The old MutationObserver filter was `turnNavigatorMutationRelevant(records)`, and for `addedNodes`
+it only tested `node.matches('nav')`. On the frame where the empty slot was inserted,
+`querySelector('nav')` was `null`, so the record was discarded as unrelated; when the nav was
+actually filled in, **no record triggered another check**. `markOfficialTurnNavigators` never saw it.
+
+**Fix**: schedule on every `childList` change (rAF already coalesces these, so the cost is
+negligible) instead of relying on the self-matching-nav test that could never fire; and re-run once
+after the `capabilities` probe returns to avoid the async-attribute race.
+
+**Why the previous rounds all missed**: I successively blamed the running indicator, the collapse
+ghost, and the time-vs-archive-icon slot conflict. All three were real defects, but none was this
+one. Running an isolated instance with screen recording and actually performing "hover the rail →
+expand the outline → jump to a fragment" is what exposed it.
+
+Measured (1680×1000, isolated instance): before, `marked=false`, `ownDisplay=block` (two rails);
+after, `marked=true`, `ownDisplay=none` — one rail only, all 16 marks at `x=252`, `w=28`, 10px apart,
+perfectly aligned.
+
+Unit test: the assertion "inserting an unrelated `<p>` must not schedule" was itself the bad
+contract left by that optimisation; it now requires scheduling on any childList change, and
+re-introducing the old filter was verified to turn it red.
+
+Skin content version 1.4.3 → **1.4.4**.
+
 ## 1.15.7 - 2026-10-18
 
 **The session-row timestamp and the archive icon were fighting over the same slot — the real cause
