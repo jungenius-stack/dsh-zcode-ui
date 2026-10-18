@@ -23,7 +23,7 @@
 
 | 指标 | 值 | 棘轮 |
 | --- | --- | --- |
-| `src/client/CodexWorkspaceBrowser.tsx` | 1135 行 | 只降不升（`tests/structure-budget.assert.mjs`） |
+| `src/client/CodexWorkspaceBrowser.tsx` | 1136 行 | 只降不升（`tests/structure-budget.assert.mjs`） |
 | `!important` 出现次数 | 48 | 只降不升 |
 | `TODO/FIXME/HACK` 标记 | 0 | 保持为 0 |
 

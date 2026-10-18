@@ -4,6 +4,44 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.16.0 - 2026-10-19
+
+**The "drifting line" in session rows: `visibility:hidden` does not stop painting.**
+
+The root cause was never a positioning error — it was the wrong hiding mechanism.
+
+`visibility:hidden` only makes an element invisible; it still participates in layout and still
+exists in the compositor layer. On Electron's compositing path, hidden layers do get painted at
+certain repaint moments — this project's own A/B test caught it: an element whose `effective opacity`
+computed to `0` still had pixels on screen. That is why swapping `opacity:0` for
+`visibility:hidden` never made the line go away.
+
+**Why it appeared intermittently and shifted row by row** — the timestamp width:
+
+| Timestamp | `timeX` | Gap between timestamp and archive icon |
+|---|---|---|
+| `12小时` | 183 | 7px (squeezed, invisible) |
+| `8小时` | 190 | 14px |
+| `1天` | 203 | **27px (widest, line stands alone)** |
+
+The archive icon's top bar is a `13.3×3.3` `rect` (lucide archive's first stroke). The wider the
+gap, the more visible it becomes; when the gap is small the timestamp crowds it out. Same element,
+appearing "sometimes here, sometimes there, drifting per row".
+
+**Fix**: base state changed from `visibility:hidden` to **`display:none`** — fully out of layout and
+painting, shown via `display:flex` only on `:hover` / `:focus-within` / menu-open / confirming. The
+touch-mode exit rule was tightened into one `:is(:hover,:focus-within)` selector to avoid fighting
+the base state.
+
+**A wrong assertion was also corrected**: `settings-integration.assert.ts` required "base state must
+use `visibility:hidden`, not just `opacity:0`" — that pinned the broken mechanism as a contract,
+which is exactly why the problem persisted. It now requires `display:none`.
+
+Measured (1680×1000, 26 real sessions): before, 1 visible thin line in base state on every row
+(width 13.3); after, **0**, appearing only on the hovered row. Before/after screenshots confirm.
+
+Skin content version 1.4.5 → **1.5.0**.
+
 ## 1.15.9 - 2026-10-19
 
 **The real cause of the "a rail on each side": two UI plugins installed in one profile.**

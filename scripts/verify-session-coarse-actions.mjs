@@ -91,13 +91,13 @@ try {
 
   // 2) 触屏 + 待处理胶囊：胶囊本身是行动号召，操作不得常驻与它抢位
   const pending = await measure(browser, { touch: true, pending: true })
-  assert.equal(pending.quick.opacity, '0', '待处理胶囊占位时快捷归档不得常驻（避免与胶囊重叠）')
+  assert.equal(pending.quick.display, 'none', '待处理胶囊占位时快捷归档不得常驻（避免与胶囊重叠）')
   assert.equal(pending.actions.display, 'none', '待处理胶囊占位时 ⋯ 锚点组不得常驻')
 
   // 3) 桌面（非触屏）：悬停/聚焦揭示语义不得受影响（回归保护）
   const desktop = await measure(browser, { touch: false, pending: false })
   assert.equal(desktop.coarse, false, '非触屏上下文不得命中 (pointer:coarse)')
-  assert.equal(desktop.quick.opacity, '0', '桌面下快捷归档必须等待悬停/聚焦（不得常驻）')
+  assert.equal(desktop.quick.display, 'none', '桌面下快捷归档必须等待悬停/聚焦（不得常驻）')
   assert.equal(desktop.anchor.opacity, '0', '桌面下 ⋯ 锚点必须保持隐藏（菜单经右键唤出）')
 
   console.log('✓ 触屏会话行：单一操作入口（⋯ 44×44）、快捷归档退场、时间让位 56px、标题预留 120px（240px 夹具实测标题元素 90px，1.10.0 双入口时为 54px）；桌面揭示语义未受影响')
