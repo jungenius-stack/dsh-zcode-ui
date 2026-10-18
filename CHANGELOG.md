@@ -4,6 +4,400 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.0 - 2026-10-18
+
+A round of **design-audit remediation**: four structural faults found by an external
+visual audit (single-colour bandwidth, tree hierarchy, group boundaries, scroll edges),
+plus six new **relational / whole-corpus** assertions that the existing 21 layout scripts
+could not express. A pitfall pre-scan (T1, 49 code cards fully scanned, 11 hits) ran first
+and **corrected four of the audit's prescriptions** before any code was touched.
+
+### Fixed (audit P0)
+
+- **Four saturated hues removed from the new-conversation cards.** The suggestion cards
+  carried `#27aaff / #a478e8 / #44bd83 / #f48235` — forked from upstream Codex, and the only
+  polychromatic source in a strictly monochrome system. They also failed the 3:1 non-text
+  contrast floor in light mode (2.37–3.27:1). Now a single icon colour.
+  ⚠ Deliberately **not** `var(--dcu-sidebar-icon)`: these cards are portalled into the host
+  hero area, outside `.dcu-root`, where that token does not resolve (measured: falls back to
+  `rgb(0,0,0)`). Uses the host `--dsw-alias-menu-icon` instead, which is `:root`-scoped.
+- **Brand attribution narrowed, not broadened.** `about.description` / `about.feature.sidebar`
+  (zh + en) now say *ZCode* style. The six `Codex UI` occurrences are product/dependency names
+  from the upstream fork and are left alone — changing those would erase attribution.
+- **Hard-coded error colour tokenised.** `#f87171` (2.60:1 on `#f8f8f8`) → `var(--dcu-state-error-text)`
+  (6.15:1 light / 5.98:1 dark).
+- **Connector iframe palette realigned, not tokenised.** `--muted #777777` (4.22:1, the value
+  already deleted elsewhere) → `#686868`. ⚠ The audit's prescription (`var(--dcu-sidebar-tertiary)`)
+  would have made this **silently black**: the string is injected into an iframe, and CSS custom
+  properties do not cross documents (measured: `rgb(0,0,0)`). Literals kept, with a comment.
+- **Two-level tree hierarchy restored.** Session rows `padding-left` 30 → **40px** (audit said 42,
+  which is off the 4px spacing scale and would trip the spacing ratchet for no reason), so
+  session titles now sit 10px right of project titles instead of exactly on top of them.
+  Row-head state slots (pin / spinner / unread dot) moved with it via `--dcu-wb-slot-left` /
+  `--dcu-wb-dot-left`, otherwise the slot floats mid-row (measured gap 6 → 18px).
+- **Group boundaries visible.** Inter-project whitespace 4 → **12px** (34px intra-row vs 44px
+  inter-group). The audit's selector omitted `:has(> .dcu-wb-session)`, which would have applied
+  the padding to *empty* projects that have no sessions.
+- **Scroll edge acknowledged.** Tree bottom padding 16 → 24px + a footer top shadow
+  (light `.10` / dark `.18`). Chose shadow over `mask-image` because masks create a compositing
+  layer, contradicting the measured compositing budget in KNOWN-ISSUES §27/§31.
+
+### Fixed (audit P1)
+
+- **Third grey tier no longer collapsed.** Instead of the audit's "reduce demand" prescription,
+  the secondary tier was moved away from tertiary: light `#5c5c5c` → **`#595959`** (ΔL\* 4.9 → 6.2),
+  dark `#888888` → **`#969696`** (ΔL\* 2.3 → 7.7). Both keep every consumer background ≥4.5:1;
+  the audit's own "bandwidth exhausted" conclusion only considered moving *tertiary*.
+- **Surface separation unified.** Both themes now separate the sidebar by border first
+  (light alpha `.1` → `.18`, dark `.1` → `.16`), instead of light using fill-delta and dark
+  using border. ⚠ The audit's dark baseline (`#3f3f40` / 1.72) does not exist in this repo
+  (0 grep hits); the measured composite was `#2d2d2d` / 1.31.
+- **Cost-card amount no longer outweighs navigation.** 14/500 → 13/400. Whole nav is 14/400;
+  this was the only 500 in the sidebar. Kept `primary` colour per contract §1 (it is data).
+- **Search panel**: results now limited **per group** instead of a global `slice(0, 12)`
+  (which let the sessions group eat the entire budget), match text is highlighted, and a
+  keyboard hint row (`↑↓ / ↵ / esc`) is shown.
+
+### Added (audit §07 — assertions that can actually go red)
+
+The existing 21 layout scripts were almost all single-threshold or whitelist-member checks;
+every fault above happened *between two values* or *outside a list*. Added:
+
+| ID | Assertion | Where |
+| --- | --- | --- |
+| A1 | Adjacent grey tiers differ by ≥6 ΔL\*, and every tier ≥4.5:1 on its own background | `conversation-visuals.assert.ts` |
+| A2 | `x(sessionTitle) − x(projectTitle) ≥ 8px` | `verify-tree-hierarchy-relations.mjs` |
+| A3 | Inter-group gap ≥8px **and** greater than intra-group row gap | same |
+| A4 | Tree has `mask-image` **or** footer has `box-shadow` | same |
+| A5 | Whole-corpus colour-literal scan (CSS declarations **and** JS assignments) | `design-system.assert.ts` |
+| A6 | No parallel colour palette overlapping `--dcu-*` (except the iframe string) | `verify-tree-hierarchy-relations.mjs` |
+
+A3 is **not** the audit's expression: `pitch(project→project) − pitch(session→session)` drifts
+with session count (72px at 1 session, 106px at 2) and would be green on the broken code.
+A5 is **not** the audit's expression either: scanning only CSS `color:`/`background:` misses the
+four card colours (JS object properties) entirely — 0 hits — while flagging 15 legitimate
+`var(--tok, #hex)` fallbacks.
+
+Each new assertion was reverse-tested: reverting the fix makes it red.
+
+### Verified against a live host (first time since 1.13)
+
+`npm run gate:host` had been unable to run at all: its version allow-list stopped at `0.2.0-rc.2`
+while the desktop App ships `0.2.1-rc.2`. Getting it green surfaced **three stale test scripts and one
+pre-existing repo defect** — no product code needed changing. Details in KNOWN-ISSUES §53.
+
+- **Node**: the repo's `engines` wants `^22.19.0 || >=24`; the default on this machine is 22.12.0,
+  which lacks `zlib.zstdCompress` (added in 22.15). No install was needed — `22.22.2-6` was already
+  present under `~/.workbuddy/binaries/node/versions/`. With it, vitest goes 17/17 and the fast gate
+  is fully green.
+- **Host allow-list** now includes `0.2.1-rc.2`. `devDependencies` still pin `0.2.0-rc.2` — that is the
+  *compile* baseline, which may legitimately differ from the *runtime* host.
+- **First-run overlay** (0.2.1 renamed the buttons) left a full-screen `role=presentation` mask that
+  swallowed every click. Scripts now close it by its `aria-label=关闭` and **assert the mask is gone**.
+- **Ad-trigger menu** assertion hard-coded `outer - 10` for a 5px padding that later became the 4px
+  spacing token; now derived from the real computed padding (CODE-040 again).
+- **Settings entry has two branches** since 0.2.1 (host account menu vs plugin-owned trigger); three
+  scripts only knew the latter. They now use the product's own contract and the **real user path**
+  (account menu → Settings) — driving it via contract events alone made the focus-restoration assertion
+  fail, because the plugin's `focus()` is then overridden by the host.
+- **Turn-navigator assertion** had no precondition: the script never sent a message, so an empty
+  session has no turns to navigate. Now probes for turns and records an explicit skip.
+- **Pre-existing defect fixed**: `conversation-header.ts` had an **escaped backtick** inside the style
+  template string. Syntax-legal (`tsc` green), but every extraction script's non-greedy regex stops
+  there, silently truncating the stylesheet to 314 chars. The guard in `design-system.assert.ts` now
+  targets escaped backticks specifically, plus auto-reports unregistered template literals.
+
+### Red-team review: three self-certifying guards were not actually working
+
+An independent red-team pass (separate agent, read-only + injection experiments) judged the
+"all done and verified" claim **unsupported (≈6.5/10)**. Every finding reproduced; all fixed.
+
+- **A guard that claimed to scan beyond its allow-list didn't exist.** §26 defined
+  `NON_STYLE_TEMPLATES` and a comment promising "any unregistered template string is reported",
+  but the scan itself was never written — injecting a new style string left everything green.
+  Now actually implemented, and extended to cover **anonymous inline** `<style>{…}` strings
+  (`InputHistoryDock.tsx:14`), which no `const X =` regex can reach. A second bug in the same scan:
+  it didn't allow the optional type annotation (`const X: string = …`), i.e. exactly the only
+  form that could escape.
+- **Colour scan (A5) had too narrow a range** — `border:1px solid #ff0000`,
+  `box-shadow:0 0 0 1px #ff0000`, `color:rgb(255,0,0)`, `color:hsl(…)` all passed. Range widened,
+  but *deliberately not over-widened*: `rgba()/hsla()` and `color-mix(…#hex…)` stay allowed
+  (they express translucency, not colour tiers); `box-shadow` allows rgba but not hex.
+- **"No whole-file exemptions" was contradicted by three `'*'` entries.** Narrowed to the two token
+  truth sources only; `ConnectorsSection` now uses a *structural* exemption that permits only
+  `--name:value` custom properties inside the three iframe template strings — writing
+  `color:#123456` on an element in that file is still caught (reverse-tested).
+- **P1-1 worsened the icon tier and no assertion watched it.** `--dcu-sidebar-icon` is **not a
+  fourth text tier** — it is consumed only by SVGs and falls under WCAG's 3:1 non-text rule
+  (measured 6.86 / 7.17). Added an explicit ≥3:1 assertion and documented the side effect
+  (secondary↔icon ΔL* dropped 4.20→2.95 light, 10.29→4.91 dark) with a remedy if it ever matters.
+- **`allocateSearchQuota` broke its own `limit` contract**: `floor × groups > limit` overflowed
+  (limit=6/floor=3/3 groups → 9 rows). Not reachable with the current 12/3 constants, but that is
+  coincidence at the call site, not a contract. Now hard-capped, with 7 boundary assertions.
+- Also fixed: design truth table in `docs/ZCODE-DESIGN.md` out of sync with P1-1 (a doc that
+  explicitly says one number must not have two sources); zero-consumption `--dcu-selected-tertiary`
+  removed; `--dcu-tip-hover` consumed but never defined; two comment figures corrected.
+
+**Lesson recorded in KNOWN-ISSUES §54.7**: a comment that says "this will report X" must be paired
+with a check that the code actually exists. Three of mine weren't — hallucinated completion at the
+*guard* layer, which is worse than at the feature layer because nobody notices.
+
+### Second-pass review: guards rewritten from enumerations to structural checks
+
+A second independent review found that the previous round fixed *the examples it was handed*,
+not *the class of problem*: it produced six more escaping binding forms and eight more escaping
+colour forms, plus two holes introduced by the fixes themselves. The root cause was the same one
+the original audit criticised — **coverage decided by an allow-list**.
+
+- **§26 template-string guard, rewritten.** It no longer tries to match binding syntax at all.
+  A backtick has exactly one source in JS (a template literal), so the scanner now walks
+  **every backtick** (skipping escaped ones and those inside comments) and decides "is this CSS?"
+  from the **content**. Registered names no longer gate *whether* a block is checked — only
+  whether it gets reported as unregistered. The allow-list became a
+  "file → expected number of style blocks" budget, which immediately exposed that the old table
+  covered **15 of 22** blocks and missed files whose style strings have no named variable at all.
+- **§27 colour guard, rewritten.** It no longer enumerates property names. It now collects
+  **every colour token** — hex, `rgb/hsl/hwb/lab/lch/oklab/oklch/color()`, and all 148 named
+  colours — regardless of which property it sits on, **including custom-property definitions**
+  (`--brand:#ff0000` was previously invisible because `\bcolor` doesn't match after `-`).
+  `color-mix()` is classified by context: 100% component = solid (kept), two colours mixed = new
+  hue (kept), one neutral side below 100% = a neutral overlay (dropped). Translucent `rgba()/hsla()`
+  with alpha < 1 stays allowed, including percentage and slash syntax.
+- **`channel-brand.tsx`'s 20 brand colours** (Telegram / WeChat / QQ / Slack / Feishu trademark
+  colours) are now **explicitly registered with a reason** rather than being invisible to the scan.
+  Brand colours are not part of this design system and must not be changed — but "scanned and
+  exempted" is different from "never scanned", and only the former is honest.
+
+Every reverse example from the review was re-run and now fails the guard as intended, including
+`const X:string=`, `let`, `var`, ternaries, destructuring, `String.raw`, the blacklist-hijack via
+`expandKey`, `border-top`, `linear-gradient`, `column-rule`, `rebeccapurple`, `oklch()`,
+`rgba(255,0,0,100%)`, `rgba(255 0 0 / 1)` and `color-mix(#ff0000 100%, transparent)`.
+
+### Third pass: self-audit before re-review found two crippling blind spots
+
+- **`looksLikeCss` excluded newlines, so multi-line CSS — i.e. nearly all real stylesheets —
+  was never recognised.** `.a,\n.b {\n color: red;\n}` returned false. Fixing this also
+  corrected the whole registry: `CodexWorkspaceBrowser` went from 15 "blocks" to **4**
+  (the old count was an artefact of the newline blind spot), and exposed `virtual-skip.ts`
+  (2 blocks) which had **never been registered**.
+- **The truncation check ran *after* the "is this CSS?" gate**, so the very blocks it exists to
+  catch — a stylesheet truncated by an escaped backtick, which no longer parses as complete CSS —
+  were skipped. Reordered to check first, count second.
+- Also: escape detection looked at a single preceding character (so `\\` mis-flagged the closing
+  backtick) — now counts consecutive backslashes; and registered style-block counts are compared
+  for **strict equality** (previously a file dropping to zero blocks went unreported).
+
+### Cross-engine
+
+WebKit 26.6 and Chromium produce **identical** measurements on the same fixture (indent 10px,
+group gap 12px, row pitch 34px, and all three grey tiers byte-identical in both themes).
+Real-device touch remains unverified (no device available).
+
+### Screenshots
+
+All five README screenshots **re-captured** for 1.15.0 against a live host in an isolated profile.
+
+### Added (guard)
+
+- **Style template-literal truncation guard.** Comments inside `const stylesheet = \`…\`` that
+  contain a backtick silently truncate the string, because every extraction script uses a
+  non-greedy regex. This bit three files during this round and each time surfaced as an
+  unrelated assertion failing (black text, missing focus rings, unhidden cost card).
+  `design-system.assert.ts` §26 now scans for it.
+
+## 1.14.0 - 2026-10-16
+
+A round of **ZCode design-system reverse engineering + foundational architecture layers**.
+Unlike 1.12/1.13 ("align with existing tokens"), this round adds layers the plugin simply
+did not have: a spacing scale, `document-hidden` motion pause, and a generic template-literal
+guard. A pitfall scan ran before the work (T1, 95 cards fully scanned, 24 hits) and a deep
+scan after the first version (T2, 10 hits). Skin version 1.3.0 → **1.4.0**.
+
+### Added (architecture layers)
+
+- **Spacing scale**: five tokens with real consumers (`--dcu-space-1/2/3/4/6` = 4/8/12/16/24px),
+  per ZCode `DESIGN.md` §Spacing (4px base). A first pass pre-seeded 2px/20px steps plus
+  8 size tokens (`--dcu-size-icon-*` / `--dcu-size-control-*`); a closing self-check found
+  **zero consumers** for all ten and they were deleted — see §28.10. Pre-seeding unused slots
+  makes later readers assume they carry conventions. The plugin previously
+  had no such layer: geometry was written as literals, which grew 39 one-off values
+  (5/7/9/14/18/22px), with two or three synonyms for the same intent in one view.
+- **`document-hidden` motion pause** (`src/client/document-hidden-motion-pause.ts`):
+  ports ZCode's memory protection — all transitions/animations stop while the page is hidden,
+  so DocumentTimeline stops retaining removed subtrees. Long conversations with background
+  streaming are exactly where that leak compounds. Registered as an **app-level** effect.
+
+### Fixed
+
+- **Sidebar footer clipping (real bug)**: `dsh-cost-meter` defaults to its `compact` peak
+  branch (`.cm-peak-strip` + `.cm-peak-chip`), but the foreign-content contract only listed
+  anchors for the `classic` branch — so the default path was never covered: `.dcu-foot`
+  overflowed by 13px, `.cm-peak-strip` by 29px, and trailing text was hard-clipped.
+  Added anchors for all three branches and gave the chip shrink + ellipsis (contract rule 3).
+  Measured: `.dcu-foot` 13px→0px, `.cm-peak-strip` 29px→0px.
+- **Semantic colours used on peak-strip text (contract violation)**: the foreign plugin applied
+  `#ff9800` / `#34a853` / `var(--state-business-primary)` to **text** across three states,
+  while contract rule 4 permits semantic colours for **fills only**. Converged to the sidebar
+  scale so it follows the theme (previously identical green in both themes, contrast unverified).
+  Note: specificity must be raised — `.dcu-root .dcu-foot .cm-peak-chip` (3 classes) is required
+  to beat `\.cm-peak-strip.weekend .cm-peak-chip` (3 classes); otherwise the override silently loses.
+- **Assertion defects (regex scanned full text including comments)**: the spacing ratchet counted
+  "originally gap:22px" inside a comment as a real declaration; the anchor check flagged a
+  `.cm-peak-high` mention in a comment as an unregistered override. Both now strip comments first.
+
+### Tests
+
+- §25 **spacing ratchet**: off-scale spacing must be explicitly registered (keyed by the
+  **full value**, not a bare number — otherwise `margin:-3px 0 0` degrades to an unreadable
+  `margin:3px`), with three documented exception classes: alignment / optical / geometry-coupled.
+- §13c **generic template-literal guard**: covers **every client file** instead of relying on
+  remembering which file was edited. This trap had been hit seven times in total.
+- `verify-sidebar-transition.mjs` **performance regression guard**: the move must not be written
+  as an inheriting CSS variable on `frame` (see §27).
+- `conversation-header.assert.ts`: **intent-based assertion** replaces a literal (CODE-040).
+
+## 1.13.0 - 2026-10-14
+
+A design-language alignment pass using ZCode's `DESIGN.md` as the single source of truth:
+breakpoints brought under one registry, every radius literal tokenized, settings-page tokens
+delegated to host semantic tokens, and menu/overlay density converged to the charter. Four
+groups of previously unguarded knowledge became assertions. Skin version 1.2.0 → **1.3.0**.
+Every change was **reverse-tested** (reverting it must turn an assertion red) and reviewed
+in an isolated live host.
+
+### Fixed
+
+- **`test:layout` was missing one gate script (real defect)**: 1.11.0 wired
+  `verify-state-shells.mjs` into `scripts/gate.mjs`'s LAYOUT array but not into the
+  `test:layout` script — running `npm run test:layout` locally showed all green while that
+  check **never executed**. Both entry points now list 16 scripts, and assertion §23 pins
+  the two lists equal so it cannot drift again.
+- **639/640 were two adjacent breakpoints governing the same composer region**: `CodexSidebar`
+  narrowed the composer shadow at 639px while `InputHistoryDock` hid the history hint at 640px,
+  leaving a 1px window where the shadow was already tightened but the hint still showed.
+  Unified to 640px.
+
+### Changed (visual)
+
+- **Menu and overlay density aligned to charter §Menus** (previously off-spec, and an older
+  audit had mistaken the off-spec value for the contract): shell `xl(12px)→lg(8px)`,
+  item `lg(8px)→md(6px)`, shell padding `5px→p-1(4px)`, item padding `4px 9px→4px 8px`,
+  item gap `0→2px` (`gap-0.5`). Truth source: ZCode
+  `packages/ui/src/components/ui/dropdown-menu.tsx`. The **suggestion menu (`@` / `/`) follows
+  the same rules** — the charter states it "does not inherit the main-input exception", so its
+  previous 12px was a violation.
+- **Radius literals down to zero**: all 35 in-scale literals (2/4/6/8px) migrated to
+  `var(--dsw-radius-*)` with no visual change (token value equals literal). The ratchet
+  baseline is now empty, upgrading its meaning from "must not regress" to "no in-scale
+  literals allowed". Only three non-scale shape values remain: `0`, `50%`, and the pill `999px`.
+- **Settings-page `--sp-*` tokens delegated to host semantic tokens**: six roles matched host
+  tokens exactly (verified by comparing computed values in a real Chromium) and now reference
+  `--dsw-alias-bg-base` / `settings-card-fill` / `border-l2` / `label-primary` /
+  `interactive-bg-hover` / `--dcu-sidebar-selected` — zero visual change, and the settings page
+  now follows the host palette. `--sp-muted` / `--sp-muted-on-card` keep literals: the static
+  scale **inverts** between light and dark (static-500 is `#8f8f8f` in light but `#5c5c5c` in
+  dark), so referencing it by step number would produce the opposite value.
+
+### Added (guards)
+
+Design rules only take effect once they are assertions. This batch turned four pieces of
+knowledge that existed **only in source comments** into assertions:
+
+- **§20 breakpoint registry + ratchet**: every viewport breakpoint must declare its purpose;
+  unregistered ones fail, and adjacent 1px pairs fail outright (that shape means one region
+  got split in two). Not a CSS token because **media queries cannot use `var()`**, and the
+  layout fixtures extract template strings by regex — interpolation would make them read the
+  variable name.
+- **§21 settings-page token ratchet**: the six roles must reference host tokens (copies drift
+  silently when the host palette changes).
+- **§22 search dialog keyboard and ARIA contract**: `Escape` to close, arrow-key roaming,
+  `role="dialog"` + `aria-modal` + accessible name + autofocus, and the requirement that the
+  keydown listener be registered in the **capture phase** — a bubble-phase listener is
+  pre-empted by the host's window-level handler, which on a real machine once left users
+  unable to close the dialog.
+- **§23 layout entry-point list equality** (see above).
+- **§24 skin version guard**: `SKIN_VERSION` had no assertion at all and KNOWN-ISSUES §13
+  records one release that missed the internal version bump. It now pins "valid format" plus
+  "wired into both consumers (CSS comment and `data-dsh-zcode-skin`)" while deliberately
+  **not** pinning the number.
+
+### Docs
+
+- **Corrected baseline drift**: `KNOWN-ISSUES` and both READMEs still said
+  "35 pass / 0 fail (38 scripts)" while the measured state is **37 pass / 3 skipped / 0 fail
+  (40 scripts)**; the vitest figure was stuck at "47 files / 311 tests" versus **53 files /
+  394 tests**; layout scripts were listed as 11/12 versus 16. All figures now match a real
+  run, and KNOWN-ISSUES states that **counts must come from an actual run, not arithmetic**.
+- Eight assertions across three files that pinned the radius as the literal `8px` now pin the
+  **design intent** (`8px` or `var(--dsw-radius-lg)`) — pinning the literal fights the ratchet.
+
+### Tests
+
+- Assertions: 40 scripts — 37 pass / 3 intentionally skipped / 0 fail.
+- vitest: 54 files / 399 tests pass. Added `skin-install.spec.ts` (5 cases) covering skin install/restore semantics.
+- Real-browser layout: **16/16 pass** (including `verify-state-shells`, which had never run
+  under `test:layout`).
+- Isolated live-host review: `data-dsh-zcode-skin` = `1.3.0` (confirming the new build is
+  loaded), sidebar light `#f0f0f0` / dark `#161616`, zero console errors; menu measured at
+  shell `8px` + padding `4px` + item gap `2px` + item `6px`, matching the ZCode truth source.
+
+### Fixed (performance)
+
+- **Sidebar toggle stuttered on long conversations** (user report): the old implementation
+  animated `width: calc(100% + shift)` on the conversation column, forcing a **full text
+  reflow every frame**; the grid track was also pinned to an "animation base" geometry, so
+  the settle step reflowed once more. Measured: at 3000 messages the animation collapsed to
+  4 frames, at 8000 messages to **1 frame** (i.e. no animation at all), with a 465ms first
+  frame. Fixed by switching the track to the target geometry up front (constant width,
+  zero settle reflow), moving the start offset into an explicit `@keyframes` `from`,
+  using `shift/2` (the conversation band is centred, so it only travels half the distance),
+  scheduling the animation start one frame later (so the reflow is paid first), and
+  **adaptively skipping the animation** when the reflow already exceeds its duration
+  ("fast and still" beats "freeze then barely slide"). Measured at 8000 messages:
+  first frame 465→101.5ms, animation 1→11 smooth frames, band centre monotonic with no jump.
+  Full reproduction and derivation: `docs/KNOWN-ISSUES.md` §26.
+
+### Tests
+
+- `verify-sidebar-transition.mjs`: message counts widened from `[10, 1200]` to
+  `[10, 1200, 3000, 8000]` — the old range happened to sit exactly where the old
+  implementation still looked fine, which is why this bug survived. Added a
+  **visual band-centre continuity** assertion (the only measure that distinguishes the old
+  and new track architectures), and split "flight frames / first frame / startup frame"
+  into separately bounded categories to avoid both false reds and false greens.
+
+### Fixed (performance)
+
+- **Sidebar toggle still felt slow on long conversations** (second user report): the move
+  distance was written as the CSS variable `--dcu-sidebar-shift` and consumed by a
+  `@keyframes` `var()`. That variable is an **unregistered inheriting custom property**,
+  and `frame` is also an ancestor of the conversation area (measured 12,632 descendants in
+  the real host) — a single write invalidated styles for **every descendant**.
+  Measured: writing to `frame` cost 44.2ms, while writing to a sidebar-only child cost
+  4.0ms — **cost scales with descendant count**, which is exactly why longer conversations
+  got slower. On top of that, `var()` inside `@keyframes` prevents the animation from being
+  handed to the compositor.
+  Fixed by having the move carried by the content column's own **inline `transform`**
+  (a non-inheriting property, invalidating only that element: 0.3ms), and switching the CSS
+  back from `@keyframes` to `transition`.
+  Real host at 8000 messages (16.7k nodes): style recalc 445.5ms → 346.9ms (-98.6ms / 22%);
+  synthetic fixture at 6000 messages: 172.6ms → 90.4ms (-48%).
+  **Honest limit**: the remaining 346.9ms is mostly the host's own unavoidable reflow
+  (277.6ms even with all plugin CSS disabled); the plugin cannot remove it — that needs
+  virtual scrolling on the host side. Full attribution and the list of levers that were
+  measured and found ineffective: `docs/KNOWN-ISSUES.md` §27.
+
+### Tests
+
+- `verify-sidebar-transition.mjs`: added a **performance regression guard** asserting the
+  animation must not write the move as a CSS variable on `frame`, and must use the content
+  column's inline `transform` (reverse-tested to catch the old implementation).
+- `conversation-visuals.assert.ts`: added a **template-literal truncation guard**
+  (balanced backticks, balanced braces, closed comments, ends with a rule). This pitfall
+  had been hit three times: a backtick inside a CSS template-literal comment silently
+  truncates the template, breaking `tsdown` and making the host report `failed to import`,
+  while the assertion suite stayed **green** (it only ever saw the truncated prefix).
+
 ## 1.12.0 - 2026-10-14
 
 Ports the upstream 1.1.35–1.1.37 fixes and replaces the "disable official + override" architecture with

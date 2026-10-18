@@ -49,6 +49,10 @@ DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉
 
 > 所有截图里的项目名、会话标题与余额数字都是**演示数据**——提交前会先做脱敏，
 > 因此本仓库里不会出现任何真实工作区的内容。
+>
+> **截图已按 1.15.0 重拍**（2026-10-18），在隔离 profile 里对真实宿主（`0.2.1-rc.2`）取景，
+> 因此这里的会话缩进、单色建议卡图标与加宽的组间留白都是真实效果。
+> 只有演示数据——本仓库不包含任何真实工作区内容。
 
 设置页 —— 选中态是中性灰，与侧栏一致（没有宿主默认的蓝色残留）：
 
@@ -181,9 +185,9 @@ dsh --profile web --dump-config
 | 层级 | 命令 | 覆盖范围 |
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
-| 单元 / 集成 | `npm run test:unit` | 47 个文件、311 个用例 |
-| 契约断言 | `node tests/run-assertions.mjs` | 38 个脚本——35 通过、3 个有意跳过 |
-| 真机布局 | `npm run test:layout` | 12 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
+| 单元 / 集成 | `npm run test:unit` | 54 个文件、399 个用例 |
+| 契约断言 | `node tests/run-assertions.mjs` | 40 个脚本——37 通过、3 个有意跳过 |
+| 真机布局 | `npm run test:layout` | 16 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。
 
@@ -230,7 +234,7 @@ dsh --profile web --dump-config
 ```bash
 pnpm install --frozen-lockfile
 pnpm build          # tsc --noEmit && tsdown  → lib/
-pnpm gate           # 类型 + 断言 + vitest + 11 个浏览器脚本
+pnpm gate           # 类型 + 断言 + vitest + 16 个浏览器脚本
 pnpm gate:host      # 隔离真实宿主的兼容性重型档
 ```
 

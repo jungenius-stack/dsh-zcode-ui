@@ -49,6 +49,10 @@ The two images at the top of this page are the light and dark sidebar + workspac
 
 > Project names, conversation titles and the balance figures in every screenshot are **demo data** — the
 > captures are sanitised before committing so no real workspace ever appears in this repository.
+>
+> **Re-captured for 1.15.0** (2026-10-18) against a live host (`0.2.1-rc.2`) in an isolated profile,
+> so the session indent, monochrome card icons and wider group spacing shown here are the real thing.
+> Demo data only — no real workspace appears in this repository.
 
 Settings page — selected states are neutral, matching the sidebar (no blue leftovers from the host defaults):
 
@@ -181,9 +185,9 @@ Four layers, all runnable locally. `npm run gate` chains them (~55s) and the `pr
 | Layer | Command | What it covers |
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
-| Unit / integration | `npm run test:unit` | 47 files, 311 tests |
-| Contract assertions | `node tests/run-assertions.mjs` | 38 scripts — 35 pass, 3 intentionally skipped |
-| Real-browser layout | `npm run test:layout` | 12 Chromium scripts measuring real geometry, interaction, contrast and overflow |
+| Unit / integration | `npm run test:unit` | 54 files, 399 tests |
+| Contract assertions | `node tests/run-assertions.mjs` | 40 scripts — 37 pass, 3 intentionally skipped |
+| Real-browser layout | `npm run test:layout` | 16 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
 `npm run gate:host` is the heavy tier: it packs the plugin, installs it into an isolated `DSH_HOME`, starts a real `dsh web`, and runs three live-host scripts (about 1–2 minutes). Use it when you touch slots, injection, or the install flow.
 
@@ -230,7 +234,7 @@ This is a **beta** maintained by one person, so feedback is the main way it impr
 ```bash
 pnpm install --frozen-lockfile
 pnpm build          # tsc --noEmit && tsdown  → lib/
-pnpm gate           # typecheck + assertions + vitest + 11 browser scripts
+pnpm gate           # typecheck + assertions + vitest + 16 browser scripts
 pnpm gate:host      # isolated real-host compatibility tier
 ```
 
