@@ -274,7 +274,12 @@ assert.match(workspaceBrowser, /dcu-wb-quick-actions">\{archiveConfirm[^]*<Quick
 assert.match(workspaceBrowser, /className="dcu-wb-confirm"[^]*sessions\.confirm/, '两步确认必须渲染带确认文案的确认按钮')
 // 2026-10-13 ZCode 对齐：键盘聚焦与悬停同权——均露出快捷操作并让元信息让位。
 assert.match(workspaceBrowser, /\.dcu-wb-session:focus-within \.dcu-wb-quick-actions/, '键盘聚焦会话行必须像悬停一样露出快捷操作')
-assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-quick-actions\{opacity:1;pointer-events:auto\}/, '确认态必须常驻显示确认按钮（与 hover 无关）')
+assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-quick-actions\{opacity:1;pointer-events:auto[^}]*\}/, '确认态必须常驻显示确认按钮（与 hover 无关）')
+// 2026-10-18：仅靠 opacity:0 隐藏不够。实测反馈里出现过「归档图标的横条残影常显」——
+// quick-actions 是 absolute 定位、里面有 13×3.3 的 rect（归档图标顶条），一旦透明层在
+// 某些合成/辅助模式下未被真正剔除，就会在标题右侧留下一条短横线。
+// visibility 是硬剔除，且不改变布局与动画节奏，因此基础态必须同时给 hidden。
+assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{[^}]*opacity:0;[^}]*visibility:hidden/, '快捷操作基础态必须用 visibility:hidden 硬隐藏，不得只靠 opacity:0')
 assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dcu-state-error-fill\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用错误色**填充档**配反色前景（前景沿用宿主 bg-layer-3）；底色不得直接用 --dsw-alias-state-error-primary——该值只按填充推导，作按钮底时悬停会掉到 3.91:1，见 zcode-theme.ts 状态色分档')
 assert.doesNotMatch(workspaceBrowser, /setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin/, '任务树不得本地维护会话置顶（宿主 pinnedSessionIds 是唯一状态源）')
 assert.match(workspaceBrowser, /pinnedFirstSessionIds\(/, '置顶会话必须排在未置顶之前（宿主置顶语义）')
