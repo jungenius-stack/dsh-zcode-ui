@@ -4,6 +4,33 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.15.6 - 2026-10-18
+
+**新建页左右两侧的拖拽手柄重叠、指示条跟着鼠标上下漂。**
+
+根因是两条独立的错误叠在一起：
+
+- **定位变量用错了作用域。** 两只手柄用
+  `calc(50% + var(--dsh-chat-content-width) / 2 + 16px)` 定位，但宿主只在 `.ST7X_W_body`
+  上定义 `--dsh-chat-content-width`，`[data-phase=hero]` 根上没有这个变量。`var()` 失效后整条
+  声明被丢弃，`right` 回退 `auto`、`left` 留在 `0` —— **左右两只手柄双双落到容器左侧、完全重叠**，
+  拖拽时自然表现为「那条索引横条位置不对、会漂」。现改用 `--dsh-chat-user-width`（该作用域里
+  真实存在），并显式清掉另一侧的 `left/right`，防止回退。
+- **指示条跟随指针纵向移动。** `::after` 用 `top:calc(var(--dcu-pointer-y,50%) - 50px)`，
+  而 `--dcu-pointer-y` 由 `pointermove` 写入「指针在手柄内的 y」。手柄是全高 strip，于是鼠标上下
+  移动时那根竖条也跟着上下跑。现改为 `top:50% + translateY(-50%)` 固定居中，并删除那行写入。
+
+**断言为什么没守住**：`verify-hero-width.mjs` 的夹具在 `main` 上**同时**定义了
+`--dsh-chat-content-width:var(--dsh-chat-user-width)`，替真实宿主补上了它不存在的变量，
+于是「变量失效」这条路径永远测不到——典型的夹具比真实环境更宽松。夹具已改为与宿主一致，
+并新增三条断言：左右手柄必须分离、内容区必须关于容器中心对称、指示条不得再用
+`--dcu-pointer-y` 定位。已用「把变量改回去」注入故障反向验证：断言会红。
+
+皮肤内容版本 1.4.1 → **1.4.2**。
+
+实测（1920 / 1440 / 1100 三个宽度）：左右手柄分别落在 `712/1416`、`472/1176`、`302/1006`，
+全部关于容器中心对称；指示条在鼠标纵向移动时 `top` 保持不变。
+
 ## 1.15.5 - 2026-10-18
 
 **两处「透明层没被真正剔除」导致的残影**（截图反馈）。

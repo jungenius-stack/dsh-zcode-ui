@@ -4,6 +4,40 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.15.6 - 2026-10-18
+
+**The two drag handles on the new-task page overlapped, and their indicator bar tracked the pointer
+vertically.**
+
+Two independent mistakes stacked:
+
+- **Wrong scope for the positioning variable.** Both handles used
+  `calc(50% + var(--dsh-chat-content-width) / 2 + 16px)`, but the host defines
+  `--dsh-chat-content-width` on `.ST7X_W_body` only — not on the `[data-phase=hero]` root. With the
+  `var()` unresolvable the whole declaration is dropped, `right` falls back to `auto` and `left`
+  stays at `0`, so **both handles land on the container's left edge and overlap completely** — which
+  is what "the index bar is in the wrong place / drifts" looked like. They now use
+  `--dsh-chat-user-width` (which does exist in that scope) and explicitly reset the opposite
+  `left`/`right` so there is no fallback path.
+- **The indicator bar followed the pointer.** `::after` used
+  `top:calc(var(--dcu-pointer-y,50%) - 50px)`, and `--dcu-pointer-y` was written by `pointermove`
+  as "pointer y inside the handle". The handle is a full-height strip, so moving the mouse up and
+  down dragged the bar along with it. It is now `top:50% + translateY(-50%)` (pinned to the middle)
+  and that write is gone.
+
+**Why the assertion missed it**: the `verify-hero-width.mjs` fixture defined
+`--dsh-chat-content-width:var(--dsh-chat-user-width)` on `main`, supplying the very variable the real
+host does not define — so the broken path could never be exercised. The fixture now matches the host,
+and three assertions were added: the handles must be separated, the content area must be symmetric
+about the container centre, and the indicator must not be positioned via `--dcu-pointer-y`. Verified
+by re-introducing the bug: the assertion goes red.
+
+Skin content version 1.4.1 → **1.4.2**.
+
+Measured at 1920 / 1440 / 1100 px: handles at `712/1416`, `472/1176`, `302/1006` — symmetric about
+the container centre in all three; the indicator's `top` stays constant while the pointer moves
+vertically.
+
 ## 1.15.5 - 2026-10-18
 
 **Two ghost artefacts caused by transparent layers that were never actually culled.**
