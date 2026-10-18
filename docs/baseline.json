@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "assertScripts": 44,
+    "assertScriptsTs": 39,
+    "assertScriptsMjs": 5,
+    "specFiles": 55,
+    "layoutScripts": 17,
+    "tokens": {
+      "light": 174,
+      "dark": 174,
+      "structural": 26,
+      "structuralDsw": 23,
+      "union": 200,
+      "dswPrefixed": 197
+    }
+  },
+  "structure": {
+    "largestClientFile": "src/client/CodexWorkspaceBrowser.tsx",
+    "largestClientFileLines": 1135,
+    "importantOccurrences": 48,
+    "todoMarkers": 0
+  }
+}

@@ -70,7 +70,7 @@ Collapsed rail — icon-only, with tooltips on hover:
 
 This fork keeps upstream's interaction scaffolding and data layer, and adds:
 
-- **The ZCode skin itself** — 174 `--dsw-*` tokens per theme (light and dark) plus 21 structural tokens, 195 unique token names in total. Every token consumed anywhere in `src/` is covered by the maps; the `token-coverage` assertion fails the build if that ever stops being true.
+- **The ZCode skin itself** — 174 `--dsw-*` tokens per theme (light and dark) plus 23 structural tokens, 197 unique token names in total. Every token consumed anywhere in `src/` is covered by the maps; the `token-coverage` assertion fails the build if that ever stops being true.
 - **Theme single-source-of-truth** — the host attribute is the only signal. No `prefers-color-scheme` fallback, which used to split the sidebar and the content area when the host was light but the OS was dark.
 - **Fixes found by looking at the real interface**, not by reading code: session hover card trimmed to the title only, send button rendered in the real primary colour (`--dcu-primary` is now defined at `:root` so the composer — which lives outside `.dcu-root` — can resolve it), a "back to conversation" entry when a global panel is open, self-drawn sidebar separator lines removed, marquee title clipping, footer separation, and shorter empty-state cards.
 - **A verification stack that actually runs on this machine** — see [Verification](#verification). Upstream's browser-based layout scripts had never been executed here before (the Chromium binary was missing), which is how five stale assertions stayed hidden.
@@ -185,9 +185,9 @@ Four layers, all runnable locally. `npm run gate` chains them (~55s) and the `pr
 | Layer | Command | What it covers |
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
-| Unit / integration | `npm run test:unit` | 54 files, 399 tests |
-| Contract assertions | `node tests/run-assertions.mjs` | 40 scripts — 37 pass, 3 intentionally skipped |
-| Real-browser layout | `npm run test:layout` | 16 Chromium scripts measuring real geometry, interaction, contrast and overflow |
+| Unit / integration | `npm run test:unit` | 55 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Contract assertions | `node tests/run-assertions.mjs` | 44 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Real-browser layout | `npm run test:layout` | 17 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
 `npm run gate:host` is the heavy tier: it packs the plugin, installs it into an isolated `DSH_HOME`, starts a real `dsh web`, and runs three live-host scripts (about 1–2 minutes). Use it when you touch slots, injection, or the install flow.
 
@@ -199,8 +199,8 @@ Recorded honestly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) — the file
 
 - **Three assertions are skipped on purpose.** They validate the upstream monorepo's release contracts (`packages/`, `.github/workflows/`), which do not exist in this single-package fork. The files are kept with an explicit `SKIP` block rather than deleted, so "test missing" and "problem solved" stay distinguishable.
 - **Four of the seven interface issues reported from real use are not this plugin's.** They were traced to the cost-meter and context-pilot plugins (duplicate cost display, cramped status bar) and to a host-built-in control; they are documented, not silently ignored.
-- **Two upstream open issues ([#40](https://github.com/MichengAI/dsh-codex-ui/issues/40), [#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)) were probed and did not reproduce** at four window sizes on macOS. Non-macOS platforms, real display scaling, and full-screen/split-screen remain untested.
-- **No CI.** The gate runs locally and on push via the `pre-push` hook. The local `node_modules` is hand-patched to work around a `tsdown` dependency gap; a clean `npm install` may need that reapplied.
+- **Two upstream issues ([#40](https://github.com/MichengAI/dsh-codex-ui/issues/40), [#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)) were probed and did not reproduce** at four window sizes on macOS. Neither is still open: upstream closed both as `completed` on 2026-10-13 (re-checked 2026-10-18). Non-macOS platforms, real display scaling, and full-screen/split-screen remain untested.
+- **CI runs the same gate as local.** `.github/workflows/ci.yml` runs `pnpm install --frozen-lockfile` and `node scripts/gate.mjs` on push and PR; the `pre-push` hook runs the identical command locally, so local green and CI green come from one source. The local `node_modules` is hand-patched to work around a `tsdown` dependency gap; a clean `npm install` may need that reapplied.
 
 ## References and acknowledgements
 

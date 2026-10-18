@@ -70,7 +70,7 @@ DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉
 
 本 fork 保留上游的交互脚手架与数据层，在此之上增加：
 
-- **ZCode 皮肤本体**——明暗两套各 174 个 `--dsw-*` 令牌，另加 21 个结构性令牌，合计 195 个唯一令牌名。`src/` 中出现的每一个被消费令牌都在映射表里，`token-coverage` 断言会在这一点不再成立时直接让构建失败。
+- **ZCode 皮肤本体**——明暗两套各 174 个 `--dsw-*` 令牌，另加 23 个结构性令牌，合计 197 个唯一令牌名。`src/` 中出现的每一个被消费令牌都在映射表里，`token-coverage` 断言会在这一点不再成立时直接让构建失败。
 - **主题单一真源**——只认宿主属性，不做 `prefers-color-scheme` 回退。旧做法在「宿主是亮色、系统是暗色」时会把侧栏与内容区撕成两半。
 - **靠看真实界面发现的修复**，而不是靠读代码：会话悬停卡精简为只显示标题；发送键使用真正的主色（`--dcu-primary` 现在定义在 `:root`，输入区在 `.dcu-root` 之外才能解析到它）；全局面板打开时提供「返回会话」入口；删掉侧栏自绘的分隔线；标题跑马灯不再裁掉两端；底栏分组分隔；空状态卡收矮。
 - **一套真能跑起来的验证栈**——见[验证](#验证)。上游那批真浏览器布局脚本此前在本机**从未真正执行过**（缺 Chromium 二进制），这也正是 5 条过期断言长期没被发现的原因。
@@ -185,9 +185,9 @@ dsh --profile web --dump-config
 | 层级 | 命令 | 覆盖范围 |
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
-| 单元 / 集成 | `npm run test:unit` | 54 个文件、399 个用例 |
-| 契约断言 | `node tests/run-assertions.mjs` | 40 个脚本——37 通过、3 个有意跳过 |
-| 真机布局 | `npm run test:layout` | 16 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
+| 单元 / 集成 | `npm run test:unit` | 55 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 契约断言 | `node tests/run-assertions.mjs` | 44 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 真机布局 | `npm run test:layout` | 17 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。
 
@@ -199,8 +199,8 @@ dsh --profile web --dump-config
 
 - **有 3 个断言是有意跳过的。** 它们校验的是上游 monorepo 的发布契约（`packages/`、`.github/workflows/`），而本仓库是单包 fork，被测对象根本不存在。文件被保留并加显式 `SKIP` 块，而不是删除——删除会让「测试不见了」和「问题解决了」难以区分。
 - **实机反馈的 7 个界面问题里，有 4 个不归本插件。** 它们被查到属于计费插件与 context-pilot（费用重复显示、状态栏拥挤），以及宿主内置控件；已记录在案，没有静默忽略。
-- **上游两个未结 issue（[#40](https://github.com/MichengAI/dsh-codex-ui/issues/40)、[#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)）经探测未复现**（macOS、四种窗口尺寸）。非 macOS 平台、真实系统缩放、全屏/分屏仍未验证。
-- **没有 CI。** 门禁在本地跑，并由 `pre-push` 钩子在推送时执行。本机 `node_modules` 处于手工修补状态（为绕开 `tsdown` 的依赖缺口），重新 `npm install` 后可能需要重新打补丁。
+- **上游两个 issue（[#40](https://github.com/MichengAI/dsh-codex-ui/issues/40)、[#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)）经探测未复现**（macOS、四种窗口尺寸）。两句都已不再是「未结」：上游于 2026-10-13 以 `state_reason=completed` 关闭（2026-10-18 复核）。非 macOS 平台、真实系统缩放、全屏/分屏仍未验证。
+- **CI 与本地跑同一条门禁。** `.github/workflows/ci.yml` 在 push 与 PR 上执行 `pnpm install --frozen-lockfile` 加 `node scripts/gate.mjs`；`pre-push` 钩子在本地跑的是同一份，所以「本地绿 == CI 绿」由同一个命令保证。本机 `node_modules` 处于手工修补状态（为绕开 `tsdown` 的依赖缺口），重新 `npm install` 后可能需要重新打补丁。
 
 ## 参考资料与致谢
 
@@ -234,7 +234,7 @@ dsh --profile web --dump-config
 ```bash
 pnpm install --frozen-lockfile
 pnpm build          # tsc --noEmit && tsdown  → lib/
-pnpm gate           # 类型 + 断言 + vitest + 16 个浏览器脚本
+pnpm gate           # 类型 + 断言 + vitest + 17 个浏览器脚本
 pnpm gate:host      # 隔离真实宿主的兼容性重型档
 ```
 

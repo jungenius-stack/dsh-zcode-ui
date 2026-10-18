@@ -8,15 +8,38 @@ import { parseDocument } from 'workflow-yaml'
 
 // ── 显式跳过 ─────────────────────────────────────────────────────────────────
 // 本断言校验的是上游 dsh-codex-ui **monorepo 的 GitHub Actions 发布流水线**：
-// 它直接读取 .github/workflows/{ci,publish,release,release-suite-installer}.yml，
-// 并调用 scripts/prepare-suite-installer-release.mjs 等发布脚本。
+// 它直接读取 .github/workflows/{publish,release,release-suite-installer}.yml，
+// 并调用 scripts/prepare-suite-installer-release.mjs 等发布脚本，还要 packages/ 聚合包目录。
 //
-// dsh-zcode-ui 已 fork 为单包仓库，既没有 .github/workflows/ 目录，也没有那套
-// 聚合包发布脚本，因此本文件在加载后必然抛 ENOENT——不是代码缺陷，是测试对象
-// 不在本仓库内。
+// dsh-zcode-ui 已 fork 为单包仓库，上述三个发布工作流与 packages/ 都不存在，
+// 因此本文件在加载后必然抛 ENOENT——不是代码缺陷，是测试对象不在本仓库内。
 //
 // 处理方式：保留文件与全部断言原文（避免「删测试掩盖问题」），在顶部显式跳过。
-console.log('SKIP: release-pipeline.assert.mjs — 校验上游 monorepo 的 .github/workflows 发布流水线，本 fork 为单包仓库，无此目录')
+//
+// ⚠ 跳过理由会过期：2026-10-18 的体检发现本仓已补上 .github/workflows/ci.yml，而本块
+// 当时写的是「既没有 .github/workflows/ 目录」——理由已经半假，跳过却还在，没有任何检查
+// 会去戳它。所以下面先做**路径断言**：被跳过的对象一旦被补齐，这里立刻报红，提示把本文件
+// 改成正向校验，而不是继续沿用一句已经过期的说明。
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const GUARDED_PATHS = [
+  '.github/workflows/release.yml',
+  '.github/workflows/publish.yml',
+  '.github/workflows/release-suite-installer.yml',
+  'packages',
+]
+const appeared = GUARDED_PATHS.filter(relative => existsSync(resolve(repoRoot, relative)))
+if (appeared.length > 0) {
+  console.error('✗ release-pipeline: 跳过理由已失效——以下被跳过的对象已出现在本仓库：')
+  for (const relative of appeared) console.error(`    ${relative}`)
+  console.error('  本文件底部的断言现在有真实对象可测。请把顶部 SKIP 块删除，改为正向校验；')
+  console.error('  在改完之前，这道门禁保持红色——总比继续跳过、并让「本仓库没有 .github/workflows」写在文档里更诚实。')
+  process.exit(1)
+}
+
+console.log('SKIP: release-pipeline.assert.mjs — 校验上游 monorepo 的发布流水线（release/publish/release-suite-installer 三个工作流 + packages/），本 fork 为单包仓库，这些对象均不存在')
 process.exit(0)
 // ─────────────────────────────────────────────────────────────────────────────
 

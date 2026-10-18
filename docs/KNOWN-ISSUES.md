@@ -5,7 +5,7 @@
 维护原则：**宁可显式记录，不要静默留白**。任何「跑不绿但暂时不动」的测试都必须在此登记原因，
 避免后续维护者把已知的存量漂移误当成新引入的回归。
 
-最后更新：2026-10-14（当前基线：37 通过 / 3 跳过 / 0 失败）
+最后更新：2026-10-18（基线数字不再手写——静态计数见 `docs/baseline.json` 与 `docs/BASELINE.md`，由 `tests/docs-baseline.assert.ts` 守护）
 
 ---
 
@@ -14,8 +14,9 @@
 运行 `node tests/run-assertions.mjs` 的基线结果：
 
 ```
-37 通过 / 3 跳过 / 0 失败（共 40 个脚本）
-  已跳过：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
+44 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
+  采集方式：node --import tsx scripts/baseline.mjs --run（结果写进 docs/BASELINE.md）
+  固定清单：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
 ```
 
 套件已改为**跑完全部再汇总**（原实现遇到第一个失败即退出），一次即可看清全部问题。
@@ -141,7 +142,7 @@
 | --- | --- | --- |
 | 「`zcode-skin.ts` 拒绝哈希类名，但其他文件仍在用 → 自相矛盾」 | **降级为措辞问题** | 原话的作用域是「本皮肤层」（该文件的上下文），而皮肤层确实一处都没用。集成层无法回避哈希类名。已在 `zcode-skin.ts` 补边界说明、并在 ZCODE-DESIGN §12 写清两层分工。**但其建议本身（装报警器）完全成立，已采纳** |
 | 「亮色下『拖动项目到此处置顶』的灰比 tertiary 更浅」 | **不成立** | 实机测得 `.dcu-wb-empty` 为 `rgb(104,104,104)` = `#686868`，正是 tertiary 本身，无额外 opacity。它比 secondary 浅是**设计分层**，不是缺陷。13px 抗锯齿在小字号下容易被看成更浅 |
-| 「`CodexWorkspaceBrowser.tsx` 有一个约 690 行的函数；`!important` 40 处」 | **承认，本轮不动** | 均为事实。但 690 行函数的重构风险远高于收益，`!important` 是皮肤层覆盖宿主所必需。登记为已知技术债，不做无谓改动 |
+| 「`CodexWorkspaceBrowser.tsx` 有一个约 690 行的函数；`!important` 40 处」 | **承认，本轮不动** | 这两个数在登记时就已过期：2026-10-18 实测为 1135 行文件里的 741 行函数、`!important` 48 处。现在数字由 `scripts/baseline.mjs` 生成、`tests/structure-budget.assert.mjs` 做双向棘轮（涨了报红，降了也要求下调预算），不再依赖人工回头。741 行函数的重构风险远高于收益，`!important` 是皮肤层覆盖宿主所必需。登记为已知技术债，不做无谓改动 |
 
 **评审中已过期/已被修复的两条**（记录以免重复讨论）：
 
@@ -4568,3 +4569,210 @@ Telegram / 微信 / QQ / Slack / 飞书 等第三方**商标色**——改动它
 - `.a{content:"→"}` 之外的其他合法引号值属性（`quotes:`、`font-family:"X"` 已覆盖）
   若将来出现需扩充判据。
 - 真机触屏仍未验证；git 仍未提交。
+
+## 58. 2026-10-18 第四次性能报告：鼠标划过消息卡顿的真正根因（插件自身，已修）
+
+> 用户第四次报告同一症状，这次给了明确约束：**"一定要解决"**。
+> 前三次（§26/§27/§30）都归因到宿主重排或侧栏动画；本轮在**真实长会话**上
+> 用 Chrome trace 抓到了 282ms 的 rAF 长任务，来源是**本插件的外来表面哨兵**。
+
+### 58.1 现场与基线（真实宿主，非合成夹具）
+
+打开 `ds flash 1017 测试区 / 白鹈鹕海边骑行3D动画`（1 轮 490 步）：
+
+| 指标 | 值 |
+| --- | --- |
+| DOM 节点 | 23,154 |
+| 会话流单元（`[data-chat-flow-kind]`） | 839（276 assistant-step + 560 tool-call） |
+| 会话区节点 | 21,803 |
+| CSS 规则 | 5,172（177 张样式表） |
+
+CDP `Performance.getMetrics` 差分，鼠标在消息区连续移动 60 次（每次间隔 12ms）：
+
+| 条件 | 重算耗时 | 每次移动 | 任务耗时 |
+| --- | --- | --- | --- |
+| 修复前 | **0.69–0.71s** | **11.5ms** | 0.85s（14ms/次） |
+| 修复后 | **0.030s** | **0.50ms** | 0.086s（1.43ms/次） |
+
+对照：无 CSS → 0.33ms/次；侧栏悬停 → 0.19ms/次。所以问题不是"长 DOM 让所有悬停都贵"，
+而是**会话区悬停触发了额外的 282ms 长任务**。
+
+### 58.2 trace 里的真凶：`check` 在 rAF 里扫全树
+
+单次悬停移动的 trace（`devtools.timeline`）：
+
+```
+FireAnimationFrame 282.15ms
+└─ FunctionCall check  282.12ms   ← scriptId 7 / plugins bundle / line 27572
+UpdateLayoutTree 12.78ms (elementCount 967)
+UpdateLayoutTree 10.23ms (elementCount 799)
+...
+```
+
+行号 27572 对应 `src/client/foreign-surface-discovery.ts` 的 `observeForeignSurfaces.check()`：
+旧实现监听 `document.body` 的**每次 childList**，在 rAF 里对
+`[data-conversation-scroll]` 下的每个分支逐个 `getComputedStyle`。
+长会话 2 万节点 → 单次扫描 282ms。
+
+**触发链**：鼠标移入消息 → 宿主挂载悬停操作条 `ppByMG_actions`（5 个节点）→
+一次 childList → 哨兵全量扫描 → 界面冻结 0.28s。移出消息时卸载操作条，再冻一次。
+
+### 58.3 为什么 §30 没测出来
+
+§30 的悬停实验用的是**程序化长内容夹具**，没有真实宿主的悬停操作条，
+所以 hover 不会产生 childList 变更 → 哨兵不触发 → 测到 0.36ms/次，结论"悬停不是卡顿来源"。
+**合成夹具缺的是"悬停会改 DOM"这一条真实宿主行为**。这条教训与 §27.7、§42 同源：
+性能归因必须在真实 DOM 交互路径上做，不能只测渲染成本。
+
+### 58.4 修复：增量 + 分帧 + 去重
+
+`observeForeignSurfaces` 重写（`src/client/foreign-surface-discovery.ts`）：
+
+1. **只看 `mutation.addedNodes`**，删除不触发；只接收"在 surface 内"或"包含 surface"的新增子树；
+2. 显式栈遍历，**每帧最多 8ms**，超预算留到下一帧；
+3. 初次扫描（页面已有内容）走同一条队列，不再在初始化时同步扫全树；
+4. `WeakSet` 去重，React 反复挂载同一节点不重复付 `getComputedStyle`；
+5. 基线**不缓存 null**：首帧插件可能先于侧栏挂载，旧写法会把 null 缓存住，
+   之后每次 flush 都清空队列、永不扫描（本轮实测命中，已修）。
+
+`findForeignDrift(root)` 仍保留全量扫描语义，只给测试/显式体检用，文件头已写明
+**观察器不得调用它**。
+
+### 58.5 修复后的实测
+
+| 检查 | 结果 |
+| --- | --- |
+| 悬停 60 次：`getComputedStyle` 调用 | **0 次**（修复前每次全扫） |
+| 悬停重算 | 0.50ms/次（23× 改善） |
+| 打字 `ScriptDuration`（15 次） | 0.25s → **0.045s**（5.5×） |
+| 初始化扫描 | 1,487 次 `getComputedStyle`，分帧摊开，不产生长任务 |
+| 告警功能 | 仍能报出真实漂移（`dwRWCG` 圆角 10px、`iq4beG` 字号 11px） |
+| 性能回归测试 | `tests/foreign-surface-observer.spec.ts` 5 条全过 |
+
+### 58.6 仍未解决 / 边界
+
+- **初始化扫描仍有约 1,500 次 `getComputedStyle`**（真实长会话），只是分帧摊开；
+  它不阻塞输入，但会在打开会话后约 0.5–1s 占用空闲算力。
+- 告警里的 `count` 现在是"截至告警时扫到的次数"，不再是单次全量扫描的精确计数。
+- `virtual-skip` 的 body 级 observer 仍在（长会话里 `getElementsByTagName('*').length`
+  每次变更都会被调用），但实测未造成可感知卡顿；若要进一步压，可另开一轮把它也改成增量。
+- 桌面端需重载页面（或重启 App）才会加载新 `lib/client.js`。
+
+### 58.7 2026-10-18 第二轮：用户反馈 1.15.1 "没有成效" 后重看录屏
+
+用户补了一段 4 分钟录屏（手机拍 4K 屏）和该会话的导出 zip。逐帧看下来，
+主要耗时在**启动/恢复长会话**这一段：
+
+| 时间 | 画面 |
+| --- | --- |
+| 0–6s | 桌面，App 未出现 |
+| 8s | App 窗口白屏 |
+| 10s | 只有壳（侧栏 + 空会话） |
+| 14s | 长会话内容才出现 |
+
+也就是说 §58 修的 hover 不是这段的真凶。对同一会话做打开 trace（隔离 web 实例）：
+
+```
+FunctionCall:flush (外来表面哨兵)   796ms / 92 帧   ← 仍然过重
+FunctionCall (宿主主 bundle)        270ms / 4 次
+EventDispatch                       245ms / 3 次
+onFirstGesture (picker-native)      180–285ms / 1 次
+UpdateLayoutTree                     62ms / 7 次
+```
+
+**根因**：增量扫描虽然不再"每次 mutation 扫全树"，但初次扫描仍逐元素体检。
+会话区 1,466 个未登记外来元素，其中 `icaHSq_flowItem` 一前缀 844 个；
+每个都 `getComputedStyle`，分帧摊开后仍要 92 帧 / 796ms，正好压在会话挂载期间。
+
+**修复**：每个前缀只抽样体检 **4 个**元素（`SAMPLE_PER_PREFIX`）。
+哨兵只需要"这个前缀不对"的证据；`findForeignDrift()` 的全量体检保留给测试/显式审计。
+
+**修复后（同一会话、同一实例）**：
+
+| 指标 | 1.15.1 | 1.15.2 |
+| --- | --- | --- |
+| 哨兵打开期扫描 | 796ms / 92 帧 | **16ms / 2 帧** |
+| 点击 → 839 个流单元就绪 | 1.50s | **1.06s** |
+| 回归测试 | 5 条 | **6 条**（新增"同前缀只抽样"） |
+
+**诚实边界（写给下一次"还是卡"）**：
+
+- 宿主渲染本身在 trace 里仍占 **0.8–1.1s**（主 bundle + EventDispatch + style），
+  这部分插件无权改；要彻底解决需要宿主做消息级虚拟滚动。
+- 视频里 8–14s 的启动白屏，大部分在 Electron/宿主启动与 490 步会话恢复，
+  **不是本插件**；插件侧能压的 0.8s 已经压掉。
+- 本轮的隔离复现用的是会话 store 里无 media 的副本（44 张图不在 store）；
+  单独测 44 张图解码只需 365ms，不是主因。
+- `virtual-skip` 的 body observer 在打开期实测只占约 41ms，本轮未动。
+
+## 59. 2026-10-18 用户第五次报告：点收起侧栏卡 5 秒（真凶是 dsh-session-kit，不是本插件）
+
+### 59.1 复现与二分
+
+在隔离 web 实例里复制桌面插件组合，加载同一 490 步会话：
+
+| 组合 | 收起侧栏首次生效 | 长任务 |
+| --- | --- | --- |
+| web profile（无 session-kit） | 75–111ms | 无 |
+| 桌面插件副本 | **1663–3751ms** | 每 1.7s 一次 1.3–2.4s |
+| 去掉 prompt-optimizer | 3369ms | 仍慢 |
+| 去掉 session-kit | **75ms** | 消失 |
+
+CPU profile：`headingRowForNodeKey` 54.5% + `querySelectorAll` 19% +
+`getClientRects` 8.4%。
+
+### 59.2 根因
+
+`dsh-session-kit@5.2.1` 的 `headingRowForNodeKey()` 对每个 key 都
+`querySelectorAll('[data-chat-anchor-key]')` 并逐行 `getClientRects()`；
+`headingElementsForNodeKeys()` 对 N 个 key 调用它 → O(N×M) 布局读取。
+`rowForTopic()` / `topicRows()` 又各有一层 O(N×M) 重复。
+
+侧栏收起只是**触发器**：会话列变化 → session-kit 的 ResizeObserver/scroll
+多次 `run()` → 每次约 800ms。
+
+### 59.3 修复（第三方补丁）
+
+已对已装 `~/.dsh/profiles/desktop/node_modules/dsh-session-kit/lib/client.js`
+应用三处最小补丁（anchorKey Map + 100ms 缓存、topic 行 Map、topicRows 缓存），
+可重放脚本：`<工作区>/patches/patch-session-kit-topic-perf.mjs`。
+
+| 指标 | 前 | 后 |
+| --- | --- | --- |
+| 收起首次生效 | 1663–3751ms | **283ms** |
+| 展开首次生效 | — | **267ms** |
+| 1.3–2.4s 长任务 | 每 1.7s | 消失 |
+| `run` 总耗时 | 4921ms/6 | 742ms/6 |
+
+### 59.4 边界
+
+- 补丁在 node_modules 里，pnpm install / 插件升级会覆盖；脚本幂等可重放。
+- 剩余 ~300ms 首响 + 300–800ms 宿主重排任务；本插件侧栏动画的 2–3 次强制
+  reflow 仍是代价，要再压需改 `beginSidebarMotion` 并跑布局门禁。
+- 建议向上游 `ltxlong/dsh-session-kit` 提交 O(N×M) 修复。
+
+### 59.5 2026-10-18 后续：session-kit 补丁生效后仍剩约 3 秒
+
+用户反馈：鼠标响应明显变快，但收起侧栏仍要等约 3 秒。
+
+隔离实例（同一会话、桌面插件组合、session-kit 已打补丁）：
+
+| 条件 | 收起首次变化 |
+| --- | --- |
+| 无头 1280×800 | 281–290ms |
+| 有头 1600×1000@2x（真实绘制，screencast 首帧） | 344–385ms |
+| 有头 + 额外 44 张大图 | 385ms |
+
+补丁后 session-kit 单次 `run` 437ms/4；标题元素查找再加 200ms 缓存。
+**3 秒在隔离环境完全复现不出**，判断剩余延迟在 App 的实际会话 DOM 规模
+（用户可能已把历史翻页加载完）或宿主重渲染，不是插件侧可测的固定成本。
+
+zcode-ui 1.15.3 增加保护：侧栏 frame 后代 >8,000 时**不播开合动画，直接落定**
+（`SIDEBAR_MOTION_MAX_ELEMENTS`），避免长会话里“重排 + 动画”叠加。
+
+下一步需要用户给两个观察：
+1. 3 秒是“完全没动”，还是“慢慢动完”？
+2. 新建一个小会话，收起是否也要 3 秒？
+
+- 小会话也慢 → App/窗口级（焦点恢复、GPU、后台节流），需要宿主侧。
+- 只有大会话慢 → 会话 DOM 规模；插件无法卸载宿主已挂载的历史，需要宿主虚拟滚动。
