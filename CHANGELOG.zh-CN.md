@@ -22,9 +22,12 @@
 
 ### 工程（同批收入）
 
-- **CI 入库。** `.github/workflows/ci.yml` 此前从未进入任何一次提交，而 README 与
-  KNOWN-ISSUES 都写着「没有 CI」——现在 push 与 PR 上跑的就是 `node scripts/gate.mjs`，
-  与 `pre-push` 钩子同源。
+- **CI 配置就绪（待一次手动启用）。** `.github/workflows/ci.yml` 此前从未进入任何一次
+  提交，而 README 与 KNOWN-ISSUES 都写着「没有 CI」。本轮把它改为
+  [`docs/ci/workflow-ci.yml`](docs/ci/workflow-ci.yml) 并纳入版本库：内容就是
+  「`pnpm install --frozen-lockfile` + `node scripts/gate.mjs`」，与 `pre-push` 钩子同源。
+  没有直接放进 `.github/workflows/` 的原因写在 README 里——推送凭据只有 `repo` scope，
+  GitHub 拒绝创建 workflow 文件。复制过去并 push 即可启用。
 - **文档基线自动化。** `scripts/baseline.mjs` 从磁盘算出全部静态计数写入
   `docs/baseline.json`；`tests/docs-baseline.assert.ts` 做「磁盘 / 基线 / 文档」三方一致
   断言，并校验每类句式的命中次数——句子被删时断言报红，而不是静默空转。会漂的动态数字

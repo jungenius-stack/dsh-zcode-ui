@@ -273,7 +273,8 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
 - **`packageManager` 与实际环境不一致**：`package.json` 声明 `pnpm@11.28.5`，
   该版本要求 Node >= 22.13；而 ZCode 内置 Node 为 22.12，无法直接运行它。
   本机可改用任意 Node 22.22.x（如 22.22.2-6，已验证可用），具体路径随各人环境而定。
-- **本仓库无 CI**：`npm test` 包含 `pnpm run typecheck && vitest run && tsdown && node tests/run-assertions.mjs`，
+- **CI 配置在仓库里，但还没启用**：workflow 正文在 [`docs/ci/workflow-ci.yml`](ci/workflow-ci.yml)，内容就是 `node scripts/gate.mjs`，与 `pre-push` 钩子同源。没有放进 `.github/workflows/` 的唯一原因是推送凭据只有 `repo` scope，GitHub 拒绝创建 workflow 文件；复制过去并 push 即可启用。在那之前门禁只在本机 `pre-push` 上跑。
+  `npm test` 包含 `pnpm run typecheck && vitest run && tsdown && node tests/run-assertions.mjs`，
   其中 `pnpm` 在当前环境不可直接调用，需改用 `npm run` 对应脚本。
 - **构建与测试必须用正确的 Node（2026-10-12 更正：此前"缺原生绑定"是误判）**：
   原生绑定 `@rolldown/binding-darwin-arm64@1.2.4` 一直躺在 `.pnpm` 里、链接也正确；

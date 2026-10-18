@@ -201,7 +201,7 @@ dsh --profile web --dump-config
 - **兼容性边界：构建在 0.2.0-rc.2，日常运行在 0.2.1-rc.2。** `engines.dsh` 与 11 个 peer 的下界都是 `>=0.2.0-rc.2`（因为 `devDependencies` 钉在那里，本仓从未在更早的宿主上编译过）。上界保持 `<0.3.0-0` 是有意的：作者本人每天在 0.2.1-rc.2 上用它，收窄会把你挡在版本门禁外；但 0.2.1 确实没有进入构建与门禁——这个差别写在这里，而不是藏在一个看起来很宽的范围里。
 - **实机反馈的 7 个界面问题里，有 4 个不归本插件。** 它们被查到属于计费插件与 context-pilot（费用重复显示、状态栏拥挤），以及宿主内置控件；已记录在案，没有静默忽略。
 - **上游两个 issue（[#40](https://github.com/MichengAI/dsh-codex-ui/issues/40)、[#41](https://github.com/MichengAI/dsh-codex-ui/issues/41)）经探测未复现**（macOS、四种窗口尺寸）。两句都已不再是「未结」：上游于 2026-10-13 以 `state_reason=completed` 关闭（2026-10-18 复核）。非 macOS 平台、真实系统缩放、全屏/分屏仍未验证。
-- **CI 与本地跑同一条门禁。** `.github/workflows/ci.yml` 在 push 与 PR 上执行 `pnpm install --frozen-lockfile` 加 `node scripts/gate.mjs`；`pre-push` 钩子在本地跑的是同一份，所以「本地绿 == CI 绿」由同一个命令保证。本机 `node_modules` 处于手工修补状态（为绕开 `tsdown` 的依赖缺口），重新 `npm install` 后可能需要重新打补丁。
+- **CI 配置已就绪，但还差一次手动启用。** [`docs/ci/workflow-ci.yml`](docs/ci/workflow-ci.yml) 就是那条 workflow：push 与 PR 上执行 `pnpm install --frozen-lockfile` 加 `node scripts/gate.mjs`，与 `pre-push` 钩子是同一份，所以「本地绿 == CI 绿」由同一个命令保证。它没能直接落在 `.github/workflows/`：用于推送的凭据只有 `repo` scope，GitHub 拒绝创建 workflow 文件（`refusing to allow an OAuth App to create or update workflow ... without workflow scope`）。把它复制到 `.github/workflows/ci.yml` 并 push，或换一个带 `workflow` scope 的 token，即可启用。**在那之前，门禁只在本地的 `pre-push` 上跑。** 本机 `node_modules` 处于手工修补状态（为绕开 `tsdown` 的依赖缺口），重新 `npm install` 后可能需要重新打补丁。
 
 ## 参考资料与致谢
 

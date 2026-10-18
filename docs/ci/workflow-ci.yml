@@ -1,0 +1,35 @@
+# 全量门禁（类型 → 断言 → vitest → 16 个布局脚本）在每次 push / PR 上自动执行。
+#
+# 为什么是这一条命令：scripts/gate.mjs 是本仓唯一的质量入口，发布前 pre-push 钩子
+# 跑的也是它——CI 里跑同一份，保证「本地绿 == CI 绿 == 发布绿」三态一致。
+# 活宿主门禁（gate-host.mjs）需要真实 DSH 应用，GitHub 托管环境没有，因此不在 CI 内。
+#
+# pnpm 版本不写死在 action 里：pnpm/action-setup 读取 package.json 的 packageManager
+# 字段（pnpm@11.28.5），与 client-module-contract.assert.ts 的固定断言同源，改版本只需动一处。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Full gate (types, assertions, vitest, layout scripts)
+        run: node scripts/gate.mjs

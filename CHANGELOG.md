@@ -25,9 +25,13 @@ Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://g
 
 ### Engineering (folded into this release)
 
-- **CI is now in the repository.** `.github/workflows/ci.yml` had never been part of any
-  commit while both README and KNOWN-ISSUES said "No CI". Push and PR now run the same
-  `node scripts/gate.mjs` the `pre-push` hook runs.
+- **CI configuration is ready (one manual step to enable).** `.github/workflows/ci.yml` had
+  never been part of any commit while both README and KNOWN-ISSUES said "No CI". It now lives
+  in the repository as [`docs/ci/workflow-ci.yml`](docs/ci/workflow-ci.yml): the body is
+  "`pnpm install --frozen-lockfile` + `node scripts/gate.mjs`", identical to what the
+  `pre-push` hook runs. It did not go straight into `.github/workflows/` because the push
+  credential only carries the `repo` scope and GitHub refuses to create workflow files — see
+  the README. Copy it over and push to enable.
 - **Documented numbers are generated, not transcribed.** `scripts/baseline.mjs` derives every
   static count into `docs/baseline.json`; `tests/docs-baseline.assert.ts` asserts three-way
   agreement (disk / baseline / docs) *and* the hit count of each pattern, so a deleted
