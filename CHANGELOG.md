@@ -4,6 +4,35 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.16.3 - 2026-10-19
+
+**The turn rail did not follow the sidebar — up to 77px of drift while toggling.**
+
+- **Root cause**: the transcript's slide is *faked* — the grid track snaps to its target in one
+  frame and the visual motion is supplied by the content column's own `transform` (that is what
+  keeps long sessions at 60fps). The turn rail is `position: fixed` and positioned from the
+  *real* geometry of `.dcu-root`, so it never receives that transform. The rail lands instantly
+  while the column is still travelling: at t=15ms the rail sat at 72px against the column's
+  146px — **74px apart**.
+- **Why upstream doesn't have this**: the official navigator is `position: sticky` inside the
+  content column, so it follows via pure CSS (measured: a constant 12px offset). The upstream
+  self-drawn rail is the same `fixed` design, but upstream's sidebar is a real grid transition
+  that changes frame by frame. **Copying upstream is therefore not the fix** — it would mean
+  reverting to per-frame full-page reflow (frames already dropped at 1200 messages), costing far
+  more than it gains.
+- **Fix**: let the rail pay the same shift, mirrored. `sidebar-width.ts` publishes the column's
+  start offset as `--dcu-rail-sync-shift` at animation start; the rail transitions it to zero
+  with the **same duration and easing**. Settle/cancel/unmount all clear the inline value.
+  **No extra per-frame JS layout reads** — one custom property written, CSS handles the follow.
+- After the fix at 1200 / 2113 messages: the gap holds at 16px for the whole flight, the rail
+  returns home on settle, and vertical centering is preserved.
+- New `scripts/verify-turn-rail-sync.mjs` (layout scripts 17→18) wired into the gate with 5
+  assertions; one of them requires the rail to take >= 3 distinct positions, specifically to
+  catch the "neither element moves" false green. Negative test: commenting out the sync call
+  fails 4 of them (worst −77px); restoring it goes green.
+
+---
+
 ## 1.16.2 - 2026-10-19
 
 **Sidebar open/close felt "not smooth" — because there was no animation at all.**

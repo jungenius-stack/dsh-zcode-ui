@@ -12,7 +12,7 @@
 | ├ TypeScript | 40 | `tests/*.assert.ts` |
 | └ ES Module | 5 | `tests/*.assert.mjs` |
 | vitest 文件 | 56 | `tests/*.spec.ts` |
-| 真机布局脚本 | 17 | `scripts/gate.mjs` 的 LAYOUT（与 package.json test:layout 交叉校验） |
+| 真机布局脚本 | 18 | `scripts/gate.mjs` 的 LAYOUT（与 package.json test:layout 交叉校验） |
 | 令牌 · 明 | 174 | `ZCODE_LIGHT` 键数 |
 | 令牌 · 暗 | 174 | `ZCODE_DARK` 键数 |
 | 令牌 · 结构 | 26（其中 `--dsw-` 23） | `ZCODE_STRUCTURAL` 键数 |
@@ -29,9 +29,7 @@
 
 ## 实跑快照
 
-| 项 | 结果 | 退出码 |
-| --- | --- | --- |
-| 断言套件 | 42 通过 / 3 跳过 / 0 失败（共 45 个脚本） | 0 |
-| vitest | 411 passed \| 1 skipped (412) | 0 |
+尚未采集。运行 `node --import tsx scripts/baseline.mjs --run` 采集一次。
 
-采集于 2026-10-19T06:58:47.661Z。
+注意：这一节是**观察值**，会随工作树变化，因此不被任何断言锁定；
+把它写成固定数字就是 CODE-040（把当时的实现值写成契约）。

@@ -16,6 +16,16 @@ type TurnNavigatorProps = Omit<PropsRuntime<'conversation.session.header.utiliti
 
 const stylesheet = `
 .dcu-turn-navigator{position:fixed;z-index:20;top:50%;left:var(--dcu-turn-left,288px);transform:translateY(-50%);width:16px;max-height:calc(100vh - 120px);overflow:visible;pointer-events:none}
+/* 侧栏开合期间与内容列同步位移（2026-10-19）。
+   背景：内容列的滑动是「伪造」的——轨道宽度一帧就切到目标，视觉位移由内容列自己的
+   transform 补齐。本索引栏是 position:fixed，按 .dcu-root 的真实几何定位，不吃那段
+   transform，于是开合期间它一帧到位、内容列还在路上（实测最大偏差 74px），
+   用户看到的就是「索引不跟着侧栏走、漂移」。
+   修复：sidebar-width.ts 把同一段位移发布成 --dcu-rail-sync-shift（写起点、过渡到 0），
+   这里用与内容列**完全相同**的时长与曲线消费它。三者时间轴必须一致，否则会互相追赶。
+   translateY(-50%) 是垂直居中，必须保留，不能被位移覆盖。 */
+.dcu-turn-navigator[data-dcu-rail-sync]{transform:translateY(-50%) translateX(var(--dcu-rail-sync-shift,0px));transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+@media (prefers-reduced-motion:reduce){.dcu-turn-navigator[data-dcu-rail-sync]{transition:none}}
 .dcu-turn-scroll{width:16px;max-height:inherit;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;pointer-events:none}
 .dcu-turn-scroll::-webkit-scrollbar{display:none}
 .dcu-turn-list{display:grid;gap:2px;margin:0;padding:4px 0;list-style:none;width:16px;pointer-events:none}
@@ -176,7 +186,7 @@ export function TurnNavigator({ useChat, useSession, t }: TurnNavigatorProps) {
     setHoverAt(hoverIndexFromPoint(event.currentTarget, event.clientY, turns.length))
   }
   const style = { '--dcu-turn-left': `${railLeft}px`, '--dcu-summary-top': `${summaryTop}px` } as CSSProperties
-  return <nav ref={navRef} className="dcu-turn-navigator" data-hovering={hoverAt !== null || undefined} aria-label={t('turns.label')} style={style}><style>{stylesheet}</style><div className="dcu-turn-scroll"><ol ref={listRef} className="dcu-turn-list" onMouseMove={moveHover} onMouseLeave={() => { setHoverAt(null) }}>{turns.map((turn, index) => {
+  return <nav ref={navRef} className="dcu-turn-navigator" data-hovering={hoverAt !== null || undefined} data-dcu-rail-sync="" aria-label={t('turns.label')} style={style}><style>{stylesheet}</style><div className="dcu-turn-scroll"><ol ref={listRef} className="dcu-turn-list" onMouseMove={moveHover} onMouseLeave={() => { setHoverAt(null) }}>{turns.map((turn, index) => {
     const mark = tickMarkSize(index, hoverAt, current === turn.key)
     const active = hoverAt !== null && index === activeIndex
     const tickStyle = hoverAt === null ? undefined : { '--dcu-tick-w': `${mark.width}px`, '--dcu-tick-h': `${mark.height}px` } as CSSProperties

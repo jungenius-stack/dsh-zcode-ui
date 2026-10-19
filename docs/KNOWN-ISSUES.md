@@ -4967,3 +4967,88 @@ vitest 加载 `vitest.config.ts` 时要写 `node_modules/.vite-temp/`，在只�
 
 **「某个指标必须满足 X」的断言，前面必须先有一条「该指标确实被测量」。**
 否则它衡量的是「不存在的东西很完美」——这条比具体 bug 更值得记住。
+
+---
+
+## 62. 2026-10-19 用户第八次报告：轮次索引栏不跟侧栏走（开合期间漂移）
+
+### 62.1 现象
+
+用户：「拉起左侧栏时，靠住侧栏的那个居中索引不会紧紧跟着侧栏走，输入会话区右侧的侧栏
+也是同样的道理，导致不同步、索引漂移。」
+
+### 62.2 根因：内容列是「伪滑动」，索引栏按真实几何定位
+
+`sidebar-width.ts` 的开合架构（§26 起）是这样的：**轨道宽度在一帧内切到目标**，视觉位移
+由内容列自己的 `transform` 补齐。这么做是为了让动画帧成本与内容量脱钩（长会话不掉帧）。
+
+而轮次索引栏（`TurnNavigator.tsx` 的 `.dcu-turn-navigator`）是 `position: fixed`，
+`left: var(--dcu-turn-left)`，由 `railLeftFromSidebar()` 按 `.dcu-root` 的**真实几何**算出来。
+它不吃内容列那段 transform。
+
+于是开合期间两者各走各的。2026-10-19 实测（修复前，1200 条消息）：
+
+| t | 索引栏左缘 | 内容列视觉左缘 | 偏差 |
+| --- | --- | --- | --- |
+| 0 | 256px | 256px | 0 |
+| 15ms | **72px（一帧到位）** | 146px | **−74px** |
+| 48ms | 72px | 120px | −48px |
+| 98ms | 72px | 71px | +1px |
+| 落定 | 72px | 56px | +16px（设计间距） |
+
+**最大偏差 74–77px。** 用户看到的「索引不跟侧栏走、漂移」就是这个。
+
+### 62.3 上游（dsh-codex-ui / 宿主官方导航）为什么没有这个问题
+
+查了 `@michengai/dsh-codex-ui@1.1.40` 与宿主 0.2.0-rc.2：
+
+- **官方轮次导航**用 `position: sticky` 挂在 `.slot` 上，`.slot` 是 `[data-conversation-scroll]`
+  的后代，`padding-inline: calc(var(--dsh-composer-side-clearance) + 16px)`——**纯 CSS 布局跟随**，
+  内容列一动它就跟。实测开合全程与内容列偏差**恒为 12px**（设计间距），零漂移。
+- **上游自绘导航**与本插件同款（`position: fixed` + `var(--dcu-turn-left)` + `ResizeObserver`
+  观察 `.dcu-root`），但**上游的侧栏是真的 grid 过渡**——`root.right` 逐帧变化，所以索引栏
+  也能逐帧跟上。它没有「伪滑动」这套合成层架构。
+
+**结论：这不是「上游有更好的方案可以照搬」，而是本插件为了长会话流畅性做了架构取舍，
+索引栏没有跟着一起改。**照抄上游意味着把侧栏退回每帧全页重排（§26 实测 1200 条就掉帧、
+8000 条压成 1 帧），代价远大于收益。
+
+### 62.4 修复：让索引栏付同一段位移，只是取反
+
+内容列写入 `translateX(startX)` 并在 180ms 内过渡到 0。索引栏的定位基准已经一帧到位，
+所以要**额外补上同一段位移**，视觉上才会「看起来还在路上」。
+
+- `sidebar-width.ts`：新增 `applyRailShift()`，在 `beginAnimation` 里紧跟在 motion 标记之后，
+  把同一段 `startX` 发布成 `--dcu-rail-sync-shift`（先无过渡写起点，再过渡到 0），
+  时间轴与内容列**完全一致**（同起点、同 `--dcu-motion-move-duration`、同 `move-ease`）；
+- `TurnNavigator.tsx`：样式消费该变量，
+  `transform: translateY(-50%) translateX(var(--dcu-rail-sync-shift,0px))`，
+  并给 nav 加 `data-dcu-rail-sync` 标记；
+- 落定 / 取消 / 卸载三条路径都调 `clearRailShift()` 撤掉内联值，不留半程 transform。
+
+**代价：零额外 JS 读布局。** 只写一个自定义属性，跟随交给 CSS 过渡完成——这正是 §27 的教训
+（每帧 JS 读几何同步是长对话变慢的根源），不能为了修漂移把它请回来。
+
+修复后实测：1200 / 2113 条消息下，飞行期间索引栏与内容列间距**稳定在 16px**（不再是 −77px），
+索引栏产生多个中间帧，落定后回到 `root.right + 16`、位移变量清空、`translateY(-50%)` 保留。
+
+### 62.5 新增门禁
+
+`scripts/verify-turn-rail-sync.mjs`（已接入 `gate.mjs` 与 `npm run test:layout`，布局脚本 17→18）：
+
+| 断言 | 防的是什么 |
+| --- | --- |
+| 飞行期间间距恒 ≈16px（容差 12px） | 漂移本身 |
+| 索引栏必须产生 ≥3 个不同位置 | **「两者都不动」的假绿** |
+| 落定回到 root.right+16、位移归零 | 残留 transform |
+| transform 仍是二维矩阵且 y 分量非零 | 位移吃掉 `translateY(-50%)` |
+| reduced-motion 不依赖过渡 | 无障碍 |
+
+**反向测试**：把 `applyRailShift()` 调用注释掉 → 5 项里 4 项报红，实测最差 −77px、
+索引栏只有 1 个位置（完全不动）。恢复后全绿。
+
+### 62.6 与 §59 那类「左右各一条」的区别
+
+`turn-rail-dedupe.ts` 处理的另一种形态：两个 fork 包都注册 `id: 'turn-navigator'` 时会被渲染成
+**两条并排**的索引栏。本轮的问题**不是**那个——是单条索引栏在开合期间的**时间轴不同步**。
+两者现象相似（都像「漂移」），根因完全不同，不要再混为一谈。

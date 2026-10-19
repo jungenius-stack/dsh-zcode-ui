@@ -104,7 +104,76 @@ function clearCenterShift(frame: HTMLElement): void {
     center.style.removeProperty('transition')
   }
   frame.style.removeProperty(SIDEBAR_SHIFT_VAR)
+  // 轮次索引栏的同步位移也必须一并撤掉，否则它会停在半程、与内容列错位（见 beginAnimation）。
+  clearRailShift(frame)
 }
+
+/* ---------------------------------------------------------------------------
+ * 轮次索引栏与内容列的同步位移（2026-10-19）
+ *
+ * ## 问题
+ *
+ * 内容列的滑动是**伪造**的：轨道宽度在一帧内切到目标，视觉位移由内容列自己的
+ * `transform` 补齐（见 beginSidebarMotion 的长注释）。而轮次索引栏
+ * （`.dcu-turn-navigator`，见 TurnNavigator.tsx）是 `position: fixed`，按
+ * `.dcu-root` 的**真实几何**定位——它不吃内容列的 transform。
+ *
+ * 于是开合期间两者各走各的：
+ *
+ *   t=0    索引栏 256px ／ 内容列 256px        偏差 0
+ *   t=15   索引栏  72px ／ 内容列 146px        偏差 −74px   ← 索引栏一帧到位
+ *   t=98   索引栏  72px ／ 内容列  71px        偏差 +1px
+ *   落定   索引栏  72px ／ 内容列  56px        偏差 +16px（设计间距）
+ *
+ * 用户看到的就是「索引栏不跟着侧栏走，漂移」。官方轮次导航（宿主的 nav）不受影响——
+ * 它用 `position: sticky` 挂在内容列里，天然跟随（实测全程偏差恒为 12px）。
+ *
+ * ## 做法：让索引栏付同一段位移，只是取反
+ *
+ * 内容列位移 `+X`（向右推开）时，索引栏视觉上要跟着往右，但它的定位基准已经一帧
+ * 到位了，所以要额外补 `+X` 才会「看起来还在路上」。这里把内容列实际写入的位移量
+ * 发布成变量 `--dcu-rail-sync-shift`，由 TurnNavigator 的 CSS 消费。
+ *
+ * 三个约束：
+ *  1. **同一时间轴**：起点、时长、曲线必须与内容列完全一致，否则两者会互相追赶；
+ *  2. **零额外 JS**：只写一个自定义属性，索引栏的跟随交给 CSS 过渡完成，不产生
+ *     每帧读布局的成本（这类每帧 JS 同步正是 §27 里长对话变慢的根源）；
+ *  3. 不改变索引栏的定位语义：落定后位移归零，它仍在 `root.right + 16` 上。
+ * ------------------------------------------------------------------------- */
+
+/** 索引栏消费的同步位移变量。由本文件在动画期间写入，落定时归零移除。 */
+const RAIL_SYNC_VAR = '--dcu-rail-sync-shift'
+/** 索引栏标记：只有真挂载了自绘索引栏时才写变量，避免无谓的样式失效。 */
+const RAIL_ATTRIBUTE = 'data-dcu-rail-sync'
+
+/**
+ * 让索引栏跟着内容列走同一段位移。
+ *
+ * @param shiftPx 内容列本轮起点位移（带符号，像素）。索引栏补同样方向同样大小。
+ */
+function applyRailShift(frame: HTMLElement, shiftPx: number): void {
+  const rail = frame.ownerDocument.querySelector<HTMLElement>(`.dcu-turn-navigator[${RAIL_ATTRIBUTE}]`)
+  if (rail === null) return
+  // 起点必须与内容列一样「无过渡地落上去」，否则浏览器会把「从 0 到起点」也当成一次过渡，
+  // 索引栏会先滞后再追赶，偏差反而更大。
+  rail.style.transition = 'none'
+  rail.style.setProperty(RAIL_SYNC_VAR, `${shiftPx}px`)
+  void rail.offsetWidth
+  // 交回 CSS 的过渡规则（与内容列同为 move-duration + move-ease），从起点平滑归零。
+  rail.style.removeProperty('transition')
+  rail.style.setProperty(RAIL_SYNC_VAR, '0px')
+}
+
+/** 移除索引栏的同步位移与内联过渡痕迹。 */
+function clearRailShift(frame: HTMLElement): void {
+  const rail = frame.ownerDocument.querySelector<HTMLElement>(`.dcu-turn-navigator[${RAIL_ATTRIBUTE}]`)
+  if (rail === null) return
+  rail.style.removeProperty('transition')
+  rail.style.removeProperty(RAIL_SYNC_VAR)
+}
+
+/** 导出给 TurnNavigator：声明自己需要参与位移同步。 */
+export const TURN_RAIL_SYNC_ATTRIBUTE = RAIL_ATTRIBUTE
 
 /** 记下插件改写前的宿主列宽。已经带初始化标记的列宽是本插件留下的，不能当成宿主原值。 */
 export function rememberHostSidebar(frame: HTMLElement): void {
@@ -493,6 +562,11 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
     columns.center.style.transform = `translateX(${startX}px)`
     void columns.center.offsetWidth
     frame.setAttribute(SIDEBAR_MOTION_ATTRIBUTE, kind)
+    // 索引栏同步位移（2026-10-19）：内容列是「伪滑动」（轨道已一帧到位），而索引栏按真实
+    // 几何定位、不吃这段 transform，两者会各走各的（实测最大偏差 74px）。
+    // 这里让索引栏补上同一段位移、同一时长与曲线，视觉上与内容列严格同步。
+    // 必须紧跟在 motion 标记之后写入：CSS 的过渡规则以该标记为前提。
+    applyRailShift(frame, startX)
     // 交回 CSS 的过渡规则（本规则只过渡 transform），从起点平滑归零到天然终点。
     columns.center.style.removeProperty('transition')
     columns.center.style.transform = 'translateX(0px)'
