@@ -4,6 +4,37 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.16.2 - 2026-10-19
+
+**Sidebar open/close felt "not smooth" — because there was no animation at all.**
+
+The previous three investigations all assumed dropped frames. Measuring first gave the
+opposite answer: **the animation was never playing.**
+
+- Two gates compounded to strip long sessions of animation entirely:
+  `SIDEBAR_MOTION_MAX_ELEMENTS = 8000` (the user's session has 12,685 nodes — 1.6x the
+  limit, so it bailed out), and `blocked > duration / 2` (at 3000 messages `blocked` was
+  86ms against a 90ms threshold — machine jitter decided whether you saw an animation).
+- The first gate's premise had long been false: once the shift moved to `transform`, frame
+  cost decoupled from content size. Measured at 2,007 / 8,007 / 15,007 / 25,007 nodes, the
+  average frame gap was 16.65 / 16.23 / 15.82 / 16.01ms — **25k nodes still holds 60fps**.
+  That gate's only effect was removing the transition from long sessions.
+- The second gate was logically wrong: `blocked` is reflow **already paid for**. Skipping
+  the animation saves none of it and shows nothing sooner — it just removes the transition.
+  Now it only bails on genuinely runaway reflow (`blocked > duration * 2`).
+- After the fix: 1,200 / 2,113 / 3,000 messages all animate again (12 frames, previously
+  a 0-frame jump), starting 4–9ms after the toggle.
+
+**Why the gate never caught this:** the "zero dropped frames while flying" assertions all
+vacuously pass when the animation is skipped — `flight` is empty, so `drops=0`, `avg=0`,
+`startupFrame=0`. Re-adding the 8000 gate still printed "passed". Added a precondition
+assertion ("the animation must actually play, >= 3 flight frames"), and replaced the
+`design-system.assert.ts` regex that pinned `if (blocked > duration / 2)` verbatim
+(CODE-040: freezing an implementation detail into a contract) with intent-based checks.
+Both negative tests now fail as they should.
+
+---
+
 ## 1.16.1 - 2026-10-19
 
 **Audit remediation: gate duration claims, documentation blind spots, and the version ledger.**

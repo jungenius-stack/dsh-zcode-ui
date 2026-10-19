@@ -1001,17 +1001,29 @@ assert.match(switchRule, /color-mix\(in srgb,var\(--dcu-primary,#000\) 30%,trans
 assert.doesNotMatch(switchRule, /--dsw-alias-border-l3/,
   '开关轨道不得再用 border-l3：亮色下滑块与轨道只有 1.30:1，视觉上几乎融为一体')
 
-// ── 2026-10-17 自适应跳过阈值（第三次性能报告后收紧）──────────────────────────
-// 背景：原阈值 `blocked > duration`（180ms）意味着「点到首帧 121ms + 再播 180ms 动画」，
-// 总感知 300ms，比直接到位更糟。收紧到 duration/2 后，阻塞吃掉半个动画时间就跳过。
-// 断言锁的是**行为关系**（阈值锚定 duration、且为其一半），不是魔法毫秒数——
-// 动效档位变化时阈值自动跟随。
+// ── 2026-10-19 自适应跳过：只拦「真正失控」，不再锁 duration/2 ─────────────────
+// 历史：这里曾断言源码里必须出现 `if (blocked > duration / 2)`，理由是「阻塞吃掉半个
+// 动画时长就跳过播动画」。实测推翻了它：
+//
+//   · `blocked` 是轨道切换引发的那次重排，**已经付完**。跳过动画既省不回它，
+//     也不会让用户更早看到结果，只少了过渡——等于「让用户永远看不到动画」。
+//   · 1200 条 blocked=26ms、3000 条 blocked=86ms，而 duration/2=90ms。
+//     阈值就压在临界点上，播不播由机器抖动决定，同代码两次跑结论可能相反。
+//   · 叠加 `SIDEBAR_MOTION_MAX_ELEMENTS=8000`，长会话（1.2 万节点）动画被整个跳过，
+//     用户报的「不丝滑」其实是**没有动画**。
+//
+// 现在锁的是**意图**而不是字面写法（这是 CODE-040：把当时的实现值写成契约）：
+//   ① 判据必须基于实测阻塞时间 blocked，不得按节点数常量决定；
+//   ② 阈值必须锚定 duration（随动效档位缩放），不得写成魔法毫秒数；
+//   ③ 不得退回「节点数 > N 就跳过」的闸门。
 const sidebarWidthSrc = read('sidebar-width.ts')
-assert.match(sidebarWidthSrc, /if \(blocked > duration \/ 2\)/,
-  '自适应跳过阈值必须是动画时长的一半（实测：121ms 阻塞后再播 180ms 动画，总感知 300ms）')
-assert.doesNotMatch(sidebarWidthSrc, /if \(blocked > duration\)/,
-  '不得退回「阻塞超过整个动画时长才跳过」的旧阈值')
-console.log('✓ 侧栏自适应跳过：阈值锚定动画时长的一半')
+assert.match(sidebarWidthSrc, /blocked\s*>\s*SKIP_ANIMATION_BLOCK_MS/,
+  '自适应跳过判据必须基于实测阻塞时间（blocked），不得按节点数常量决定是否播动画')
+assert.match(sidebarWidthSrc, /SKIP_ANIMATION_BLOCK_MS\s*=\s*duration\s*\*/,
+  '跳过阈值必须锚定动画时长 duration（随动效档位自动缩放），不得写成魔法毫秒数')
+assert.doesNotMatch(sidebarWidthSrc, /getElementsByTagName\('\*'\)\.length\s*>\s*\w+/,
+  '不得用「frame 后代节点数超过某个常数」决定播不播动画——帧成本已与内容量脱钩（2.5 万节点仍满帧），节点数闸门只会让长会话彻底失去动画')
+console.log('✓ 侧栏自适应跳过：按实测阻塞时间、阈值锚定动画时长、无节点数闸门')
 
 // ── 2026-10-17 动效曲线真值（用户反馈「不够丝滑」后修正）──────────────────────
 // 缺口：此前所有断言只检查「有没有用 --dcu-motion-*-ease 令牌」，

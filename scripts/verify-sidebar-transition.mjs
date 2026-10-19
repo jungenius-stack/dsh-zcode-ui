@@ -411,17 +411,43 @@ try {
         drops: flight.filter(d => d > 25).length,
         startupFrame: startupFrame >= 0 ? samples[startupFrame].delta : 0,
         settleMax: settle.length > 0 ? Math.max(...settle) : 0,
+        // 动画是否**真的播了**。没有这两个数，下面几条断言在「动画被整个跳过」时会静默空转：
+        // flight 为空 → drops=0、avg=0、startupFrame=0，全部满足。2026-10-19 实测验证过这个盲区。
+        flightFrames: flightIdx.length,
+        hadMotionMarker: flightIdx.length > 0,
       }
     })
     await heavy.close()
+    // ★ 先断言「动画真的播了」，再断言它流畅。
+    //
+    // 2026-10-19 发现：`SIDEBAR_MOTION_MAX_ELEMENTS = 8000` 会让长会话**完全不播动画**
+    // （beginSidebarMotion 直接返回 false），而下面三条「零掉帧 / 平均贴近基线 / 起跑帧有界」
+    // 在 flight 为空时**全部空转通过**。于是这个脚本长期报绿，用户却在长会话里
+    // 完全看不到动画——他说的「不丝滑」就是「没有动画」。
+    //
+    // 教训：任何「飞行期间某指标必须满足 X」的断言，前面必须先有一条「飞行期间确实有帧」。
+    // 否则它衡量的是「不存在的东西很完美」。
+    assert.ok(
+      perf.hadMotionMarker && perf.flightFrames >= 3,
+      `${messages} 条消息：动画必须真的播出来（至少 3 个飞行帧），实测 motion 标记 ${perf.hadMotionMarker ? '出现过' : '从未出现'}、飞行帧 ${perf.flightFrames} 个。` +
+        `若这里为 0，说明有闸门把长会话的动画整个跳过了——此时下面「零掉帧」等断言是在空转，不能当通过。`,
+    )
     // 飞行期间必须零掉帧：这是「长对话下动画不卡」的核心判据。
     assert.equal(perf.drops, 0, `${messages} 条消息：**动画飞行期间**不得有超过 25ms 的帧，实测 ${perf.drops} 个 / 最大 ${perf.max.toFixed(1)}ms`)
     assert.ok(perf.avg < 18.5, `${messages} 条消息：飞行中平均帧必须贴近 60Hz 基线，实测 ${perf.avg.toFixed(1)}ms`)
-    // 起跑帧单独设界：为内容子树创建合成层的一次性成本，长对话下约 30ms。
-    // 它允许存在（换来动画真的能播），但必须有界，防止退化成「每帧都在建层」。
+    // 起跑帧：为内容子树建合成层 + 该帧剩余的重排尾巴。**这是插件唯一允许的一次性成本**，
+    // 必须存在（换来动画真的能播），但必须有界，防止退化成「每帧都在建层」。
+    //
+    // 上界按内容量分档（2026-10-19 校准，每档 5 次采样取上包络）：
+    //   10 / 1200 条：≤120ms；3000 条：≤150ms；8000 条：≤220ms。
+    // 排序依据不是"让测试变绿"，而是实测宿主自身在同一档就有的固有首帧成本：
+    //   8000 条、完全禁用插件动画时，宿主自己切轨道也要 105.8ms 首帧。
+    //   插件的起跑帧落在 133–140ms，即**插件附加约 30ms**——这与「建层成本」量级一致。
+    // 所以这里量的其实是"插件没把成本翻倍"，而不是"绝对时间是 0"。
+    const startupBudget = messages <= 1200 ? 120 : messages <= 3000 ? 150 : 220
     assert.ok(
-      perf.startupFrame <= 120,
-      `${messages} 条消息：动画起跑帧不得超过 120ms（为内容子树建合成层的一次性成本），实测 ${perf.startupFrame.toFixed(1)}ms`,
+      perf.startupFrame <= startupBudget,
+      `${messages} 条消息：动画起跑帧不得超过 ${startupBudget}ms（建合成层 + 该帧剩余重排；宿主自身同名成本约 106ms @8000），实测 ${perf.startupFrame.toFixed(1)}ms`,
     )
     // 落定那一刻会话列宽度真的变了（240→56），整列文本必须重新排版——这是**推挤布局的固有代价**，
     // 宿主自己也不例外（无插件时同样量到百毫秒级首帧）。这里把它单独设界而不是混进飞行帧：

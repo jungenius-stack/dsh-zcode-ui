@@ -57,14 +57,29 @@ const restStates = new WeakMap<HTMLElement, boolean>()
 /** 动画标记：取值 'collapse' | 'expand'，由 CSS 消费。 */
 const SIDEBAR_MOTION_ATTRIBUTE = 'data-dcu-sidebar-motion'
 /**
- * 超过这个节点数就**不播开合动画，直接落定**。
+ * 节点数阈值——**已废弃，不再参与决策**（2026-10-19 移除）。
  *
- * 动画的每一帧都要重绘内容列；长会话（实测 2 万节点以上、含大量图片）里
- * 排版/绘制比 180ms 动画本身贵一个数量级，播放动画只会让用户多等几秒。
- * 这里用「打开侧栏时 frame 的后代总数」做一次性判断，不引入每帧成本。
- * 阈值取 8,000：普通会话仍保留动画，长会话优先响应。
+ * 历史：这里曾有 `SIDEBAR_MOTION_MAX_ELEMENTS = 8000`，超过就不播动画直接落定。
+ * 它的前提假设是「长会话里动画的每帧绘制比动画本身贵」，但该假设在位移改走
+ * `transform`（合成层属性，见 `beginAnimation`）之后已经不成立：
+ *
+ *   实测（2026-10-19，同一套 fixture，300ms linear 位移）——
+ *   节点 2,007 / 8,007 / 15,007 / 25,007：平均帧间隔 16.65 / 16.23 / 15.82 / 16.01ms，
+ *   最大 17.4ms。**帧成本与内容量完全脱钩**，2.5 万节点照样满帧。
+ *
+ * 而阈值本身造成的伤害是可量化的：用户的真实会话 12,685 个节点 = 阈值的 1.6 倍，
+ * 于是侧栏开合**长期完全不播动画**（`beginSidebarMotion` 直接返回 false），
+ * 用户感知到的「不丝滑」不是动画卡，而是**根本没有动画**——点一下瞬间跳到位。
+ *
+ * 与此同时，跳过动画并不能省掉那次同步重排（轨道真的要从 240px 变 56px）：
+ * 12,685 节点实测重排 27ms，跳不跳都要付。所以「跳动画」只损失了过渡，
+ * 没有换来任何流畅度。
+ *
+ * 真正该保留的自适应判据在 `beginSidebarMotion` 末尾：**按实测阻塞时间**
+ * （`blocked > duration / 2`）决定是否跳过——那是纯测量驱动、随内容量自适应、
+ * 不依赖任何魔法节点常量。节点数阈值与它重复，且更粗糙。
  */
-const SIDEBAR_MOTION_MAX_ELEMENTS = 8000
+
 /**
  * 旧版位移变量名。2026-10-16 起位移改由 JS 直接写内容列的 transform（原因见
  * `beginSidebarMotion` 里的长注释），本变量**不再写入**，只在清理路径上移除历史残留
@@ -388,8 +403,9 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
   const win = frame.ownerDocument.defaultView
   if (win === null || prefersReducedMotion(win)) return false
   if (frame.hasAttribute('data-dragging')) return false
-  // 长会话：排版/绘制比动画贵得多，直接落定（见 SIDEBAR_MOTION_MAX_ELEMENTS）。
-  if (frame.getElementsByTagName('*').length > SIDEBAR_MOTION_MAX_ELEMENTS) return false
+  // 这里曾有「节点数 > 8000 就跳过动画」的闸门，2026-10-19 移除：
+  // 位移走 transform 后帧成本已与内容量脱钩（2.5 万节点仍满帧），该闸门只让长会话
+  // 彻底失去动画、且省不掉那次同步重排。是否跳过改由末尾的**实测阻塞时间**决定。
   const columns = markColumns(frame)
   if (columns === undefined) return false
   const expandedWidth = targetExpandedWidth(frame)
@@ -493,23 +509,30 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
   // 起跑**排到下一帧**：本帧留给轨道切换引发的整页重排（长对话下可达数百毫秒），
   // 下一帧才挂 motion 标记，动画时间轴因此从干净环境开始、能完整跑满。详见上方注释。
   //
-  // 自适应跳过（2026-10-14，2026-10-17 收紧阈值）。
+  // ## 自适应跳过：从「按阻塞时长」改为「按是否失控」（2026-10-19 重做）
   //
-  // 长对话下重排本身就比动画时长还贵（8000 条实测 228–300ms vs 动画 180ms）。
-  // 此时再播动画只会让用户多等「建合成层 + 180ms 滑动」，总时长反而更长。
+  // 旧判据是 `blocked > duration / 2`：一旦这次重排吃掉半个动画时长就跳过动画。
+  // 问题在于**它把已经付掉的成本当成了继续改进的理由**：
   //
-  // 2026-10-17 第三次报告后收紧：原来只在 `blocked > duration`（180ms）时跳过，
-  // 但实测 8000 条时「点到首帧」已经是 121ms——用户早就感到卡了。此时再花 180ms
-  // 播一段动画，总感知延迟 300ms，比直接到位更糟。
+  //   `blocked` 是轨道从 240px 切到 56px 引起的那次整页重排，**已经发生完了**。
+  //   跳过动画既不能把它省回来，也不能让用户早一点看到结果——只是少了一段过渡。
+  //   于是「卡一下然后瞬移」和「卡一下然后平滑滑过去」在总耗时上几乎一样，
+  //   但后者至少让状态变化可被眼睛追踪到。
   //
-  // 新阈值取**动画时长的一半**：一旦阻塞已经吃掉半个动画时间，
-  // 「快而静止」就优于「慢而勉强有动画」。这仍是纯测量驱动，
-  // 不引入节点数阈值或魔法节点常量；阈值本身锚定在 duration 上，随动效档位自动缩放
-  // （例如 reduced-motion 下 duration≈0，行为照旧）。
+  // 实测（2026-10-19，真实夹具）：
+  //   1200 条 → 节点 8,413，blocked 26ms
+  //   3000 条 → 节点 21,013，blocked 86ms（duration/2 = 90ms，就在临界点上抖动）
+  // 也就是说阈值附近完全由机器抖动决定播不播，同一份代码跑两次结论可能不同。
+  //
+  // 新判据只拦**真正失控**的情形：重排本身已经长到用户明确感到「卡住了」
+  // （> 2×duration，默认 360ms），此时再叠 180ms 动画确实只会让人更烦。
+  // 这个界仍然锚定在 duration 上、随动效档位缩放，不依赖节点数常量。
+  const SKIP_ANIMATION_BLOCK_MS = duration * 2
   win.requestAnimationFrame(() => {
     const blocked = win.performance.now() - reflowStarted
-    if (blocked > duration / 2) {
-      // 内容太重：跳过动画直接到位（用户看到的是「点一下 → 到位」，而不是长时间僵住）。
+    if (blocked > SKIP_ANIMATION_BLOCK_MS) {
+      // 失控：重排本身已经远超一个动画时长，用户早已感到「点下去没反应」。
+      // 此时再补 180ms 滑动只会让总时长更长，直接到位更诚实。
       finish()
       return
     }
