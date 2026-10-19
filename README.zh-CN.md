@@ -142,7 +142,7 @@ dsh plugin --profile web add .
 dsh --profile web --dump-config
 ```
 
-`lib/` 已随仓库提交，克隆下来不构建也能用——但改过 `src/` 后必须重新构建。若本机 pnpm 与 Node 版本不匹配，改用 `npm install` + `npm run build` 效果等价。
+`lib/` 已随仓库提交，克隆下来不构建也能用——但改过 `src/` 后必须重新构建。**装依赖必须用 `pnpm`**：`pnpm-workspace.yaml` 用 `packageExtensions` 为 `@deepseek-ai/dsh-client-ui-primitives` 补了 19 个未申报依赖，而 `npm` 不读这套机制，`npm install` 之后 `tsdown` 会因为解析不到这些包而失败。只有在依赖已用 pnpm 装好的前提下，「用 `npm run <script>` 执行脚本」才是等价的。
 
 ## 使用
 
@@ -180,13 +180,13 @@ dsh --profile web --dump-config
 
 ## 验证
 
-四层，都能在本地跑。`npm run gate` 把它们串成一条（约 55 秒），`pre-push` 钩子会自动执行：
+四层，都能在本地跑。`npm run gate` 把它们串成一条，`pre-push` 钩子会自动执行；耗时与用例数见 [`docs/BASELINE.md`](docs/BASELINE.md) 的实跑快照（本机正常负载下是分钟级，别按"几十秒"安排）：
 
 | 层级 | 命令 | 覆盖范围 |
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元 / 集成 | `npm run test:unit` | 56 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
-| 契约断言 | `node tests/run-assertions.mjs` | 44 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 契约断言 | `node tests/run-assertions.mjs` | 45 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 真机布局 | `npm run test:layout` | 17 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。

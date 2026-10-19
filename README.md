@@ -142,7 +142,7 @@ dsh plugin --profile web add .
 dsh --profile web --dump-config
 ```
 
-`lib/` is committed, so a clone is usable without building — but rebuild after any change to `src/`. If your pnpm and Node versions disagree, `npm install` followed by `npm run build` is an equivalent fallback.
+`lib/` is committed, so a clone is usable without building — but rebuild after any change to `src/`. **Installing the dependencies must use `pnpm`:** `pnpm-workspace.yaml` uses `packageExtensions` to patch 19 undeclared dependencies of `@deepseek-ai/dsh-client-ui-primitives`, and `npm` ignores that mechanism — `npm install` leaves `tsdown` unable to resolve them. Only once dependencies are installed (via pnpm) is running the scripts with `npm run <script>` equivalent.
 
 ## Usage
 
@@ -180,13 +180,13 @@ No. It is a personal project with no endorsement from anyone (see the notice at 
 
 ## Verification
 
-Four layers, all runnable locally. `npm run gate` chains them (~55s) and the `pre-push` hook runs it automatically:
+Four layers, all runnable locally. `npm run gate` chains them and the `pre-push` hook runs it automatically; see the run snapshot in [`docs/BASELINE.md`](docs/BASELINE.md) for duration and test counts (minutes, not seconds, on a normal machine):
 
 | Layer | Command | What it covers |
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
 | Unit / integration | `npm run test:unit` | 56 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
-| Contract assertions | `node tests/run-assertions.mjs` | 44 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Contract assertions | `node tests/run-assertions.mjs` | 45 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Real-browser layout | `npm run test:layout` | 17 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
 `npm run gate:host` is the heavy tier: it packs the plugin, installs it into an isolated `DSH_HOME`, starts a real `dsh web`, and runs three live-host scripts (about 1–2 minutes). Use it when you touch slots, injection, or the install flow.

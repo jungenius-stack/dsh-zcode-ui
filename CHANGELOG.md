@@ -4,6 +4,39 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.16.1 - 2026-10-19
+
+**Audit remediation: gate duration claims, documentation blind spots, and the version ledger.**
+
+Engineering hygiene only — **no runtime behaviour changed**, so `lib/` does not need rebuilding.
+
+- **Reversed a wrong prescription.** The audit suggested lowering vitest's `--maxWorkers` from 4
+  to 2. Re-measured on the same machine: 4 workers 14.98s vs 2 workers 24.89s — **fewer workers
+  is simply slower**. The real startup failure is `EPERM` when vitest writes
+  `node_modules/.vite-temp` (read-only FS / restricted sandbox), not worker timeouts.
+- **`scripts/gate.mjs`**: added `--configLoader runner` to avoid that write entirely, plus a new
+  `vitestEnvUnwritable` branch that recognises `EPERM/EACCES/EROFS` and states plainly that this
+  is not a load problem and that tuning worker counts will not help.
+- **`scripts/baseline.mjs`**: `--reporter=basic` was removed in vitest 4, so the vitest run
+  snapshot in `BASELINE.md` **had never once been captured** (it always read "unparsed / exit 1").
+  Switched to the default reporter and the same `--configLoader runner`. Also fixed the summary
+  pipe that was breaking the Markdown table.
+- **New `tests/version-ledger.assert.ts`**: treats git tags as the source of truth and reconciles
+  them against package.json history and CHANGELOG sections, with 7 historical exceptions each
+  carrying a written reason. On its very first run it caught `1.15.0`, which the audit missed:
+  version bumped, CHANGELOG written, tag never created.
+- **Documentation**: the "~55s" claim in both READMEs, CONTRIBUTING and KNOWN-ISSUES now points at
+  the run snapshot in `docs/BASELINE.md` (measured full gate ≈83s). Added 10 reverse rules that
+  forbid hard-coded counts in `gate.mjs` comments and the `pre-push` header, and forbid the
+  "missing rolldown binding" misdiagnosis from creeping back.
+- **README's "npm install is an equivalent fallback" was false**: `pnpm-workspace.yaml` patches 19
+  undeclared dependencies of `@deepseek-ai/dsh-client-ui-primitives` (the package itself declares
+  0), and `npm` does not read `packageExtensions`. Reworded to "installing must use pnpm".
+- `tests/docs-baseline.assert.ts` now computes its "N reverse rules" count instead of hard-coding 3.
+- KNOWN-ISSUES gains §60 with the full record, including the measurements that overturned P1.
+
+---
+
 ## 1.16.0 - 2026-10-19
 
 **The "drifting line" in session rows: `visibility:hidden` does not stop painting.**

@@ -175,7 +175,12 @@ function runSuite() {
 
   const vitest = spawnSync(
     process.execPath,
-    ['node_modules/vitest/vitest.mjs', 'run', '--reporter=basic'],
+    // `--reporter=basic` 在 vitest 4 里已被移除：传它会让 vitest 在「加载 reporter」阶段就
+    // Startup Error 退出（一个用例都没跑），实跑快照因此长期写成「未能解析 / exit 1」——
+    // 2026-10-19 体检才发现这一栏从来没成功过。改用默认 reporter。
+    // `--configLoader runner` 与 scripts/gate.mjs 保持一致，避免在只读文件系统 / 受限沙箱下
+    // 因写 node_modules/.vite-temp 而 EPERM（同一个根因的第二个入口）。
+    ['node_modules/vitest/vitest.mjs', 'run', '--configLoader', 'runner'],
     { cwd: root, encoding: 'utf8' },
   )
   const vitestOut = `${vitest.stdout ?? ''}${vitest.stderr ?? ''}`
@@ -239,7 +244,9 @@ function renderMarkdown(baseline, run) {
       '| 项 | 结果 | 退出码 |',
       '| --- | --- | --- |',
       `| 断言套件 | ${run.assertions} | ${run.assertionsExit} |`,
-      `| vitest | ${run.vitest} | ${run.vitestExit} |`,
+      // vitest 的汇总形如 `411 passed | 1 skipped (412)`，原始竖线会把 3 列表格撑成 5 列。
+      // 转义成 `\|`，Markdown 才会把它当成单元格内的字面字符。
+      `| vitest | ${String(run.vitest).replaceAll('|', '\\|')} | ${run.vitestExit} |`,
       '',
       `采集于 ${run.ranAt}。`,
     )

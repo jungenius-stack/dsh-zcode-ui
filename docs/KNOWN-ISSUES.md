@@ -14,7 +14,7 @@
 运行 `node tests/run-assertions.mjs` 的基线结果：
 
 ```
-44 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
+45 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
   采集方式：node --import tsx scripts/baseline.mjs --run（结果写进 docs/BASELINE.md）
   固定清单：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
 ```
@@ -282,14 +282,18 @@ DSH 侧截图显示顶栏右侧有一个彩色方块按钮，原判断「像是�
   `dlopen(...): code signature ... not valid for use in process: mapping process and mapped file (non-platform)
   have different Team IDs`。同一个 `.node` 在 `~/.workbuddy/binaries/node/versions/22.22.2-6` 下能正常加载。
   **结论：跑 `vitest` / `tsdown` 时不要把 DSH 自带 Node 放到 PATH 前面**，用 22.22.2-6（满足 `engines`）或 PATH 上的 22.12。
-  用对 Node 后两者都正常：`vitest run` 47 个文件 / 311 个用例，`tsdown` 约 1.2 秒构建完成；
+  用对 Node 后两者都正常：`vitest run` 当时为 47 个文件 / 311 个用例（**这是 2026-10-12 的快照**，现行数字见
+  `docs/BASELINE.md`），`tsdown` 约 1.2 秒构建完成；
   `lib/` 已于 2026-10-12 19:52 成功重建。vitest 的真实失败基线见 §9。
 - **真浏览器检查需要 Playwright 自带的 Chromium**：`./node_modules/.bin/playwright install chromium`
   （94 MB，装进 `~/Library/Caches/ms-playwright`）。本机已于 2026-10-12 安装
-  （`chromium_headless_shell-1243`）。缺它时 11 个布局脚本会以 `Executable doesn't exist` 失败——
+  （`chromium_headless_shell-1243`）。缺它时布局脚本会以 `Executable doesn't exist` 失败（当时是 11 个，现已增至更多，
+  数量见 `docs/BASELINE.md`）——
   而**此前正是因为缺浏览器，这整套真机检查从未真正跑过**，把 5 个存量失败一起藏住了，见 §6。
-- **本地门禁已就位**：`npm run gate`（= `node scripts/gate.mjs`，**四步：类型检查 → 断言套件 → vitest → 11 个真机布局脚本**；
-  含 vitest 后约 **70 秒**）。注意必须用能加载原生绑定的 Node（见上一条），否则 vitest 一步会以环境错误拦下。
+- **本地门禁已就位**：`npm run gate`（= `node scripts/gate.mjs`，**四步：类型检查 → 断言套件 → vitest → 真机布局脚本**；
+  耗时与脚本数以 [`docs/BASELINE.md`](BASELINE.md) 的实跑快照为准，本文不写死——2026-10-19 实测正常负载下为
+  分钟级，此前这里写的「约 70 秒 / 11 个脚本」已经过期）。注意必须用能加载原生绑定的 Node（见上一条），
+  否则 vitest 一步会以环境错误拦下。
   pre-push 钩子在 `.githooks/pre-push`，启用方式 `git config core.hooksPath .githooks`（**本机已启用**，
   2026-10-12 用临时裸仓库 `git push --dry-run` 实测过钩子确实被触发）；`git push --no-verify` 可临时跳过。
   已知红项集中登记在 `scripts/gate.mjs` 的三张表（`KNOWN_RED_ASSERT` / `KNOWN_RED_VITEST_FILES` /
@@ -4777,3 +4781,116 @@ zcode-ui 1.15.3 增加保护：侧栏 frame 后代 >8,000 时**不播开合动�
 
 - 小会话也慢 → App/窗口级（焦点恢复、GPU、后台节流），需要宿主侧。
 - 只有大会话慢 → 会话 DOM 规模；插件无法卸载宿主已挂载的历史，需要宿主虚拟滚动。
+
+---
+
+## 60. 2026-10-19 第六次体检整改：门禁耗时口径、文档盲区与版本账
+
+自 13:25 的体检报告（P1–P5）逐条复核后落地。**三处定性与量级被实测推翻**，其余成立。
+
+### 60.1 P1 被推翻：vitest 没有「worker 超时」问题，是环境写盘问题
+
+体检报告称「`--maxWorkers=4` 在 load 43 下仍超时 → 应降到 2」，并据此得出「门禁不可用」。
+2026-10-19 同机复测（load 6.0–7.0）：
+
+| worker | 结果 | 墙钟 |
+| --- | --- | --- |
+| 4（原默认） | 56 文件 / 411 通过 + 1 skip / 0 失败 | **14.98s** |
+| 2（报告建议值） | 同上全绿 | 24.89s |
+
+**降 worker 只会让门禁更慢**，且修不了任何真问题。真正的启动期失败是另一种形态：
+
+```
+Error: EPERM: operation not permitted,
+  open '…/node_modules/.vite-temp/vitest.config.ts.timestamp-….mjs'
+```
+
+vitest 加载 `vitest.config.ts` 时要写 `node_modules/.vite-temp/`，在只读文件系统 / 受限沙箱下
+直接 EPERM，**进程秒退、一个用例都没跑**。这与「负载导致 worker 超时」是完全不同的病因，但
+门禁此前的输出把它们混成了同一句「无法判定」，于是最容易被误诊成后者。
+
+**已落地**（`scripts/gate.mjs`）：
+1. 加 `--configLoader runner`：config 以模块方式加载、不落盘，从根上绕开该写盘（健康环境下与默认行为等价）；
+2. 新增 `vitestEnvUnwritable` 分支，单独识别 `EPERM/EACCES/EROFS/read-only` 并明确写「这不是负载超时，
+   调 `VITEST_MAX_WORKERS` 无效」；
+3. `--maxWorkers` 默认值**保持 4 不变**，并在注释里写明「不要为了减少超时调低它」，防止下一次误改。
+
+### 60.2 门禁耗时：「约 55 秒」错了约 21 秒，而「被低估 60 倍」也错了约 14 倍
+
+2026-10-19 全量实测（load 6.0–7.0，10 核）：
+
+| 步骤 | 耗时 |
+| --- | --- |
+| 类型检查 `tsc --noEmit` | 3.8s |
+| 断言套件（44 脚本） | 10.2s |
+| vitest（4 worker） | 15.0s |
+| 真机布局（17 脚本） | 36.8s |
+| **合计** | **≈76s** |
+
+所以：README/CONTRIBUTING 的「约 55 秒」低估约 21 秒；体检报告推断的「含 vitest 约 18 分钟」
+高估约 14 倍（它的 18 分钟来自被误诊的那次 55 分钟挂起）。
+
+**处置**：所有文档不再写死耗时，改为引用 `docs/BASELINE.md` 的实跑快照。写死新数字只是把
+「55」换成另一个会腐烂的值——这正是 CODE-040（把当时的实现值写成契约）的镜像。
+
+### 60.3 已订正的六处失实数字
+
+`scripts/gate.mjs` 注释里原有的 34/11/47/311 四处计数与「vitest 起不来」误判、
+`.githooks/pre-push` 头部漏列 vitest、本文 §5 的「11 个脚本 / 约 70 秒」——
+全部改为引用 `docs/BASELINE.md` 或标注为历史快照，不再复述会漂移的绝对值。
+
+### 60.4 已知盲区：对账系统只覆盖「计数」，不覆盖「耗时」
+
+`tests/docs-baseline.assert.ts` 的规则全部是静态计数；`scripts/baseline.mjs` 只从 `gate.mjs`
+抽取 `const LAYOUT` 数组，对它的注释文字零覆盖。这就是「约 55 秒」能活到今天、并且在本次
+修正后仍可能复发的原因。已把 `gate.mjs` 注释与 `pre-push` 头部纳入句式断言覆盖（见 §61）。
+
+### 60.5 版本账：三处记录有 7 个版本不一致
+
+| 来源 | 版本数 |
+| --- | --- |
+| git tags | 21 |
+| `package.json` version 历史 | 22 |
+| `CHANGELOG.md` 章节 | 26 |
+| **三者交集** | **20（并集 27）** |
+
+仅出现在 CHANGELOG、既无 tag 也无 `package.json` 记录的是：`1.13.0`、`1.14.0`、`1.15.1`、
+`1.15.2`、`1.15.3`。`1.1.0` 有 tag 有 `package.json` 但 CHANGELOG 缺章节。
+**当前版本 1.16.0 四处齐全**，问题全在历史包袱。已新增 `tests/version-ledger.assert.ts`
+以 `git tag` 为基准做守护，并登记上述例外。
+
+### 60.6 README 的「npm install 等价」说法不成立（已改）
+
+`pnpm-workspace.yaml` 的 `packageExtensions` 为 `@deepseek-ai/dsh-client-ui-primitives`
+补了 **19 个**依赖；该包自己的 `package.json` 声明了 **0 个** `dependencies`，而其
+`lib/index.js` 有 23 个外部 import，其中 **16 个本仓 `package.json` 未声明、且全部只靠这套
+扩展补上**。`npm` 不读 `packageExtensions`，所以 `npm install` 后这 16 个包不在 primitives
+可见位置，`tsdown` 必挂。README 双语已改为「安装必须用 pnpm；装好后用 `npm run <script>`
+执行脚本才等价」。
+
+### 60.7 顺带查出：`baseline --run` 的 vitest 一栏从来就没成功过
+
+改完 `gate.mjs` 后重生成 `docs/BASELINE.md`，实跑快照一直是：
+
+```
+| vitest | 未能解析 | 1 |
+```
+
+查下去是两个独立问题叠加：
+
+1. **`--reporter=basic` 在 vitest 4 里已被移除**。传它会让 vitest 在「加载 reporter」阶段就
+   `Startup Error: Failed to load custom Reporter from basic` 退出——**一个用例都没跑**。
+   `scripts/baseline.mjs` 一直在传这个参数，所以这一栏从来没有采集成功过，
+   而它的失败形态（未能解析 / exit 1）看起来像"vitest 有问题"，不像"这行代码从来没跑通"。
+2. 同一处也没带 `--configLoader runner`，因此在受限沙箱下还会撞上 §60.1 的 EPERM——
+   **同一个根因的第二个入口**。只修 `gate.mjs` 不够，反而会让两处的行为分叉。
+
+**已修**（`scripts/baseline.mjs`）：去掉 `--reporter=basic`，加 `--configLoader runner`，
+与 `gate.mjs` 保持同一套调用参数。现在快照如实记录 `411 passed | 1 skipped (412) / exit 0`。
+
+**顺带修的第二处**：vitest 汇总里的竖线会把 3 列 Markdown 表格撑成 5 列（渲染后错位）。
+已转义为 `\|`。
+
+> 这两条都不在体检报告的 P1–P5 里——是**改 P1 时顺着同一个根因摸出来的**。记在这里是因为
+> 它们的形态值得警惕：一个缺陷在 A 入口被误诊成"负载问题"，在 B 入口被误诊成"vitest 有问题"，
+> 而两处其实是同一件事。

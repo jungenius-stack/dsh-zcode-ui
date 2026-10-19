@@ -4,6 +4,34 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 1.16.1 - 2026-10-19
+
+**体检整改：门禁耗时口径、文档盲区与版本账。**
+
+纯工程基建，**不改任何运行时行为**，`lib/` 无需重建。
+
+- **撤销一条错误处方**：体检报告曾建议把 vitest 的 `--maxWorkers` 从 4 降到 2。同机复测
+  4 worker 14.98s / 2 worker 24.89s，**降 worker 只会更慢**。真正的启动期失败是写
+  `node_modules/.vite-temp` 时的 `EPERM`（只读文件系统 / 受限沙箱），不是负载超时。
+- **`scripts/gate.mjs`**：加 `--configLoader runner` 从根上绕开该写盘；新增 `vitestEnvUnwritable`
+  分支单独识别 `EPERM/EACCES/EROFS`，并明确写「这不是负载超时，调 worker 数无效」。
+- **`scripts/baseline.mjs`**：`--reporter=basic` 在 vitest 4 里已移除，导致 `BASELINE.md` 的
+  vitest 实跑快照**从未采集成功过**（一直写「未能解析 / exit 1」）。已改用默认 reporter，
+  并同步 `--configLoader runner`。顺带修掉汇总里竖线撑坏 Markdown 表格的问题。
+- **新增 `tests/version-ledger.assert.ts`**：以 git tag 为真源，对账 package.json 历史与
+  CHANGELOG 章节，7 个历史例外逐条登记理由。它第一次运行就抓出体检报告漏掉的 `1.15.0`
+  （有版本号、有 CHANGELOG，唯独没打 tag）。
+- **文档口径**：README 双语的「约 55 秒」、CONTRIBUTING 与 KNOWN-ISSUES 的同类数字，
+  全部改为引用 `docs/BASELINE.md` 实跑快照（实测全量门禁 ≈83s）。新增 10 条反向规则，
+  禁止 `gate.mjs` 注释与 `pre-push` 头部再写死计数，也禁止「缺 rolldown 绑定」这类误判回潮。
+- **README 的「npm install 效果等价」说法不成立**：`pnpm-workspace.yaml` 为
+  `@deepseek-ai/dsh-client-ui-primitives` 补了 19 个未申报依赖（该包自身声明 0 个），
+  `npm` 不读 `packageExtensions`。已改为「安装必须用 pnpm」。
+- `tests/docs-baseline.assert.ts` 的提示里「含 3 条反向规则」改为动态计算。
+- KNOWN-ISSUES 新增 §60 完整记录（含 P1 被推翻的实测数据）。
+
+---
+
 ## 1.16.0 - 2026-10-19
 
 **会话行里那条「漂移的横线」：`visibility:hidden` 不阻止绘制。**

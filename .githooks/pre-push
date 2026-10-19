@@ -1,5 +1,6 @@
 #!/bin/sh
-# dsh-zcode-ui pre-push 门禁：类型检查 + 断言套件 + 真浏览器布局检查。
+# dsh-zcode-ui pre-push 门禁：类型检查 + 断言套件 + vitest + 真浏览器布局检查（四步，全由 scripts/gate.mjs 执行）。
+# 耗时以 docs/BASELINE.md 的实跑快照为准；本机正常负载下是分钟级，不要按"几十秒"安排工作。
 # 启用（每个克隆各做一次）：git config core.hooksPath .githooks
 # 跳过（仅限明知故犯的临时提交）：git push --no-verify
 set -e
