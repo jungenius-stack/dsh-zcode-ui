@@ -4,6 +4,7 @@ import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-store'
 import type { ChatSnapshot } from '@deepseek-ai/dsh-client-ui-chat/client'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { conversationAnchor, conversationAnchors, conversationScrollRoot } from './conversation-dom.ts'
+import { findSidebarFrame, parseSidebarGrid } from './sidebar-width.ts'
 import { NS } from './locales.ts'
 
 type TurnLink = { key: string; summary: string }
@@ -99,7 +100,25 @@ function legacyTurnLinks(useSession: TurnNavigatorProps['useSession'], fallback:
   }, equalTurns)
 }
 
+/** 帧元素缓存：拖拽时 `.dcu-root` 持续 resize，每次重扫 DOM 会在长会话下掉帧。 */
+let railFrameCache: HTMLElement | undefined
+
+function railFrame(): HTMLElement | undefined {
+  if (railFrameCache !== undefined && railFrameCache.isConnected) return railFrameCache
+  railFrameCache = findSidebarFrame(document)
+  return railFrameCache
+}
+
 function railLeftFromSidebar(): number {
+  // 锚点取**网格轨道宽度**，不是 `.dcu-root` 的 rect（2026-10-19）。
+  //
+  // 侧栏开合期间外壳宽度会被钉在展开宽度、右缘用 clip-path 裁到目标位置（见
+  // sidebar-width.ts 的 primeSidebarSlide），此时 `.dcu-root` 的 rect.right 是**未裁剪**的
+  // 展开宽度——照它算锚点会让索引栏在收起方向被多推一整段（实测 440px，离侧栏 200px）。
+  // 轨道宽度在两端都是目标几何，配合 --dcu-rail-sync-shift 正好还原视觉位置。
+  const frame = railFrame()
+  const tracks = frame === undefined ? undefined : parseSidebarGrid(frame.style.gridTemplateColumns)
+  if (tracks !== undefined) return Math.round(tracks.sidebar) + 16
   const sidebar = document.querySelector<HTMLElement>('.dcu-root')
   if (sidebar === null) return 288
   return Math.round(sidebar.getBoundingClientRect().right) + 16

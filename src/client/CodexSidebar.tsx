@@ -237,10 +237,17 @@ html[data-platform=darwin]:not([data-fullscreen]) .dcu-root.dcu-compact{padding-
 [data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"]{transition:left var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 /* 位移中的内容列会盖住侧栏列（transform 生成层叠上下文）；动画期间把外壳抬到它之上。 */
 [data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root{z-index:1}
-/* 展开动画的基准轨道是收起几何（56px），宽态外壳要不被裁切才能完整淡入。 */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion=expand]:not([data-dragging]) [data-dcu-sidebar-column]{overflow:visible}
+/* 侧栏面自身的滑动（2026-10-19）。JS 在飞行期间把 .dcu-root 宽度钉在展开宽度，右缘用
+   clip-path 从旧宽度裁到目标宽度（见 sidebar-width.ts 的 primeSidebarSlide）。
+   裁剪不触发布局，所以每帧零重排；时长与曲线必须与内容列、索引栏完全一致，
+   否则三者会互相追赶。内联 transition:none 用于写起点，挂上 motion 标记后移除，
+   这里这条规则才接手——顺序见 beginAnimation。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root{transition:clip-path var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+/* 两个方向都要 overflow:visible：收起时外壳仍按展开宽度渲染（裁到 56），
+   展开时外壳按展开宽度淡入——列本身只有 56px，不让溢出就等于一帧切完、没有滑动。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-sidebar-column]{overflow:visible}
 [data-dcu-codex-sidebar-initialized][data-dragging] [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dragging] [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dragging] [data-side="sidebar"]{transition:none;width:auto;transform:none}
-@media (prefers-reduced-motion:reduce){[data-dcu-codex-sidebar-initialized],#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]),[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"]{transition:none}.dcu-root.dcu-collapsing .dcu-compact-shell{animation:none}}
+@media (prefers-reduced-motion:reduce){[data-dcu-codex-sidebar-initialized],#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]),[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root,[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-official-turn-navigator]{transition:none}.dcu-root.dcu-collapsing .dcu-compact-shell{animation:none}}
 .dcu-native-workspaces{flex-direction:column}.dcu-native-workspaces>[data-mcp-connector-top-mount=true]{flex:none}.dcu-root .mcpConnectorLauncher,.dcu-root [data-mcp-connector-top-mount=true]{display:none!important}
 .dcu-dependency-notice{margin:0 8px 8px;border:1px solid var(--dcu-sidebar-border);border-radius:var(--dsw-radius-lg);padding:8px;color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-sm);line-height:18px}
 /* ZCode 命令面板：rounded-2xl(16px) 壳、bg-menu、shadow-md、12px 分组标题 font-medium。 */
@@ -292,6 +299,12 @@ html[data-dcu-official-turn-navigator-supported=true] .dcu-turn-navigator,html:h
 /* 多出一条索引栏时由 turn-rail-dedupe.ts 打标退场；单条时无标记，规则不生效。 */
 /* 输入区把 clearance 设成 24px 后，旧镜像公式会变成 -28px，整条导航滑进侧栏。至少留 12px，贴在会话列内侧。 */
 [data-dcu-official-turn-navigator]{right:auto!important;left:max(12px,calc(12px - (var(--dsh-composer-side-clearance) + 16px)))!important}
+/* 官方轮次导航与侧栏右缘的同步位移（2026-10-19）。它渲染在内容列内部，只会继承内容列
+   那半段 transform，而侧栏右缘走的是整段——不补这一条，开合时它就与侧栏边缘越离越远
+   （真宿主实测：收起时间距最大 107px，展开时最差 -25px，见 sidebar-width.ts 的判据注释）。
+   用 translate 而不是 transform：宿主可能自己给 nav 挂 transform，独立属性可叠加不覆盖。
+   时长与曲线必须与内容列、自绘索引栏完全一致，否则三者互相追赶。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-official-turn-navigator]{translate:var(--dcu-official-rail-shift,0px);transition:translate var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 /* 左移后的预览朝聊天内容区展开，外观和动画继续使用宿主规则。 */
 [data-dcu-official-turn-navigator] [role=tooltip]{right:auto!important;left:calc(100% + 10px)!important}
 `

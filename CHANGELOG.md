@@ -4,6 +4,58 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.16.4 - 2026-10-21
+
+**Archive button sat 48px too far left — the 1.15.7 fix was itself the bug. Also ships the
+sidebar-face slide and official turn-rail sync.**
+
+### Archive icon back to `right:8px` (ninth user report)
+
+The user reported "the archive button has drifted left, put it back". The icon revealed on
+session-row hover was pinned at `right:56px`, leaving 48px of empty space between it and the
+right edge, where it is supposed to sit.
+
+- **The root cause is that the 1.15.7 prescription was wrong.** It saw `time` and
+  `quick-actions` both at `right:8px`, with the icon's top stroke over the digits, and
+  concluded the two "compete for the same slot" — so it pushed the icon to `right:56px`.
+  But **the timestamp is already `visibility:hidden` while hovering**: the icon appears and
+  the time steps aside in the same frame. They are never visible together, so there was no
+  slot contention to begin with. **"The stray line is gone" does not mean "the position is right."**
+- **Fix**: `right:56px` → `right:8px`. Measured with Playwright (260px fixture, real hover):
+  `gapRight` goes 56 → 8px in all four states (hover / with pending chip / confirming / menu
+  open), and overlap with the timestamp, pending chip, and the `⋯` anchor is 0 everywhere.
+- One latent defect removed along the way: before the fix the icon (left 200–220) had a
+  **12px geometric overlap** with the `⋯` anchor (left 192–212); it only stayed invisible
+  because both were hidden at the time.
+- **Assertions now lock the mechanism, not the offset.** The two that had frozen `right:56px`
+  into a contract (the CODE-040 shape) now require the icon at `right:8px` plus "hovering must
+  hide the inline timestamp" — the latter is the real anti-overlap mechanism. Negative test:
+  re-injecting `right:56px` fails.
+
+### Sidebar face now slides, and the official turn rail is compensated
+
+1.16.3 made only the self-drawn rail follow the content column, but the sidebar edge itself
+never moved (the grid track snapped in one frame), so "hugging the sidebar" and "sliding
+smoothly" were mutually exclusive: measured in the real host, the rail-to-sidebar-edge gap
+started at 108px and went as far as −76px when expanding.
+
+- The sidebar face joins the same animation: during flight `.dcu-root` width is **pinned to
+  the expanded width** (layout is computed once), and the right edge is clipped to the target
+  width with `clip-path: inset()`. Clipping does not trigger layout, so per-frame reflow is zero.
+- The official turn navigator had **never been compensated** — it renders inside the content
+  column and inherits only half the shift; and once the host provides it, the self-drawn rail
+  is hidden, so the user always saw the official one. That is why 1.16.3 "changed nothing".
+- The compensation is **computed, not hard-coded**: each rail is shifted by the sidebar edge's
+  full travel minus whatever it inherits on its own. Two extra layout reads per toggle, not
+  per-frame reads.
+- `verify-turn-rail-sync.mjs` had its criterion corrected: the previous version asserted
+  `railLeft - centerLeft ≈ 16`, and because both sides shared the same error, five assertions
+  stayed green while the defect remained. It now measures against the **sidebar's visual right
+  edge** and additionally requires the sidebar face itself to move (first-to-last delta
+  >= 100px), guarding against the "neither moves" false green. All 18 assertions pass.
+
+---
+
 ## 1.16.3 - 2026-10-19
 
 **The turn rail did not follow the sidebar — up to 77px of drift while toggling.**

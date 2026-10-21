@@ -37,8 +37,9 @@ import { renderTokenBlock, ZCODE_DARK, ZCODE_LIGHT, ZCODE_STRUCTURAL } from './z
  * 2026-10-14 → 1.3.0：圆角字面量全部收归令牌、设置页 `--sp-*` 收归宿主语义令牌、
  * 菜单/浮层密度按宪章 §Menus 对齐（壳 lg + 项 md + p-1 + gap-0.5）。
  * 这三项都改变了样式表产出的声明，实机若仍挂着旧版可从 `data-dsh-zcode-skin` 一眼看出。
+ * 2026-10-21 → 1.5.1：归档图标定位回到 right:8px，另含侧栏面的 clip-path 滑动规则。
  */
-export const SKIN_VERSION = '1.5.0'
+export const SKIN_VERSION = '1.5.1'
 
 /** 注入到 `<html>` 上的标记属性，用于确认皮肤已激活。 */
 export const SKIN_ATTRIBUTE = 'data-dsh-zcode-skin'

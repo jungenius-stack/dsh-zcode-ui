@@ -245,12 +245,17 @@ assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:var\(--ds
 assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '项目标题必须使用刻度 base（14px）与常规字重，不能显得过黑')
 assert.match(workspaceBrowser, /dcu-wb-session-time/, '会话行右侧必须显示紧凑相对时间')
 // 2026-10-18：时间与行内 quick-actions（归档图标）曾同时用 right:8px，实测完全重叠 20px——
-// 归档图标的顶条是 13×3.3 的 rect，叠在时间的数字上，就是「时间左边飘着一条短横线」的观感，
-// 而且时间宽度随文本浮动（1小时 42px / 1天 29px），横线遂逐行偏移。
-// 契约：时间继续贴右（ZCODE-DESIGN §3.1），由 quick-actions 让位到它左侧，两者不得同槽。
+// 归档图标的顶条是 13×3.3 的 rect，叠在时间的数字上，就是「时间左边飘着一条短横线」的观感。
+// 2026-10-21 **推翻当时的处方**：1.15.7 判成「两个元素抢同一槽」，把图标推到 right:56px。
+// 但时间在悬停时是 visibility:hidden（下面这条规则），根本不需要让位——推走之后图标右边
+// 空出 48px，用户看到的就是「归档按钮往左偏」。真正防重叠的不是位移，是**互斥可见**：
+// 悬停时时间隐藏、图标显示；不悬停时反过来。实测（Playwright，260px 夹具）改回 right:8px
+// 后，图标与时间/⋯ 锚点/待处理胶囊在全部状态下 overlap 均为 0。
+// 所以契约改为：图标贴右，并由「悬停隐藏时间」保证两者不同时出现。
 assert.match(workspaceBrowser, /\.dcu-wb-session-time\{position:absolute;right:8px/, '会话行时间必须贴在右侧（ZCODE-DESIGN §3.1）')
-assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:56px/, '归档图标必须让位到时间左侧（right:56px），不得与时间共用 right:8px')
-assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:8px/, '归档图标不得回到 right:8px（会重新压住时间，造成横线漂移）')
+assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:8px/, '归档图标必须贴右（right:8px）；1.15.7 的 right:56px 会在图标右侧留 48px 空白，即用户报的「往左偏」')
+// 防重叠的真正机制：悬停/聚焦/菜单打开/确认态必须隐藏行内时间。图标与时间若同时可见就是横线漂移复发。
+assert.match(workspaceBrowser, /\.dcu-wb-session:hover \.dcu-wb-session-time[^{]*\{visibility:hidden\}/, '悬停时必须隐藏行内时间——这是图标贴右后不与时间重叠的唯一保证（不是靠把图标推走）')
 assert.match(workspaceBrowser, /<SessionTime time=\{formatCompactTime\(session\.updatedAt, t, now\)\}/, '项目内会话必须把行内短格式相对时间画在右侧')
 assert.match(workspaceBrowser, /dcu-wb-tip/, '会话必须提供 Codex 风格悬停卡片')
 // 2026-10-12 实测反馈：会话行的时长已在行内右侧常驻、所属项目已由树形层级表达，悬停卡不再重复这两项。
@@ -286,7 +291,7 @@ assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dc
 // quick-actions 是 absolute 定位、里面有 13×3.3 的 rect（归档图标顶条），一旦透明层在
 // 某些合成/辅助模式下未被真正剔除，就会在标题右侧留下一条短横线。
 // visibility 是硬剔除，且不改变布局与动画节奏，因此基础态必须同时给 hidden。
-assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:56px;top:50%;display:none/, '快捷操作基础态必须 display:none：visibility:hidden 仍参与布局与绘制，在合成层里会漏出归档图标的顶条（用户看到的「漂移横线」）')
+assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:8px;top:50%;display:none/, '快捷操作基础态必须 display:none：visibility:hidden 仍参与布局与绘制，在合成层里会漏出归档图标的顶条（用户看到的「漂移横线」）')
 assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dcu-state-error-fill\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用错误色**填充档**配反色前景（前景沿用宿主 bg-layer-3）；底色不得直接用 --dsw-alias-state-error-primary——该值只按填充推导，作按钮底时悬停会掉到 3.91:1，见 zcode-theme.ts 状态色分档')
 assert.doesNotMatch(workspaceBrowser, /setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin/, '任务树不得本地维护会话置顶（宿主 pinnedSessionIds 是唯一状态源）')
 assert.match(workspaceBrowser, /pinnedFirstSessionIds\(/, '置顶会话必须排在未置顶之前（宿主置顶语义）')
