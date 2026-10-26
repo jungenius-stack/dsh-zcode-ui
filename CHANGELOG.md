@@ -4,6 +4,104 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 1.17.0 - 2026-10-26
+
+**Aligned the sidebar spec against ZCode 3.16.3 read live over CDP, and fixed a 104px dead
+zone in the drag-to-collapse gesture.**
+
+Every number below comes from a live `Chrome DevTools Protocol` session, not from estimates
+or from the previous capture document. Scripts and raw data are archived in the workspace at
+`优化UI插件区/cdp-capture/` (not published with this repo).
+
+### The text hierarchy was fully inverted
+
+`session title` used `--dcu-sidebar-secondary` (60%) while `folder name` used
+`--dcu-sidebar-primary` (100%) — **the row you read most was the dimmest**. ZCode does the
+opposite: session title 100% brightest, folder 60%, section heading 30% faintest.
+
+Root cause: `typographyStyles` is injected after `stylesheet`, so same-selector rules from it
+win — but the values in those three rules were written backwards in both copies.
+
+### Three numbers from the old capture doc were wrong
+
+| Item | Old doc (10-24) | Live measurement (10-26) |
+|---|---|---|
+| Session row width | 241px | **256px** |
+| Row side inset | 11.5px | **4px** |
+| Body lineHeight | 20px | **21px** |
+
+All three had already been applied to the plugin once before being corrected by live data.
+Lesson: **a capture document also goes stale — re-measure before trusting it.**
+
+### Motion went from one guessed tier to two measured tiers
+
+- Colour / background / border → `150ms` `cubic-bezier(.4,0,.2,1)`
+- Position / size / height → `300ms` `cubic-bezier(0,0,.2,1)`
+
+The old values (`feedback 120ms`, `move 180ms`) were estimates. `enter` / `exit` / `press`
+had no corresponding measurement inside the ZCode sidebar, so they are **left untouched
+rather than invented**.
+
+### Drag: 104px dead zone removed
+
+The old predicate `startX - endX > startWidth / 2` was decoupled from "reach MIN". Measured
+from 264: the width bottomed out at 240 after only 32px of travel, yet collapse needed 136px
+— **104px of dragging with zero feedback**. The dead zone also drifted with the start width
+(90px from 300, 30px from 420), so the same gesture behaved differently at different sizes.
+
+Now judged by overshoot past MIN, giving a constant 32px guard regardless of start width.
+Added `tests/sidebar-drag.spec.ts` with 9 two-way assertions (the function previously had
+**zero test coverage**), including a regression guard that the old dead zone exceeds twice
+the new one.
+
+### Other alignment
+
+| Item | Before | After |
+|---|---|---|
+| Sidebar default width | 240 | **264** |
+| Sidebar minimum width | 240 | **200** (deliberately looser than ZCode) |
+| Titlebar height | 40 | **48** (`h-12` = 12×4) |
+| Section head height | 24 | **28** (`h-7` = 7×4) |
+| Section label | 13px/400 | **14px/500** |
+| Time colour | tertiary 30% | **secondary 60%** |
+| Border alpha (light/dark) | .18 / .16 | **.1 / .1** |
+| Folder icon stroke | 2 | **1.5** |
+
+### Constant split: the drag floor is no longer bound to the default width
+
+`CODEX_SIDEBAR_MIN_PX` doubled as both "default width" and "drag floor". Raising the default
+to 264 through that same constant would have made it impossible to drag the sidebar narrower
+than 264. Split into `CODEX_SIDEBAR_DEFAULT_PX = 264` and `CODEX_SIDEBAR_MIN_PX = 200`.
+
+### Two assertions were overturned by measurement
+
+- **`feedback` easing**: the assertion pinned `(0,0,.2,1)`, arguing `.4` starts sluggishly
+  (measured: 6.6% vs 41% progress at 15% of the duration). The maths holds, but CDP shows
+  ZCode's **session-row hover** uses `(.4,0,.2,1)` at 150ms, and the two curves appear 7
+  times each across the sidebar. Following the thing being copied wins. The reverse guard
+  ("unidirectional tiers must not use `.4`") was narrowed to `move` only — `move` is still
+  measured as `(0,0,.2,1)`.
+- **Section label size**: the assertion pinned `caption` (13px)/400, arguing a section heading
+  should be more restrained. ZCode measures 14px/500/30% — **same size as body text,
+  layered by opacity instead**. The assertion now pins tertiary(30%) + 500 weight + base
+  scale, keeping the "more restrained" intent while matching reality.
+
+### Also fixed in this release
+
+- Session-area header fallback was still 34px while the sidebar header moved to 48px, leaving
+  the two parallel bars 14px out of alignment. All six occurrences synced to 48px.
+- Structure budget returned to 1136 lines **without raising the budget** (merged a blank line
+  and condensed a comment) — the budget only ever goes down.
+- `verify-turn-rail-sync.mjs` was flaky (same code failed once then passed): the 300ms motion
+  left the final sampled frame mid-settle. Flight-frame checks now exclude the last 2 frames;
+  settled correctness is still guarded separately at 2px tolerance.
+- Docs baseline regenerated; README / CONTRIBUTING test-file counts 56 → 57.
+
+### Verification
+
+`tsc --noEmit` clean; vitest **420 passed** (57 files); assertion suite 41 passed / 3 skipped;
+7 layout and visual scripts pass, including `verify-motion-budget`.
+
 ## 1.16.4 - 2026-10-21
 
 **Archive button sat 48px too far left — the 1.15.7 fix was itself the bug. Also ships the
