@@ -314,7 +314,7 @@ assert.doesNotMatch(
 // 因此每条都补一个**尾标记**（模板最后一条声明或收尾字符）。
 const extractedTheme = theme.match(/export const ZCODE_THEME_STYLE = `([\s\S]*?)`/)?.[1] ?? ''
 assert.ok(
-  extractedTheme.includes('--dcu-motion-feedback-duration:120ms'),
+  extractedTheme.includes('--dcu-motion-feedback-duration:150ms'),
   'ZCODE_THEME_STYLE 的抽取内容必须含动效令牌——被反引号截断时这里会失败（注释里不要写反引号）',
 )
 assert.ok(

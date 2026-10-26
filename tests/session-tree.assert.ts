@@ -109,7 +109,11 @@ assert.doesNotMatch(workspace, /pinSectionSessions|sectionSessionIds|pinSessionA
 assert.match(sidebar, /\.dcu-root\{[^}]*width:100%/, '侧栏根节点必须填满宿主网格列，不能露出宿主背景空带')
 assert.doesNotMatch(workspace, /dcu-wb-project-current/, '项目文件夹不得保留当前会话的选中态')
 assert.match(workspace, /dcu-wb-folder-current/, '当前会话所在项目只能高亮文件夹图标，不能高亮整行')
-assert.match(workspace, /\.dcu-wb\{--dcu-wb-inset:8px/, '工作区树必须使用 Codex 风格的 8px 横向留白')
+// 2026-10-26（CDP 现场复采后修正）：本断言曾锁「Codex 风格的 8px」，与本插件「ZCode 风格」目标冲突。
+// 后按旧文档（10-24）改成 11.5px，但 10-26 CDP 现场直读推翻了那份文档：
+//   实测侧栏 264、会话行 256（class "group/task-item ... pl-2.5 pr-1 py-1"），264-256=8 → 两侧各 4px。
+// 旧文档写的「行宽 241 / 留白 11.5」不成立。真值见 cdp-capture/ZCODE-TRUTH-2026-10-26.md。
+assert.match(workspace, /\.dcu-wb\{--dcu-wb-inset:4px/, '工作区树必须使用 ZCode 现场实测的 4px 横向留白（侧栏 264 - 行宽 256 = 两侧各 4）')
 // 本断言原要求 Codex 的 10px 圆角，与插件「改成 ZCode 风格」的设计目标直接冲突
 // （ZCode DESIGN.md：控件默认 rounded-lg = 8px）。按设计意图修正为 8px。
 // 2026-10-14：锁「设计意图」而非字面量写法。值必须等于 8px，但允许写成
@@ -138,7 +142,8 @@ assert.match(workspace, /body\.animate\(\[from, to\], \{ duration: DISCLOSURE_EX
 assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);[^}]*padding-left:0\}/, '置顶、项目和最近必须与上方按钮的内容起点左对齐')
 assert.match(workspace, /deleteWorkspaceGroup\(current, deleteGroupId\)[\s\S]*t\('workspace\.deleteGroupAction'\)/, '删除分组弹窗的确认按钮必须使用独立文案')
 assert.match(locales, /'workspace\.deleteGroupAction': '删除分组'/, '中文删除分组确认文案必须准确')
-assert.match(workspace, /const DISCLOSURE_EXIT_MS = 180/, '侧边栏展开与收起必须使用统一的 180ms 时长')
+// 2026-10-26：按 ZCode CDP 实测的位移档 0.3s 对齐（原 180ms 是估的）。
+assert.match(workspace, /const DISCLOSURE_EXIT_MS = 300/, '侧边栏展开与收起必须使用统一的 300ms 时长（ZCode 位移档实测值）')
 assert.match(workspace, /function DisclosureBody\(/, '顶层分区、项目和分组必须复用同一收起动画容器')
 assert.match(workspace, /\.dcu-wb-section-body,\.dcu-wb-project-body,\.dcu-wb-collection-body\{display:block;min-height:0;height:auto;overflow:clip;opacity:1;transform:none/, '各层级内容必须保留原生动画所需的静态终态')
 assert.doesNotMatch(workspace, /interpolate-size:allow-keywords/, '折叠容器不得混用 CSS auto 高度插值，避免与原生动画抢帧')

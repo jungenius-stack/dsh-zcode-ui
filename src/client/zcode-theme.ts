@@ -121,8 +121,15 @@ body[data-ds-dark-theme],.theme-zai-dark{
    cubic-bezier(.2,0,0,1) 是减速曲线，没有回弹；.4,0,1,1 是加速曲线，同样无过冲。
    与色板不同，动效不分明暗——挂 :root，供侧栏、设置页、新会话页共同消费。 */
 :root{
-  --dcu-motion-feedback-duration:120ms;--dcu-motion-feedback-ease:cubic-bezier(0,0,.2,1);
-  --dcu-motion-move-duration:180ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
+  /* 2026-10-26：按 ZCode 3.16.3 CDP 现场实测（cdp-capture/zcode-motion.json）对齐两档。
+     实测只有两档，不是一档：
+       颜色/背景/边框类 → 0.15s cubic-bezier(0.4, 0, 0.2, 1)   （最常用，13 个属性）
+       位移/尺寸/高度类 → 0.3s  cubic-bezier(0, 0, 0.2, 1)
+     原值 feedback 120ms(0,0,.2,1) / move 180ms 是估的，偏快且曲线不对。
+     保留五档结构不动：enter/exit/press 在 ZCode 侧栏范围内没采到对应值，
+     不臆造，维持原值。 */
+  --dcu-motion-feedback-duration:150ms;--dcu-motion-feedback-ease:cubic-bezier(.4,0,.2,1);
+  --dcu-motion-move-duration:300ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
   --dcu-motion-enter-duration:160ms;--dcu-motion-enter-ease:cubic-bezier(.2,0,0,1);
   --dcu-motion-exit-duration:120ms;--dcu-motion-exit-ease:cubic-bezier(.4,0,1,1);
   --dcu-motion-press-duration:90ms;--dcu-motion-press-ease:cubic-bezier(.2,0,0,1);
@@ -239,7 +246,7 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
      注：审计给的暗色基线「#3f3f40 / 1.72」在全仓不存在（grep 0 命中），实测合成值是
      rgba(255,255,255,.1) over #161616 = #2d2d2d / 1.31 —— 按实测校准，不采信报告数字。
      亮色边线 alpha .1 → .18：合成 #cdcdcd，对比 1.45（原 1.24）。 */
-  --dcu-sidebar-border:rgba(13,13,13,.18);--dcu-focus:#0b7fff;
+  --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-focus:#0b7fff;
   --dcu-surface:rgba(13,13,13,.03);
 }
 /* Zai Dark —— 宿主暗色属性或 ZCode 暗色 class 命中任一即切换。
@@ -267,7 +274,7 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
      不能为了对齐一套机制去动它。
      故改为：暗色底色保持 #161616，边线 alpha .1 → .16（合成 #3b3b3b，对比 1.31 → 1.62）。
      与亮色侧 .18（合成 #c7c7c7 / 1.48）方向一致、量级同档，两套主题的边界强度不再突变。 */
-  --dcu-sidebar-border:rgba(255,255,255,.16);--dcu-focus:#4099ff;
+  --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-focus:#4099ff;
   --dcu-surface:rgba(255,255,255,.05);
 }
 `

@@ -36,7 +36,7 @@ const classOf = (suffix) => hostCss.match(new RegExp('\\.([A-Za-z0-9_]+_' + suff
 const hostFixture = (centerHtml, collapsed) => `<style>html,body{height:100%;margin:0}
   :root{--ds-transition-duration-slow:.3s;--ds-ease-in-out:cubic-bezier(.4,0,.2,1)}
   .msg{margin:0 0 14px}.msg p{margin:0 0 6px;line-height:1.6}.msg pre{background:#f4f4f4;padding:6px;border-radius:6px}</style>
-<div id="frame" class="${classOf('frame')}" ${collapsed ? 'data-sidebar-collapsed' : ''} style="grid-template-columns:${collapsed ? '56px' : '240px'} minmax(0px,1fr) minmax(0px,0px)">
+<div id="frame" class="${classOf('frame')}" ${collapsed ? 'data-sidebar-collapsed' : ''} style="grid-template-columns:${collapsed ? '56px' : '264px'} minmax(0px,1fr) minmax(0px,0px)">
   <div class="${classOf('sidebarCol')}"><aside class="dcu-root${collapsed ? ' dcu-compact' : ''}">
     <div class="dcu-expanded-shell"><header class="dcu-head"><button class="dcu-brand">品牌</button><div class="dcu-head-actions"><button class="dcu-icon">收起</button></div></header><nav class="dcu-menu"><button>任务</button><button>频道</button></nav><div class="dcu-workspaces">${'工作区<br>'.repeat(20)}</div></div>
     <div class="dcu-compact-shell"><button class="dcu-icon" aria-label="展开侧边栏">展开</button></div>
@@ -45,7 +45,7 @@ const hostFixture = (centerHtml, collapsed) => `<style>html,body{height:100%;mar
   <main class="${classOf('centerCol')}">${centerHtml}</main>
   <div class="${classOf('rightbarCol')}"></div>
   <div data-shell-bottom></div><div data-shell-overlay></div>
-  ${collapsed ? '' : `<div class="${classOf('handle')}" data-side="sidebar" style="left:240px"></div>`}
+  ${collapsed ? '' : `<div class="${classOf('handle')}" data-side="sidebar" style="left:264px"></div>`}
 </div>`
 
 /** 中心列灌入 n 条消息：文本换行成本随节点数增长（复现用户实测的劣化维度）。 */
@@ -108,7 +108,9 @@ try {
     await startup.close()
     assert.equal(startupResult.cold.capped, false, `${initial} 首次加载触发监听循环`)
     assert.equal(startupResult.initialized, true, `${initial} 恢复展开后应完成初始化`)
-    assert.equal(startupResult.width, 240)
+    // 断言首帧写入的默认展开宽度。2026-10-25：默认宽由 240 对齐到 ZCode 实测的 264
+    // （codex-sidebar 的 --dcu-sidebar-expanded-width fallback 与 CODEX_SIDEBAR_DEFAULT_PX 同值）。
+    assert.equal(startupResult.width, 264)
     assert.equal(startupResult.idleCallbacks, 0, `${initial} 稳定后不应继续触发监听`)
   }
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
@@ -229,7 +231,7 @@ try {
   assert.equal(result.idleMutations, 0, '静止后不应继续写入 DOM 或调度宽度修正')
   // 卸载必须还原宿主几何与全部动画残留。
   assert.equal(result.restored.initialized, false, '卸载必须移除初始化标记')
-  assert.equal(result.restored.grid, '240px minmax(0px, 1fr) minmax(0px, 0px)', '卸载必须恢复插件改写后的宿主列宽')
+  assert.equal(result.restored.grid, '264px minmax(0px, 1fr) minmax(0px, 0px)', '卸载必须恢复插件改写后的宿主列宽')
   assert.equal(result.restored.width, '', '卸载必须清理插件列宽变量')
   assert.equal(result.restored.centerMarked, false, '卸载必须移除内容列标记')
   assert.equal(result.restored.sidebarMarked, false, '卸载必须移除侧栏列标记')
@@ -242,7 +244,7 @@ try {
   // shift/2，而不是 shift——旧实现用 width:calc(100%+shift) 配 translateX(-shift)，
   // 数学等价但**每帧改宽度**，在长对话下把动画压成 1 帧（用户实测卡顿，详见 KNOWN-ISSUES §26）。
   // 断言改为「收敛到 -shift/2」：既守住视觉终点，又允许实现切换成不重排的写法。
-  const shift = 184 // 夹具：展开 240 - 收起 56
+  const shift = 208 // 夹具：展开 264 - 收起 56
   const halfShift = shift / 2
   const collapseFlight = result.collapseRows.filter(row => row.motion !== null)
   assert.ok(collapseFlight.length >= 6, `收起动画应有连续飞行帧，实测 ${collapseFlight.length}`)
@@ -343,18 +345,18 @@ try {
   const handleRows = expandFlight.filter(row => row.handleLeft !== null)
   assert.ok(handleRows.length >= 6, '展开动画期间手柄必须在位')
   // 手柄视觉位（布局 left + transform）从收起位 56 单调滑向展开位 240。
-  assert.ok(handleRows.every(row => row.handleLeft >= 55 && row.handleLeft <= 241), `手柄视觉位必须在 56→240 之间，实测 ${handleRows.map(r => r.handleLeft).join(',')}`)
+  assert.ok(handleRows.every(row => row.handleLeft >= 55 && row.handleLeft <= 265), `手柄视觉位必须在 56→264 之间，实测 ${handleRows.map(r => r.handleLeft).join(',')}`)
   assert.ok(handleRows.every((row, i) => i === 0 || row.handleLeft >= handleRows[i - 1].handleLeft - 0.5), `手柄必须单调滑向展开位，实测 ${handleRows.map(r => r.handleLeft).join(',')}`)
-  assert.ok(handleRows.filter(row => row.handleLeft > 62 && row.handleLeft < 234).length >= 3, '手柄必须有连续滑动中间帧')
+  assert.ok(handleRows.filter(row => row.handleLeft > 62 && row.handleLeft < 258).length >= 3, '手柄必须有连续滑动中间帧')
   assert.ok(handleRows.at(-1).handleLeft > 200, `展开末帧手柄必须已接近展开位，实测 ${handleRows.at(-1).handleLeft}`)
-  assert.equal(result.expandedState.track, 240, '展开落定后轨道必须回到展开宽度')
+  assert.equal(result.expandedState.track, 264, '展开落定后轨道必须回到展开宽度')
   assert.equal(result.expandedState.motion, null, '展开落定后必须清除动画标记')
-  assert.equal(result.expandedState.handleLeft, 240, '展开落定后手柄布局位必须是 240')
-  assert.ok(Math.abs(result.expandedState.handleVisual - 240) <= 1, `展开落定后手柄视觉位必须是 240，实测 ${result.expandedState.handleVisual}`)
-  assert.equal(result.expandedState.centerWidth, 1040, '展开到位后内容列宽度必须回到展开几何')
-  assert.equal(result.expandedState.shellWidth, 240, '展开到位后宽态外壳必须是展开宽度')
+  assert.equal(result.expandedState.handleLeft, 264, '展开落定后手柄布局位必须是 264')
+  assert.ok(Math.abs(result.expandedState.handleVisual - 264) <= 1, `展开落定后手柄视觉位必须是 264，实测 ${result.expandedState.handleVisual}`)
+  assert.equal(result.expandedState.centerWidth, 1016, '展开到位后内容列宽度必须回到展开几何（视口 1280 - 展开 264）')
+  assert.equal(result.expandedState.shellWidth, 264, '展开到位后宽态外壳必须是展开宽度')
   // 反手切换：立即落定，无半程动画残留。
-  assert.equal(result.reversal.track, 240, '反手切换到展开必须立即落定轨道')
+  assert.equal(result.reversal.track, 264, '反手切换到展开必须立即落定轨道')
   assert.equal(result.reversal.motion, null, '反手切换不得留下飞行动画')
   assert.equal(result.reversal.shift, 0, '反手切换后内容列必须回到布局位')
 
@@ -466,7 +468,7 @@ try {
     // 主测试段已 dispose，这里重新建立监听（否则 toggle 无人响应，断言空转）。
     const dispose = observeSlimSidebar()
     frame.removeAttribute('data-sidebar-collapsed')
-    frame.style.gridTemplateColumns = '240px minmax(0px, 1fr) minmax(0px, 0px)'
+    frame.style.gridTemplateColumns = '264px minmax(0px, 1fr) minmax(0px, 0px)'
     for (let i = 0; i < 6; i++) await nextFrame()
     frame.setAttribute('data-sidebar-collapsed', '')
     frame.style.gridTemplateColumns = '0px minmax(0px, 1fr) minmax(0px, 0px)'
@@ -506,7 +508,7 @@ try {
     for (let i = 0; i < 6; i++) await nextFrame()
     // 场景二：开合动画飞行中开始拖拽——动画必须被取消（定时器不得稍后落定）。
     frame.removeAttribute('data-sidebar-collapsed')
-    frame.style.gridTemplateColumns = '240px minmax(0px, 1fr) minmax(0px, 0px)'
+    frame.style.gridTemplateColumns = '264px minmax(0px, 1fr) minmax(0px, 0px)'
     for (let i = 0; i < 6; i++) await nextFrame()
     frame.setAttribute('data-sidebar-collapsed', '')
     frame.style.gridTemplateColumns = '0px minmax(0px, 1fr) minmax(0px, 0px)'
@@ -524,7 +526,7 @@ try {
     return { settled, during, flying, cancelled }
   })
   assert.equal(dragging.settled.motion, null, '落定后不得残留动画标记')
-  assert.equal(dragging.settled.track, 240, '拖拽测试前必须处于展开静止态')
+  assert.equal(dragging.settled.track, 264, '拖拽测试前必须处于展开静止态')
   assert.equal(dragging.during.motion, null, '拖拽中不得启动开合动画')
   assert.equal(dragging.during.centerTransition, '0s', '拖拽中内容列不得挂过渡')
   assert.equal(dragging.during.centerTransform, 'none', '拖拽中内容列不得残留位移')
@@ -554,7 +556,7 @@ try {
     const track = () => Math.round(parseFloat(getComputedStyle(frame).gridTemplateColumns))
     const shift = () => Math.round(new DOMMatrixReadOnly(getComputedStyle(center).transform === 'none' ? '' : getComputedStyle(center).transform).m41)
     frame.removeAttribute('data-sidebar-collapsed')
-    frame.style.gridTemplateColumns = '240px minmax(0px, 1fr) minmax(0px, 0px)'
+    frame.style.gridTemplateColumns = '264px minmax(0px, 1fr) minmax(0px, 0px)'
     // 等展开动画落定（约 300ms），否则接着触发收起会走反手立即落定，没有飞行帧。
     for (let i = 0; i < 26; i++) await nextFrame()
     const transition = getComputedStyle(frame).transitionProperty

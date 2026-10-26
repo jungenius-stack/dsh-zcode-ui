@@ -118,7 +118,7 @@ assert.match(sidebar, /<div className="dcu-compact-shell"><button type="button" 
 assert.match(sidebar, /const SidebarSearch = forwardRef/, '搜索状态必须隔离到独立子树，不能让工作区树随输入重渲染')
 assert.match(sidebar, /useDeferredValue\(query\)/, '搜索过滤必须让输入更新优先，避免大量会话时阻塞键入')
 assert.match(sidebar, /SIDEBAR_COLLAPSE_SETTLE_MS = 500/, '收缩时必须先淡出宽态，再切换窄轨，避免内容突变')
-assert.match(sidebar, /width:var\(--dcu-sidebar-expanded-width,240px\)/, '宽态内容必须保持展开宽度，避免宿主动画把文字挤成竖排')
+assert.match(sidebar, /width:var\(--dcu-sidebar-expanded-width,264px\)/, '宽态内容必须保持展开宽度，避免宿主动画把文字挤成竖排（默认宽对齐 ZCode 实测 264）')
 // 2026-10-13 更新：动效改为按意图分档的令牌（见 docs/ZCODE-DESIGN.md §7.1）。
 // 断言不再锁死 180ms/ease-out 这类字面量，而是锁「用哪一档意图」——数值可调，意图不可改。
 assert.match(sidebar, /dcu-sidebar-expanded-in var\(--dcu-motion-enter-duration\) var\(--dcu-motion-enter-ease\)/, '侧栏展开是「内容出现」，必须使用进入档曲线（减速收尾）')

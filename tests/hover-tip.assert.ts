@@ -40,12 +40,19 @@ assert.equal(formatHoverTime(now - 8 * 86400_000, hoverTime('en'), now), '1w')
 assert.equal(formatHoverTime(now - 60 * 86400_000, hoverTime('en'), now), '2mo')
 assert.equal(formatHoverTime(now - 400 * 86400_000, hoverTime('en'), now), '1y')
 
-assert.equal(shouldCollapseOnSidebarDrag(240, 300, 179), true)
-assert.equal(shouldCollapseOnSidebarDrag(240, 300, 180), false)
-assert.equal(shouldCollapseOnSidebarDrag(520, 520, 259), true)
-assert.equal(shouldCollapseOnSidebarDrag(240, 240, 120), false)
+// 2026-10-26：收起判定由「起始宽的一半」改为「越过 MIN 的超出量 + 32px 保护」。
+// 旧判定与「拖到 MIN」脱钩，实测 264 起拖时产生 104px 死区（宽度卡住但未收起）。
+// 改判后死区恒定 32px，与起始宽度无关。此处按新语义双向断言。
+// MIN=200。240 起拖：可缩 40px；再超出 32px 即 72px 时收起。
+assert.equal(shouldCollapseOnSidebarDrag(240, 300, 300 - 72), true, '越过 MIN 满 32px 保护量应收起')
+assert.equal(shouldCollapseOnSidebarDrag(240, 300, 300 - 71), false, '差 1px 未满保护量不得收起')
+assert.equal(shouldCollapseOnSidebarDrag(240, 300, 300 - 40), false, '刚拖到 MIN 时不得收起')
+// 起始宽已等于 MIN（可缩空间为 0）：仅靠保护量判定，避免抖一下就整栏收起。
+assert.equal(shouldCollapseOnSidebarDrag(200, 400, 400 - 31), false, 'MIN 起拖 31px 不收起')
+assert.equal(shouldCollapseOnSidebarDrag(200, 400, 400 - 32), true, 'MIN 起拖满 32px 收起')
 assert.equal(sidebarWidthDuringDrag(240, 300, 301), 241, '从默认宽度向右轻拖必须连续增长，不能回弹到宿主下限')
-assert.equal(sidebarWidthDuringDrag(240, 300, 299), 240, '从默认宽度向左轻拖必须保持唯一最小宽度')
+assert.equal(sidebarWidthDuringDrag(240, 300, 299), 239, '从 240 向左轻拖 1px 必须如实变 239（MIN=200 后不再被夹住）')
+assert.equal(sidebarWidthDuringDrag(240, 300, 0), 200, '左拖触底必须夹在 MIN=200')
 assert.equal(sidebarWidthDuringDrag(300, 300, 250), 250, '自定义宽度左拖时必须按实际位移连续缩小')
 
 assert.deepEqual(parseSidebarGrid('280px minmax(0, 1fr) 0px')?.sidebar, 280)

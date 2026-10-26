@@ -1,5 +1,19 @@
 /** OpenAI Codex desktop sidebar geometry, measured from the installed client bundle. */
-export const CODEX_SIDEBAR_MIN_PX = 240
+/**
+ * 最小可拖拽宽度。
+ *
+ * 2026-10-26 由 240 降到 200。这不是「对齐 ZCode」——ZCode 的拖拽下限实测是 264px
+ * （它确实能拖，264–599，见 cdp-capture/zcode-drag-limits.json；此前误判为「不可拖」已纠正）。
+ * 我们取 200 是**主动放宽**，目的是给用户更多收窄空间，属可用性取舍而非规格对齐：
+ *   默认 264 与下限 240 只差 24px，实测拖窄行程几乎为零，
+ *   用户拖到 32px 处宽度就卡住，之后全是空转。
+ * 取 200 的依据：会话行固定 40px 左缩进 + 64px 时间位预留 = 104px，
+ * 200px 下标题仍有约 96px 可用，是「装得下标题」的下限。
+ */
+export const CODEX_SIDEBAR_MIN_PX = 200
+
+/** 默认展开宽度。ZCode 实测 264（spec-final.metrics.sidebarWidth）。 */
+export const CODEX_SIDEBAR_DEFAULT_PX = 264
 export const CODEX_SIDEBAR_RAIL_PX = 56
 
 /** Backward-compatible name for the width used while a collapsed rail expands. */
@@ -331,7 +345,7 @@ export function restoreHostSidebar(frame: HTMLElement): void {
     return
   }
   // 本会话已经把宿主列宽覆盖成 240，且没有快照时退回官方默认 280。
-  if (tracks?.sidebar === CODEX_SIDEBAR_MIN_PX) {
+  if (tracks?.sidebar === CODEX_SIDEBAR_DEFAULT_PX) {
     frame.style.gridTemplateColumns = `280px ${tracks.middle} ${tracks.details}`
     if (handle !== null) handle.style.left = '280px'
   }
@@ -408,7 +422,7 @@ export function applySlimSidebar(frame: HTMLElement): boolean {
     return changed
   }
   const initialized = frame.hasAttribute('data-dcu-codex-sidebar-initialized')
-  const width = initialized ? visibleSidebarWidths.get(frame) ?? CODEX_SIDEBAR_MIN_PX : CODEX_SIDEBAR_MIN_PX
+  const width = initialized ? visibleSidebarWidths.get(frame) ?? CODEX_SIDEBAR_DEFAULT_PX : CODEX_SIDEBAR_DEFAULT_PX
   const changed = applySidebarWidth(frame, width)
   // 相同值的 setAttribute 也会触发 MutationObserver，必须保持写入幂等。
   if (!initialized) frame.setAttribute('data-dcu-codex-sidebar-initialized', '')
@@ -430,7 +444,7 @@ function pauseInitialSidebarTransition(frame: HTMLElement): () => void {
 
 /** 展开态要恢复到的宽度（拖拽改过的宽度优先，否则默认 240）。 */
 function targetExpandedWidth(frame: HTMLElement): number {
-  return visibleSidebarWidths.get(frame) ?? CODEX_SIDEBAR_MIN_PX
+  return visibleSidebarWidths.get(frame) ?? CODEX_SIDEBAR_DEFAULT_PX
 }
 
 function prefersReducedMotion(win: Window): boolean {
