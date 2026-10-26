@@ -56,7 +56,7 @@ assert.equal(sidebarWidthDuringDrag(240, 300, 0), 200, '左拖触底必须夹在
 assert.equal(sidebarWidthDuringDrag(300, 300, 250), 250, '自定义宽度左拖时必须按实际位移连续缩小')
 
 assert.deepEqual(parseSidebarGrid('280px minmax(0, 1fr) 0px')?.sidebar, 280)
-assert.deepEqual(parseSidebarGrid('240px minmax(0px, 1fr) 0px')?.sidebar, 240)
+assert.deepEqual(parseSidebarGrid('264px minmax(0px, 1fr) 0px')?.sidebar, 264, '解析器只做字面提取，与默认宽度无关')
 assert.deepEqual(parseSidebarGrid('280px minmax(0px, 1fr) minmax(0px, 480px)')?.sidebar, 280, '0.1.7 右栏轨道必须仍能识别侧栏列')
 assert.deepEqual(parseSidebarGrid('280px minmax(400px, 1fr) minmax(0px, 537.5px)')?.sidebar, 280, '右栏展开时也必须识别侧栏列')
 
@@ -64,9 +64,9 @@ const sidebarDom = new JSDOM('<div id="frame" style="grid-template-columns: 360p
 const sidebarFrame = sidebarDom.window.document.getElementById('frame') as HTMLElement
 const sidebarHandle = sidebarFrame.querySelector<HTMLElement>('[data-side="sidebar"]')
 assert.equal(applySlimSidebar(sidebarFrame), true)
-assert.equal(sidebarFrame.style.gridTemplateColumns, '240px minmax(0px, 1fr) 0px')
+assert.equal(sidebarFrame.style.gridTemplateColumns, '264px minmax(0px, 1fr) 0px')
 assert.equal(sidebarFrame.hasAttribute('data-dcu-codex-sidebar-initialized'), true)
-assert.equal(sidebarHandle?.style.left, '240px')
+assert.equal(sidebarHandle?.style.left, '264px')
 assert.equal(applySidebarWidth(sidebarFrame, 241), true)
 assert.equal(sidebarFrame.style.gridTemplateColumns, '241px minmax(0px, 1fr) 0px')
 sidebarFrame.style.gridTemplateColumns = '320px minmax(0px, 1fr) 0px'
@@ -75,8 +75,8 @@ assert.equal(sidebarFrame.style.gridTemplateColumns, '241px minmax(0px, 1fr) 0px
 
 const hostFrame = new JSDOM('<div id="host" style="grid-template-columns: 280px minmax(0px, 1fr) minmax(0px, 480px)"><div data-side="sidebar"></div></div>').window.document.getElementById('host') as HTMLElement
 assert.equal(applySlimSidebar(hostFrame), true, '0.1.7 默认 280px 列必须能被收成内容宽度')
-assert.equal(hostFrame.style.gridTemplateColumns, '240px minmax(0px, 1fr) minmax(0px, 480px)', '收窄侧栏时必须保留 0.1.7 右栏轨道')
-assert.equal(hostFrame.style.getPropertyValue('--dcu-sidebar-expanded-width'), '240px')
+assert.equal(hostFrame.style.gridTemplateColumns, '264px minmax(0px, 1fr) minmax(0px, 480px)', '收窄侧栏时必须保留 0.1.7 右栏轨道（默认宽 264）')
+assert.equal(hostFrame.style.getPropertyValue('--dcu-sidebar-expanded-width'), '264px')
 restoreHostSidebar(hostFrame)
 assert.equal(hostFrame.style.gridTemplateColumns, '280px minmax(0px, 1fr) minmax(0px, 480px)', '没有快照时卸载必须退回官方默认 280px')
 assert.equal(hostFrame.hasAttribute('data-dcu-codex-sidebar-initialized'), false)
@@ -90,7 +90,7 @@ restoreDom.window.requestAnimationFrame = (callback: FrameRequestCallback) => { 
 restoreDom.window.cancelAnimationFrame = () => {}
 const disposeSlim = observeSlimSidebar()
 const restoreFrame = restoreDom.window.document.getElementById('frame') as HTMLElement
-assert.equal(restoreFrame.style.gridTemplateColumns, '240px minmax(0px, 1fr) 0px')
+assert.equal(restoreFrame.style.gridTemplateColumns, '264px minmax(0px, 1fr) 0px')
 disposeSlim()
 assert.equal(restoreFrame.style.gridTemplateColumns, '320px minmax(0px, 1fr) 0px', '卸载必须恢复插件改写前的宿主列宽')
 assert.equal(restoreFrame.querySelector<HTMLElement>('[data-side="sidebar"]')?.style.left, '320px')

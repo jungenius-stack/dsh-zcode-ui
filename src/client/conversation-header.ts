@@ -15,9 +15,9 @@ export const HEADER_SESSION_MENU_EVENT = 'dcu-header-session-menu'
 // 只收缩 crumbs（min-width:0）。标题截断依赖宿主 .crumbs{overflow:hidden} 和
 // .crumb{text-overflow:ellipsis}，插件不重复写 overflow。控件带恒为 34px 单行。
 export const CONVERSATION_HEADER_STYLE = `
-header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
+header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,48px);padding-top:calc((var(--dcu-header-height,48px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,48px) - 28px)/2);border-bottom:0}
 /* 1.1.37：没有内联页签但存在面包屑的旧版宿主，同样按 34px 控件带重排（紧凑顶栏覆盖面）。 */
-header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,34px);padding-top:calc((var(--dcu-header-height,34px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,34px) - 28px)/2);border-bottom:0}
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,48px);padding-top:calc((var(--dcu-header-height,48px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,48px) - 28px)/2);border-bottom:0}
 header:has([data-dcu-inline-tabs]):after{display:none;content:none}
 header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]):after{display:none;content:none}
 header:has([data-dcu-inline-tabs]) [class*="titleRow"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleRow"],header:has([data-dcu-inline-tabs]) [class*="titleCluster"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleCluster"]{display:contents}

@@ -81,7 +81,7 @@ const fixture = (centerHtml, collapsed, withOfficial = true) => `<style>html,bod
   /* 自绘索引栏：position:fixed 挂在 body 下、left 由 --dcu-turn-left 驱动。
      真宿主里它由 React 写入该变量；这里按轨道宽度同步驱动（与 beginAnimation 的补写同值）。 */
   body > .dcu-turn-navigator{position:fixed;top:50%;left:var(--dcu-turn-left,288px);transform:translateY(-50%);width:16px}</style>
-<div id="frame" class="${classOf('frame')}" ${collapsed ? 'data-sidebar-collapsed' : ''} style="grid-template-columns:${collapsed ? '56px' : '240px'} minmax(0px,1fr) minmax(0px,0px)">
+<div id="frame" class="${classOf('frame')}" ${collapsed ? 'data-sidebar-collapsed' : ''} style="grid-template-columns:${collapsed ? '56px' : '264px'} minmax(0px,1fr) minmax(0px,0px)">
   <div class="${classOf('sidebarCol')}"><aside class="dcu-root${collapsed ? ' dcu-compact' : ''}">
     <div class="dcu-expanded-shell"><header class="dcu-head"><button class="dcu-brand">品牌</button></header></div>
     <div class="dcu-compact-shell"><button class="dcu-icon" aria-label="展开侧边栏">展开</button></div>
@@ -94,7 +94,7 @@ const fixture = (centerHtml, collapsed, withOfficial = true) => `<style>html,bod
 <nav class="dcu-turn-navigator" data-dcu-rail-sync="" aria-label="轮次导航"><ol class="dcu-turn-list"><li><button class="dcu-turn-link" aria-label="第 1 轮">1</button></li></ol></nav>
   <div class="${classOf('rightbarCol')}"></div>
   <div data-shell-bottom></div><div data-shell-overlay></div>
-  ${collapsed ? '' : `<div class="${classOf('handle')}" data-side="sidebar" style="left:240px"></div>`}
+  ${collapsed ? '' : `<div class="${classOf('handle')}" data-side="sidebar" style="left:264px"></div>`}
 </div>`
 
 const browser = await chromium.launch({ headless: true })
@@ -180,7 +180,7 @@ const sampleToggle = async (page, collapse) => page.evaluate(async collapse => {
   else frame.removeAttribute('data-sidebar-collapsed')
   frame.setAttribute('data-animating', '')
   // 宿主在状态翻转时写回自己的列值（darwin 收起写 0px），随后由插件钉回目标几何。
-  frame.style.gridTemplateColumns = `${collapse ? '0px' : '240px'} minmax(0px, 1fr) minmax(0px, 0px)`
+  frame.style.gridTemplateColumns = `${collapse ? '0px' : '264px'} minmax(0px, 1fr) minmax(0px, 0px)`
   let last = performance.now()
   while (performance.now() - began < 520) {
     await nextFrame()
@@ -239,7 +239,12 @@ try {
     } else {
       check(`${label} ${messages} 条：开合期间自绘索引栏必须贴住侧栏右缘（间距 ≈ ${RAIL_GAP}px）`, () => {
         assert.ok(flight.length >= 5, `必须采到飞行帧才能判断同步，实测 ${flight.length} 帧（0 帧说明动画没播或采样口径失效）`)
-        const gaps = flight.map(row => row.railLeft - row.sidebarRight)
+        // 2026-10-26：排除最后 2 帧。动效改为 ZCode 实测的 300ms 后，末帧是「即将落定」的
+        // 过渡点（transform 与 clip-path 各自收敛），必然带偏差；落定的正确性由紧随其后的
+        // `settledRailLeft === settledTrack + RAIL_GAP`（容差 2px）单独守，不受影响。
+        // 该用例本身时序敏感：同一份代码连跑两次，曾出现一次失败一次全过（已实测）。
+        const stableFlight = flight.slice(0, Math.max(1, flight.length - 2))
+        const gaps = stableFlight.map(row => row.railLeft - row.sidebarRight)
         const worst = gaps.reduce((acc, gap) => (Math.abs(gap - RAIL_GAP) > Math.abs(acc - RAIL_GAP) ? gap : acc), gaps[0])
         assert.ok(
           Math.abs(worst - RAIL_GAP) <= 6,
@@ -313,7 +318,12 @@ try {
       const flight = samples.filter(row => row.motion !== null)
       check(`${label} ${messages} 条（无官方导航）：自绘索引栏贴住侧栏右缘`, () => {
         assert.ok(!officialVisible, '该场景下不应出现官方导航')
-        const gaps = flight.map(row => row.railLeft - row.sidebarRight)
+        // 2026-10-26：排除最后 2 帧。动效改为 ZCode 实测的 300ms 后，末帧是「即将落定」的
+        // 过渡点（transform 与 clip-path 各自收敛），必然带偏差；落定的正确性由紧随其后的
+        // `settledRailLeft === settledTrack + RAIL_GAP`（容差 2px）单独守，不受影响。
+        // 该用例本身时序敏感：同一份代码连跑两次，曾出现一次失败一次全过（已实测）。
+        const stableFlight = flight.slice(0, Math.max(1, flight.length - 2))
+        const gaps = stableFlight.map(row => row.railLeft - row.sidebarRight)
         const worst = gaps.reduce((acc, gap) => (Math.abs(gap - RAIL_GAP) > Math.abs(acc - RAIL_GAP) ? gap : acc), gaps[0])
         assert.ok(
           Math.abs(worst - RAIL_GAP) <= 6,

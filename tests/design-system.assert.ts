@@ -1040,8 +1040,13 @@ const easeOf = (name: string): string => {
   return m[1].trim()
 }
 
-assert.equal(easeOf('feedback'), 'cubic-bezier(0,0,.2,1)',
-  'feedback 必须是 ZCode ease-out(0,0,.2,1)；用 ease-in-out(.4,0,.2,1) 会让悬停/按下反馈起步迟滞')
+// 2026-10-26：CDP 现场实测推翻旧判断。ZCode 侧栏内两条曲线各 7 处并列，
+// 而**会话行悬停**（color/background-color/border-color，0.15s）实测用的正是 (.4,0,.2,1)。
+// 旧断言的理由「起步迟滞」在数学上成立（前 15% 时间只走 6.6% vs 41%），
+// 但总时长同为 150ms，15% 仅 22ms，且这是 ZCode 的真实选择。跟被测对象优先于理论偏好。
+// 实测数据：cdp-capture/zcode-motion.json
+assert.equal(easeOf('feedback'), 'cubic-bezier(.4,0,.2,1)',
+  'feedback 必须跟 ZCode 实测：会话行悬停用 (.4,0,.2,1) + 150ms')
 assert.equal(easeOf('move'), 'cubic-bezier(0,0,.2,1)',
   'move 必须是 ZCode ease-out(0,0,.2,1)；侧栏开合等单向位移用 ease-in-out 会「点了不跟手」')
 assert.equal(easeOf('enter'), 'cubic-bezier(.2,0,0,1)',
@@ -1049,9 +1054,12 @@ assert.equal(easeOf('enter'), 'cubic-bezier(.2,0,0,1)',
 assert.equal(easeOf('exit'), 'cubic-bezier(.4,0,1,1)',
   'exit 必须是加速离场曲线 (.4,0,1,1)')
 
-// 反向守护：单向档不得用回缓入缓出。
-assert.doesNotMatch(theme, /--dcu-motion-(feedback|move)-ease:cubic-bezier\(\.4,0,\.2,1\)/,
-  '单向动效（feedback/move）不得使用 ease-in-out(.4,0,.2,1)——那是双向运动的曲线')
+// 反向守护：move 档（侧栏开合等单向位移）仍不得用回缓入缓出。
+// 2026-10-26：feedback 档已排除在本守护之外——CDP 实测 ZCode 的会话行悬停
+// （color/background-color，单向）用的正是 (.4,0,.2,1) + 150ms。
+// 理论分类（.4 = 双向曲线）与实测冲突时，以实测为准；move 档仍是 (0,0,.2,1)。
+assert.doesNotMatch(theme, /--dcu-motion-move-ease:cubic-bezier\(\.4,0,\.2,1\)/,
+  '单向位移（move）不得使用 ease-in-out(.4,0,.2,1)——那是双向运动的曲线')
 
 // 曲线进度自检：ease-out 在 10% 时间必须已走过 ≥20%（旧曲线只有 2.6%）。
 const curveProgressAt = (x1: number, y1: number, x2: number, y2: number, targetX: number): number => {

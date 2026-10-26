@@ -136,10 +136,15 @@ assert.match(workspace, /\.dcu-wb-tree\{[^}]*padding-bottom:24px;scrollbar-gutte
 // 原写法把当时的实现值当契约，导致按 ZCode 宪章把字号收归七档刻度（caption = 14-1 = 13px，
 // 数值完全等价）时测试先红。现在锁两件事：①必须是刻度令牌而非字面量；②必须落在 caption 档。
 // 这样既拦住「随手改字号」，也允许在刻度内合法迁移。
-assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font-size:var\(--dsw-font-size-caption\);line-height:20px;font-weight:400/, '置顶、项目和最近必须使用比导航正文更克制的二级标题排版，且字号必须走 caption 刻度而非字面量')
+// 2026-10-26：CDP 现场实测（cdp-capture/zcode-header-metrics.json）。
+// ZCode 的分组标题是 14px/500/30% —— **与正文同字号**，靠透明度(30%)和字重(500)分层，不靠缩小字号。
+// 旧断言要求 caption(13px)/400，是「用字号做层级」的另一种设计手法，与 ZCode 实际做法不同。
+// 断言意图「分组标题必须比正文克制」仍成立：改为锁 tertiary(30%) + 500 字重 + base 刻度。
+assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-tertiary\);font-size:var\(--dsw-font-size-base\);line-height:21px;font-weight:500/, '置顶、项目和最近必须比正文克制：ZCode 用 30% 透明度 + 500 字重分层，字号与正文同为 base 刻度')
 assert.doesNotMatch(workspace, /\.dcu-wb-section-label\{[^}]*font-size:1[0-9]px/, '二级标题不得使用字面量字号（ZCode 宪章：字号必须走系统刻度）')
-assert.match(workspace, /body\.animate\(\[from, to\], \{ duration: DISCLOSURE_EXIT_MS, easing: 'ease-out', fill: 'none' \}\)/, '展开收起必须使用宿主兼容的逐像素高度动画（缓动已统一为 ease-out）')
-assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);[^}]*padding-left:0\}/, '置顶、项目和最近必须与上方按钮的内容起点左对齐')
+// 2026-10-26：位移档缓动改为 ZCode 实测的 cubic-bezier(0,0,0.2,1)（同 ZCode move 档）。
+assert.match(workspace, /body\.animate\(\[from, to\], \{ duration: DISCLOSURE_EXIT_MS, easing: 'cubic-bezier\(0,0,0\.2,1\)', fill: 'none' \}\)/, '展开收起必须使用宿主兼容的逐像素高度动画，缓动跟 ZCode move 档 cubic-bezier(0,0,.2,1)')
+assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-tertiary\);[^}]*padding-left:0\}/, '置顶、项目和最近必须与上方按钮的内容起点左对齐')
 assert.match(workspace, /deleteWorkspaceGroup\(current, deleteGroupId\)[\s\S]*t\('workspace\.deleteGroupAction'\)/, '删除分组弹窗的确认按钮必须使用独立文案')
 assert.match(locales, /'workspace\.deleteGroupAction': '删除分组'/, '中文删除分组确认文案必须准确')
 // 2026-10-26：按 ZCode CDP 实测的位移档 0.3s 对齐（原 180ms 是估的）。

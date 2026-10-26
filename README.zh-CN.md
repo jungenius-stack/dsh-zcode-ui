@@ -185,7 +185,7 @@ dsh --profile web --dump-config
 | 层级 | 命令 | 覆盖范围 |
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
-| 单元 / 集成 | `npm run test:unit` | 56 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 单元 / 集成 | `npm run test:unit` | 57 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 契约断言 | `node tests/run-assertions.mjs` | 45 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 真机布局 | `npm run test:layout` | 18 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 

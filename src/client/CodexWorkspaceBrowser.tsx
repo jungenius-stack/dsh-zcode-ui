@@ -85,8 +85,7 @@ type WorkspaceDropTarget = { zone: 'pinned' | 'projects'; beforeId?: string } | 
 type WorkspaceGroupDropTarget = { beforeId?: string }
 type SessionDropTarget = { workspaceId: string; beforeId?: string; hoveredId?: string; ontoProject?: boolean; crossWorkspace?: boolean }
 
-// 2026-10-26：按 ZCode 实测的「位移/尺寸」档（0.3s / cubic-bezier(0,0,0.2,1)）。
-// 折叠体动的是 height+opacity+transform，属位移类，用 move 档而非反馈档。
+// 2026-10-26：折叠体动 height+opacity+transform，属位移类，用 ZCode 实测的 move 档 0.3s / cubic-bezier(0,0,0.2,1)。
 const DISCLOSURE_EXIT_MS = 300
 
 function NewSessionIcon() {
@@ -652,7 +651,6 @@ function CodexWorkspaceTree({ wide, useSessions, useSessionPendingInteraction, u
       window.removeEventListener(HEADER_SESSION_MENU_EVENT, onMenu)
     }
   }, [groups.items, menu, pinnedWorkspaceIds, selectedId, unreadSessionIds])
-
 
   const projectPinned = (id: WorkspaceId | string): boolean => pinnedWorkspaceIds.includes(String(id))
   const pinnedGroups = orderByIds(groups.items, pinnedWorkspaceIds, workspace => String(workspace.workspaceId))

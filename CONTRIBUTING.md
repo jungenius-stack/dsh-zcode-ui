@@ -20,7 +20,7 @@
 | 层级 | 命令 | 说明 |
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
-| 单元/集成 | `npm run test:unit`（或 `node node_modules/vitest/vitest.mjs run`） | 56 文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 单元/集成 | `npm run test:unit`（或 `node node_modules/vitest/vitest.mjs run`） | 57 文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 断言套件 | `node tests/run-assertions.mjs` | 源码级契约断言，45 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)；含 `design-system.assert.ts`：字号刻度、动效意图、外来内容契约） |
 | 真机布局 | `npm run test:layout` | 18 个 Chromium 脚本，量真实几何与交互（含可读性与溢出：对比度 ≥4.5:1、标签不得截断、折叠轨不得横向溢出） |
 | **快速门禁（推荐）** | `npm run gate` | 上面四层串成一条；耗时见 [`docs/BASELINE.md`](docs/BASELINE.md) 实跑快照（分钟级，不是几十秒） |

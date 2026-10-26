@@ -211,7 +211,9 @@ assert.match(workspaceBrowser, /toggleGroup\(expandKey, true\)/, '点击项目�
 assert.match(workspaceBrowser, /projectFolderPresentation\(isExpanded, workspace\.visibleIds\.some\(id => id === currentSessionId\)\)/, '项目文件夹必须根据展开状态和当前会话决定打开或闭合')
 // 2026-10-12 更新：文件夹图标并入 Lucide 集合（ZIconFolderOpen / ZIconFolder）。
 // 设计变更登记：ZCode 只区分「展开」与「收起」，不再区分「当前项」与其他展开项的图标样式。
-assert.match(workspaceBrowser, /folder\.open \? folder\.current \? <ZIconFolderOpen size=\{16\} \/> : <ZIconFolderOpen size=\{16\} \/> : <ZIconFolder size=\{16\} \/>/, '展开项目用打开文件夹图标、收起项目用闭合图标')
+// 2026-10-26：图标补上 strokeWidth={1.5}（ZCode 侧栏图标统一 1.5 描边）。
+// 断言意图「开/合两态用不同图标」不变，故用 \\s*strokeWidth=\\{1\.5\\} 容许该属性。
+assert.match(workspaceBrowser, /folder\.open \? folder\.current \? <ZIconFolderOpen size=\{16\}\s*(?:strokeWidth=\{1\.5\}\s*)?\/> : <ZIconFolderOpen size=\{16\}\s*(?:strokeWidth=\{1\.5\}\s*)?\/> : <ZIconFolder size=\{16\}\s*(?:strokeWidth=\{1\.5\}\s*)?\/>/, '展开项目用打开文件夹图标、收起项目用闭合图标')
 assert.match(workspaceBrowser, /dcu-wb-folder-current/, '当前会话所在项目必须给文件夹加上当前色标记')
 assert.match(workspaceBrowser, /\.dcu-wb-folder\.dcu-wb-folder-current\{color:var\(--dsw-alias-state-business-primary\)\}/, '当前项目文件夹必须使用业务蓝')
 assert.match(workspaceBrowser, /id: 'openPath'[^]*ZIconFolderOpen size=\{16\}/, '在资源管理器中打开必须继续使用打开文件夹图标')
@@ -234,7 +236,8 @@ assert.match(workspaceBrowser, /pointerMenuRect/, '右键菜单必须用指针�
 // 这里只取缩进、不降字号，理由见下方 font-size 断言处的说明。
 assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*padding-left:40px/, '会话行必须相对项目标题右缩进（两级树必须可分辨），且缩进量落在 4px 标度内')
 // 同上（CODE-040）：锁设计意图，不锁字面量。
-assert.match(workspaceBrowser, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-secondary\);font-size:var\(--dsw-font-size-caption\);line-height:20px;font-weight:400/, '置顶项目最近必须使用比导航正文更克制的二级灰标题，且字号走 caption 刻度')
+// 2026-10-26：ZCode 实测分组标题为 14px/500/30%——与正文同字号，靠透明度与字重分层（非缩小字号）。
+assert.match(workspaceBrowser, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-tertiary\);font-size:var\(--dsw-font-size-base\);line-height:21px;font-weight:500/, '置顶项目最近必须使用比导航正文更克制的二级灰标题（ZCode 用 30% 透明度分层，字号走 base 刻度）')
 assert.match(workspaceBrowser, /\.dcu-wb-section\+\.dcu-wb-section\{margin-top:12px\}/, '置顶、项目和最近之间必须留出分区间距')
 // 2026-10-12 更新：字号改为七档刻度令牌（base = 14px），不再是硬编码 px。
 // 2026-10-18（P0-4 决定**不采纳**审计的「会话标题降到 caption(13px)」那半条）：

@@ -86,12 +86,13 @@ assert.match(navigator, /\.dcu-turn-list\{display:grid;gap:2px/, '刻度默认�
 assert.match(sidebar, /\.dcu-compact-shell\{display:none;width:56px\}/, '折叠外壳必须固定 56px 宽，填满宿主列')
 assert.match(sidebar, /\.dcu-root\.dcu-compact \.dcu-compact-shell\{display:flex/, '折叠态必须切换到紧凑外壳')
 assert.match(sidebar, /BrandWordmark size=\{24\}/, '侧栏品牌标识必须放大')
-// 2026-10-12 更新：以下三条钉的是 P1 之前的几何常量，ZCode 刻度落地后头部高 34→40px、
+// 2026-10-12 更新：以下三条钉的是 P1 之前的几何常量，ZCode 刻度落地后头部高 34→48px（2026-10-26 按 CDP 实测 h-12=48px 修正）、
 // 纵向内边距 28→32px、控件间距 8→4px。断言意图（单行头部、控件垂直居中、图标对齐）不变。
 assert.match(sidebar, /\.dcu-head-actions\{display:grid;grid-auto-flow:column;grid-auto-columns:28px;align-items:center;column-gap:4px;height:28px\}/, 'head actions grid')
 assert.match(sidebar, /\.dcu-head\{display:grid;grid-template-columns:minmax\(0,1fr\) auto/, 'head single row')
-assert.match(sidebar, /\.dcu-head\{[^}]*height:var\(--dcu-header-height,40px\)/, '侧栏顶部与会话顶栏共用控件带高度')
-assert.match(sidebar, /\.dcu-head\{[^}]*padding:calc\(\(var\(--dcu-header-height,40px\) - 32px\)\/2\) 8px calc\(\(var\(--dcu-header-height,40px\) - 32px\)\/2\) 12px/, '顶部控件垂直居中，保留 Logo 左侧留白')
+// 2026-10-26：CDP 实测 ZCode 侧栏顶栏 h-12 = 48px，会话顶栏 fallback 也同步到 48，两侧不错位。
+assert.match(sidebar, /\.dcu-head\{[^}]*height:var\(--dcu-header-height,48px\)/, '侧栏顶部与会话顶栏共用控件带高度（48px，与 ZCode h-12 一致）')
+assert.match(sidebar, /\.dcu-head\{[^}]*padding:calc\(\(var\(--dcu-header-height,48px\) - 32px\)\/2\) 8px calc\(\(var\(--dcu-header-height,48px\) - 32px\)\/2\) 12px/, '顶部控件垂直居中，保留 Logo 左侧留白（48px）')
 assert.match(sidebar, /\.dcu-head \.dcu-icon\{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px/, 'head icons aligned')
 assert.match(sidebar, /<div className="dcu-head-actions"><button type="button" className="dcu-icon" aria-label=\{t\('sidebar\.collapse'\)\}[\s\S]*sidebar\.search/, '收缩按钮必须在 LOGO 右侧、搜索左侧，并随搜索一起靠右')
 assert.match(sidebar, /const compact = collapsed \|\| width < 80/, '列宽小于 80px 时也必须进入窄轨')
