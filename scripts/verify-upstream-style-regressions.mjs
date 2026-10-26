@@ -100,7 +100,9 @@ try {
         cornerRight: boxes[4].right,
       }
     })
-    assert.equal(bar.height, 34, `${width}px：紧凑顶栏不得被长标题撑成两行`)
+    // 2026-10-26：顶栏高度按 CDP 实测统一到 ZCode 的 h-12 = 48px（原 34 是旧刻度）。
+    // 断言意图「不得被长标题撑成两行」不变——锁的是单行，不是某个具体像素。
+    assert.equal(bar.height, 48, `${width}px：紧凑顶栏不得被长标题撑成两行（高度 48px）`)
     assert.ok(bar.rowSpread < 20, `${width}px：顶栏控件必须同处一行（垂直散布 ${bar.rowSpread.toFixed(1)}px）`)
     assert.ok(bar.actionsLeft - bar.crumbsRight <= 11, `${width}px：操作区必须紧贴标题，不得被顶到中间`)
     assert.ok(bar.cornerRight > bar.utilitiesRight && bar.utilitiesRight > bar.tabsLeft && bar.tabsLeft >= bar.actionsRight, `${width}px：页签、扩展区与右栏必须按序留在右侧`)
