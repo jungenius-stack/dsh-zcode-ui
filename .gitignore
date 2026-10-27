@@ -24,3 +24,7 @@ scripts/fixtures/real-session-messages.json
 *.bak-*
 *.bak
 *.bak2-*
+
+# tsdown 构建中间产物：sync-dist 只负责把它拷进 lib/（见 scripts/sync-dist.mjs），
+# 宿主加载与回滚用的都是 lib/，dist/ 随时可由 npm run build 重建，不入库。
+dist/

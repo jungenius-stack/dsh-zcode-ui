@@ -15,9 +15,22 @@ export const HEADER_SESSION_MENU_EVENT = 'dcu-header-session-menu'
 // 只收缩 crumbs（min-width:0）。标题截断依赖宿主 .crumbs{overflow:hidden} 和
 // .crumb{text-overflow:ellipsis}，插件不重复写 overflow。控件带恒为 34px 单行。
 export const CONVERSATION_HEADER_STYLE = `
-header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,48px);padding-top:calc((var(--dcu-header-height,48px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,48px) - 28px)/2);border-bottom:0}
+/* HD2（2026-10-27 顶栏对齐 03e）：左右内边距归一为 24px。
+   宿主原本是 padding:10px 28px 0 20px（左 20 / 右 28，不对称，疑为侧栏适配残留）。
+   实测页签距右边界 266px —— 28px 并不贴合任何元素，纯粹是宿主的非对称习惯。
+   注入试验：对称 24px 后页签右距 266→262，无布局冲突、无水平溢出。 */
+/* HD1 高度补偿：border-box 下加 1px 边框会把总高顶到 49，内容区整体下移 1px（实测 scrollTop 48→49）。
+   ZCode 的 48 是含边框的总高，故 min-height 减 1 补偿，恢复总高 48。 */
+header:has([data-dcu-inline-tabs]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:calc(var(--dcu-header-height,48px) - 1px);padding-top:calc((var(--dcu-header-height,48px) - 28px - 1px)/2);padding-bottom:calc((var(--dcu-header-height,48px) - 28px - 1px)/2);padding-left:24px;padding-right:24px;border-bottom:1px solid rgba(13,13,13,.05)}
 /* 1.1.37：没有内联页签但存在面包屑的旧版宿主，同样按 34px 控件带重排（紧凑顶栏覆盖面）。 */
-header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:var(--dcu-header-height,48px);padding-top:calc((var(--dcu-header-height,48px) - 28px)/2);padding-bottom:calc((var(--dcu-header-height,48px) - 28px)/2);border-bottom:0}
+header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--dcu-space-2);min-height:calc(var(--dcu-header-height,48px) - 1px);padding-top:calc((var(--dcu-header-height,48px) - 28px - 1px)/2);padding-bottom:calc((var(--dcu-header-height,48px) - 28px - 1px)/2);padding-left:24px;padding-right:24px;border-bottom:1px solid rgba(13,13,13,.05)}
+/* HD1：--dcu-header-border 只在 .dcu-root 作用域内定义，header 不在其内、变量解析为空，
+   整条 border 会被丢弃（与 composer 那次同一个坑）。改为在本作用域直接给值：
+   默认（浅色）黑 5%，深色分支白 5%。 */
+body[data-ds-dark-theme] header:has([data-dcu-inline-tabs]),
+body[data-ds-dark-theme] header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){border-bottom:1px solid rgba(255,255,255,.05)}
+html.theme-zai-dark header:has([data-dcu-inline-tabs]),
+html.theme-zai-dark header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]){border-bottom:1px solid rgba(255,255,255,.05)}
 header:has([data-dcu-inline-tabs]):after{display:none;content:none}
 header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]):after{display:none;content:none}
 header:has([data-dcu-inline-tabs]) [class*="titleRow"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleRow"],header:has([data-dcu-inline-tabs]) [class*="titleCluster"],header:not(:has([data-dcu-inline-tabs])):has([class*="crumbCurrent"]) [class*="titleCluster"]{display:contents}
@@ -46,6 +59,55 @@ header [data-dcu-title-folder]{width:16px;height:20px}
 header [data-dcu-title-more]{width:20px;height:20px}
 header [data-dcu-title-folder]:hover,header [data-dcu-title-more]:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,currentColor)}
 header [data-dcu-title-folder] svg,header [data-dcu-title-more] svg{display:block}
+/* HD3（2026-10-27 顶栏对齐 03e）：页签字号/字重对齐 ZCode 标题口径。
+   ZCode 顶栏标题实测 14px / font-weight 600；DSH 页签原为 13px / 500。
+   只调字号与字重，不动高度（26px）与内边距 —— 那是宿主结构，见 HD5 单独处理。 */
+/* 特异性必须高于插件自身已有的 header [data-dcu-inline-tabs] [role="tab"]（0,2,1），
+   否则虽然排在后面也压不过去（实测第一版只写 .ST7X_W_tab 完全无效）。 */
+/* ZCode 顶栏标题 14px/600。字号必须走令牌（--dsw-font-size-base = 14px），
+   字面值会被 design-system 断言拦截。 */
+header [data-dcu-inline-tabs] [role="tab"].ST7X_W_tab{font-size:var(--dsw-font-size-base);font-weight:600}
+/* HD5（2026-10-27 顶栏对齐 03e）：顶栏内的图标按钮从 16×20 / 20×20 统一到 28×28 + 圆角 8px。
+   ZCode 实测顶栏按钮默认 28×28 / radius 8px（唯一例外是「打开方式」触发器 20×28 无圆角）。
+   ⚠ 这是本轮风险最高的一项：放大后整排按钮变宽，可能挤压标题。已在 1280 与窄窗口各截图复核。
+   限定在 header 内，不波及页签与内容区。 */
+/* ⚠ 选择器修正（2026-10-27）：.ST7X_W_header 本身就是 <header>，
+   第一版写成 header 空格 .ST7X_W_header button（即 header 的后代里的 .ST7X_W_header），
+   永远匹配不到，实测按钮仍是 16×20/4px。改为直接命中 header 内的 button，
+   并用 :not([role="tab"]) 排除页签、用 [class*=ST7X_W_] 限定在顶栏自己的按钮上。 */
+/* 2026-10-27 回滚：第一版作用于 header 内所有 button，实测把顶栏从 48 撑到 55px
+   （内容高 0、padding 按 28px 基准算，按钮放大后公式失配），
+   并连带使页签规则失效（tabFs 14→13）。改为只作用于**可见**且非页签的图标按钮，
+   并用 overflow 限制不影响高度。 */
+/* HD5（2026-10-27 顶栏对齐 03e）：图标按钮从小尺寸统一到 28×28 + 圆角 8px。
+
+   ⚠ 踩过的两次坑，都写在这里避免重犯：
+   1) 第一版用 header button 一刀切 → 把 headerUtilities 内部按钮全放大，
+      实测顶栏 48→55px、HD3 页签规则连带失效。
+   2) 第二版按「子节点只有 svg」判定 → 「访达」是 IMG、「更多打开方式」无子节点，两者被漏掉。
+      另外把文字按钮（「会话管理」88×28）强制成方形会**竖排折行**
+      （实测截图里变成「会话管 理」两行）。
+
+   最终策略：按结构分三条，各管一类，都不碰文字按钮。
+     A. crumbSeg 内按钮（面包屑图标）
+     B. headerUtilities 内**含 svg** 的按钮（纯图标，天然排除文字按钮）
+     C. 两个非 svg 的特殊按钮「访达」「更多打开方式」，按 aria 精确命中
+   headerUtilities 容器固定 28px 高，放大其子按钮不会改变容器高度（已实测）。 */
+header.ST7X_W_header [class*=ST7X_W_crumbSeg] button:not([role="tab"]),
+/* ⚠ :has(svg) 是**后代**匹配 —— 「会话管理」内部 SPAN 里也有 svg，会被误命中后压成 28 宽折行。
+   必须用「直接子节点只有 svg」：:has(> svg):not(:has(> :not(svg)))。
+   实测该写法对图标按钮=true，对「会话管理」(kids=SPAN、内含 svg)=false。 */
+header.ST7X_W_header [class*=ST7X_W_headerUtilities] button:not([role="tab"]):has(> svg):not(:has(> :not(svg))),
+header.ST7X_W_header button[aria-label*="访达"],
+header.ST7X_W_header button[aria-label*="打开方式"]{
+  box-sizing:border-box;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;min-width:28px;min-height:28px;
+  padding:0;
+  border-radius:var(--dsw-radius-lg);
+}
+header.ST7X_W_header button:not([role="tab"]){border-radius:var(--dsw-radius-lg)}
+
 `
 
 const FOLDER_SVG = '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true"><path fill="currentColor" transform="translate(1.5 2.429)" d="M5.05582 0.518756L4.50669 0.86654L5.05582 0.518756ZM13 9.4837L13.65 9.4837L13.65 3.53962L13 3.53962L12.35 3.53962L12.35 9.4837L13 9.4837ZM11.3264 1.86603L11.3264 1.21603L6.52313 1.21603L6.52313 1.86603L6.52313 2.51603L11.3264 2.51603L11.3264 1.86603ZM5.58054 1.34727L6.12968 0.999489L5.60495 0.170972L5.05582 0.518756L4.50669 0.86654L5.03141 1.69506L5.58054 1.34727ZM4.11323 1.23058e-13L4.11323 -0.65L1.67359 -0.65L1.67359 5.00699e-14L1.67359 0.65L4.11323 0.65L4.11323 1.23058e-13ZM0 1.67359L-0.65 1.67359L-0.65 9.4837L0 9.4837L0.65 9.4837L0.65 1.67359L0 1.67359ZM11.3264 11.1573L11.3264 10.5073L1.67359 10.5073L1.67359 11.1573L1.67359 11.8073L11.3264 11.8073L11.3264 11.1573ZM0 9.4837L-0.65 9.4837C-0.65 10.767 0.390308 11.8073 1.67359 11.8073L1.67359 11.1573L1.67359 10.5073C1.10828 10.5073 0.65 10.049 0.65 9.4837L0 9.4837ZM1.67359 5.00699e-14L1.67359 -0.65C0.390307 -0.65 -0.65 0.390309 -0.65 1.67359L0 1.67359L0.65 1.67359C0.65 1.10828 1.10828 0.65 1.67359 0.65L1.67359 5.00699e-14ZM5.05582 0.518756L5.60495 0.170972C5.28121 -0.340193 4.71829 -0.65 4.11323 -0.65L4.11323 1.23058e-13L4.11323 0.65C4.27282 0.65 4.4213 0.731715 4.50669 0.86654L5.05582 0.518756ZM6.52313 1.86603L6.52313 1.21603C6.36354 1.21603 6.21507 1.13431 6.12968 0.999489L5.58054 1.34727L5.03141 1.69506C5.35515 2.20622 5.91808 2.51603 6.52313 2.51603L6.52313 1.86603ZM13 3.53962L13.65 3.53962C13.65 2.25634 12.6097 1.21603 11.3264 1.21603L11.3264 1.86603L11.3264 2.51603C11.8917 2.51603 12.35 2.97431 12.35 3.53962L13 3.53962ZM13 9.4837L12.35 9.4837C12.35 10.049 11.8917 10.5073 11.3264 10.5073L11.3264 11.1573L11.3264 11.8073C12.6097 11.8073 13.65 10.767 13.65 9.4837L13 9.4837Z"/></svg>'
@@ -89,6 +151,10 @@ function emit(name: string, target: HTMLElement, extra: Partial<HeaderAnchorDeta
 function buildTitleButton(doc: Document, marker: 'folder' | 'more', svg: string, event: string, extra?: Partial<HeaderAnchorDetail>): HTMLButtonElement {
   const button = doc.createElement('button')
   button.type = 'button'
+  /* DS4（03h 细节清扫）：这两个按钮是**插件自己渲染**的纯图标按钮，
+     此前没有 aria-label —— 实测是全局可见按钮里唯一 2 个无标签项。
+     按实际功能命名：folder = 打开所在的文件夹/项目；more = 更多操作菜单。 */
+  button.setAttribute('aria-label', marker === 'folder' ? '打开所在项目' : '更多操作')
   if (marker === 'folder') button.dataset.dcuTitleFolder = ''
   else button.dataset.dcuTitleMore = ''
   button.innerHTML = svg

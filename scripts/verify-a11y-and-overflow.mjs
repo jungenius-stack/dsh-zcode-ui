@@ -146,7 +146,37 @@ const MEASURE = `(() => {
     const f = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4) }
     return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2])
   }
-  const parse = (s) => { const m = s.match(/rgba?\\(([\\d.]+),\\s*([\\d.]+),\\s*([\\d.]+)(?:,\\s*([\\d.]+))?\\)/); return m ? { rgb: [+m[1], +m[2], +m[3]], a: m[4] === undefined ? 1 : parseFloat(m[4]) } : null }
+  /*
+   * 颜色解析：除 rgb()/rgba() 外，还要认 oklab()。
+   * 2026-10-27（G14）侧栏令牌改为 alpha 叠加后，computed color 会以
+   * oklab(L a b / alpha) 形式返回；旧 parse 只认 rgb，导致 __contrast 返回 null，
+   * a11y 检查误报「取不到对比度」。这里补 oklab 到 sRGB 的标准换算。
+   */
+  const oklabToRgb = (L, a, bb) => {
+    const l_ = L + 0.3963377774 * a + 0.2158037573 * bb
+    const m_ = L - 0.1055613458 * a - 0.0638541728 * bb
+    const s_ = L - 0.0894841775 * a - 1.2914855480 * bb
+    const l3 = l_ ** 3, m3 = m_ ** 3, s3 = s_ ** 3
+    const lin = [
+       4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3,
+      -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3,
+      -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3,
+    ]
+    return lin.map(v => {
+      const c = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.max(v, 0) ** (1 / 2.4) - 0.055
+      return Math.round(Math.min(1, Math.max(0, c)) * 255)
+    })
+  }
+  const parse = (s) => {
+    const m = s.match(/rgba?\\(([\\d.]+),\\s*([\\d.]+),\\s*([\\d.]+)(?:,\\s*([\\d.]+))?\\)/)
+    if (m) return { rgb: [+m[1], +m[2], +m[3]], a: m[4] === undefined ? 1 : parseFloat(m[4]) }
+    const ok = s.match(/oklab\\(([\\d.]+%?)\\s+(-?[\\d.]+)\\s+(-?[\\d.]+)(?:\\s*\\/\\s*([\\d.]+%?))?\\)/)
+    if (ok) {
+      const num = (v) => (v.endsWith('%') ? parseFloat(v) / 100 : parseFloat(v))
+      return { rgb: oklabToRgb(num(ok[1]), parseFloat(ok[2]), parseFloat(ok[3])), a: ok[4] === undefined ? 1 : num(ok[4]) }
+    }
+    return null
+  }
   const effBg = (el) => {
     let e = el
     while (e) {

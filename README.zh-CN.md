@@ -187,7 +187,7 @@ dsh --profile web --dump-config
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元 / 集成 | `npm run test:unit` | 57 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 契约断言 | `node tests/run-assertions.mjs` | 45 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
-| 真机布局 | `npm run test:layout` | 18 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
+| 真机布局 | `npm run test:layout` | 22 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。
 
@@ -235,7 +235,7 @@ dsh --profile web --dump-config
 ```bash
 pnpm install --frozen-lockfile
 pnpm build          # tsc --noEmit && tsdown  → lib/
-pnpm gate           # 类型 + 断言 + vitest + 18 个浏览器脚本
+pnpm gate           # 类型 + 断言 + vitest + 22 个浏览器脚本
 pnpm gate:host      # 隔离真实宿主的兼容性重型档
 ```
 

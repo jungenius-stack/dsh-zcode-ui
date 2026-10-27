@@ -1179,6 +1179,11 @@ const STYLE_BLOCK_BUDGET: Record<string, number> = {
   'TurnNavigator.tsx': 1,
   'composer-tool-menus.ts': 1,
   'composer-visuals.ts': 1,
+  /* 2026-10-27：会话区骨架三件（C1 列宽 / C2 轮组间距 / C3 行高）的样式块。
+     单独成文件而不并入 CodexSidebar，是因为会话区后续还会加气泡、代码块、工具卡等
+     多批覆盖，集中在 CodexSidebar 会让那个文件继续膨胀（已 1100+ 行）。
+     当前 1 个样式块。 */
+  'conversation-layout.ts': 1,
   'composer-width.ts': 1,
   'conversation-header.ts': 1,
   'new-conversation-style.ts': 1,

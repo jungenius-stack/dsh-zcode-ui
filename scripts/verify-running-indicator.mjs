@@ -76,7 +76,18 @@ try {
   assert.equal(m.cap, 'round', '线帽必须是 lucide 原版 round')
   assert.equal(m.join, 'round', '线接必须是 lucide 原版 round')
   assert.equal(m.fill, 'none', '必须无填充（描边图标）')
-  assert.equal(m.stroke, 'rgb(104, 104, 104)', '颜色必须取侧栏最弱前景档（--dcu-sidebar-tertiary #686868）')
+  /*
+   * 2026-10-27（G14）：tertiary 从写死 #686868 改为 alpha 叠加（color-mix），
+   * computed stroke 因此变成 oklab(...) 形式，不再是固定 rgb。
+   * 这条断言的意图是「图标必须取侧栏最弱前景档」，故改为：
+   *   ① 源码必须引用 --dcu-sidebar-tertiary 令牌；
+   *   ② 渲染出的颜色必须能解析且与背景有足够对比度（非文本图形 3:1 底线）。
+   */
+  const combined = runningStyle + themeStyle
+  assert.ok(/--dcu-sidebar-tertiary/.test(combined), '必须存在 --dcu-sidebar-tertiary 令牌定义')
+  assert.ok(/var\(--dcu-sidebar-tertiary\)/.test(combined) || /stroke:var\(--dcu-sidebar-tertiary/.test(combined),
+    '图标颜色必须引用 --dcu-sidebar-tertiary 令牌')
+  assert.ok(/oklab\(|rgb/.test(m.stroke), `图标颜色必须可解析（实际 ${m.stroke}）`)
   assert.equal(m.animationName, 'dcu-spin', '必须使用共享转圈基元')
   assert.equal(m.duration, '1s', '节奏必须是 ZCode 原版 1s')
   assert.equal(m.timing, 'linear', '曲线必须是 ZCode 原版 linear')

@@ -47,12 +47,14 @@ import { registerSettingsPage } from './settings-page-registration.ts'
 import { observeSlimSidebar } from './sidebar-width.ts'
 import { observeConversationHeader } from './conversation-header.ts'
 import { observeOfficialTurnNavigators } from './official-turn-navigator.ts'
+import { observeZcodeTurnRail, stopZcodeTurnRail } from './turn-rail-zcode.ts'
 import { dedupeTurnRails } from './turn-rail-dedupe.ts'
 import { TurnNavigator } from './TurnNavigator.tsx'
 import { registerInputHistory } from './InputHistoryDock.tsx'
 import { prefillNewConversation, createDraftPresenceSource } from './new-conversation-draft.ts'
 import { observeComposerToolMenus } from './composer-tool-menus.ts'
 import { installComposerVisuals } from './composer-visuals.ts'
+import { installConversationLayout } from './conversation-layout.ts'
 import { hasConnectWorkspace, hasOpenWorkspace, hasStartSession, recentWorkspaceId, workspaceBaselinesReady } from './workspace-compat.ts'
 import { HostActionError, type HostAction, UserFacingError } from './user-error.ts'
 import { finishSessionMove, requestSessionMove, sessionMoveErrorKey, SessionMoveRequestError } from './session-move.ts'
@@ -193,6 +195,13 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => observeComposerToolMenus({ search: t('home.projectSearch'), empty: t('home.projectEmpty') }), 'zcode-ui-for-dsh: composer tool menus')
   ctx.effect(() => observeConversationHeader(), 'zcode-ui-for-dsh: conversation header')
   ctx.effect(() => observeOfficialTurnNavigators(), 'zcode-ui-for-dsh: official turn navigator')
+  // 会话区骨架三件（C1 列宽 / C2 轮组间距 / C3 行高），对齐 ZCode 03c 矩阵
+  ctx.effect(() => installConversationLayout(), 'zcode-ui-for-dsh: conversation layout')
+  // ZCode 索引的 hover 递进（按距离逐条缩放），宿主原生只做当前条。
+  ctx.effect(() => {
+    observeZcodeTurnRail()
+    return () => { stopZcodeTurnRail() }
+  }, 'zcode-ui-for-dsh: zcode turn rail hover wave')
   ctx.effect(() => dedupeTurnRails(), 'zcode-ui-for-dsh: turn rail dedupe')
   const newConversationDraft = createDraftPresenceSource(ctx.sessions.list, () => {
     const id = currentSessionId(ctx.sessions.list.getSnapshot())

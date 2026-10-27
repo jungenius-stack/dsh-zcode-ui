@@ -228,8 +228,37 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
      primary↔secondary 仍差 22.7（远大于 6）。
    取 6.2 而非更大值，是为了不把 primary 与 secondary 的区别也压没。 */
 .dcu-root,.dcu-settings-page,.dcu-home{
-  --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;--dcu-sidebar-secondary:#595959;
-  --dcu-sidebar-tertiary:#686868;--dcu-sidebar-navigation:#262626;
+  /* TA1（03g 主题审计，2026-10-27）：浅色底按 ZCode **分层**取值，不再取中值。
+     ZCode tokens.json 实测（浏览器 canvas 像素回读换算，双已知值反验通过）：
+
+       oklch(97%   0 0) → rgb(245)  = #f5f5f5   ← --color-sidebar      （侧栏层）
+       oklch(98.5% 0 0) → rgb(250)  = #fafafa   ← --color-background   （内容画布层）
+       反验：oklch(87% 0 0) → 212（= 深色前景）、oklch(37.1% 0 0) → 64（= G14 基色）✅
+
+     **245 与 250 的 5 通道差本身就是设计语言**——侧栏略暗以区分层级。
+     上一版取中值 247 是错的：把两层压平，两侧都不准，还丢掉了层级差。
+
+     映射：
+       .dcu-root（插件侧栏壳）          → #f5f5f5 (245)
+       .dcu-settings-page / .dcu-home（整页弹层）→ #fafafa (250)
+
+     G14 联动（已算）：底 245 上 secondary 85% ≈ 6.2:1、tertiary 75% ≈ 4.7:1，仍双双过 AA，
+     故 alpha 保持 85%/75% 不动。
+
+     原值 #f0f0f0（240）比 ZCode 侧栏层还暗 5 个通道。 */
+  --dcu-sidebar-background:#f5f5f5;--dcu-sidebar-primary:#262626;
+  /* G14（03b-sidebar）：原为写死 #595959。改为 alpha 叠加。
+     基色 #404040 = ZCode 浅色 --color-foreground（oklch(37.1% 0 0)，其 oklab L=0.3715）。
+     目标渲染色 = oklab(0.371 0 0 / 0.6)，与 ZCode 分组标题实测一致。
+     **历史坑（2026-10-27 第 3 轮评判对账）**：最初误用 #0a0a0a（foreground-subtle 的基色），
+     那是另一个令牌；正确基色必须是 foreground 本身。 */
+  /* G14 终版（2026-10-27）：基色 #404040 = ZCode 浅色 --color-foreground（oklab L=0.3715），
+     **保住 L 身份**与 ZCode 一致，只把 alpha 抬高以适配 DSH 更暗的侧栏背景。
+     为什么必须抬 alpha：ZCode 自己的 oklab(0.371/0.6) 在它的 #fbfbfb 上也只有 3.29:1
+     （本就不达 AA），而 DSH 背景 #f0f0f0 更暗，同样 alpha 掉到 3.19:1。
+     实测解：alpha 0.85 / 0.75 → 6.05:1 / 4.61:1，双档过 AA 且 ΔL*(s-t)=7.4 可分辨。 */
+  --dcu-sidebar-secondary:color-mix(in oklab,#404040 85%,transparent);
+  --dcu-sidebar-tertiary:color-mix(in oklab,#404040 75%,transparent);--dcu-sidebar-navigation:#262626;
   /* 2026-10-18（红队复核澄清身份）：--dcu-sidebar-icon 是**图标色**，不是「第四档文字」。
      全仓消费点只有 SVG（菜单图标 / 文件夹 / 设置入口），无一处用作文字。
      故它适用 WCAG 非文本 3:1，不适用文字的 4.5:1，也不参与「三档灰 ΔL*≥6」的档间判据。
@@ -246,6 +275,19 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
      注：审计给的暗色基线「#3f3f40 / 1.72」在全仓不存在（grep 0 命中），实测合成值是
      rgba(255,255,255,.1) over #161616 = #2d2d2d / 1.31 —— 按实测校准，不采信报告数字。
      亮色边线 alpha .1 → .18：合成 #cdcdcd，对比 1.45（原 1.24）。 */
+  /* HD1（2026-10-27 顶栏对齐 03e）：顶栏底部分隔线。ZCode 实测 1px、白 5% alpha
+     （暗色）。浅色反转为黑 5%，与既有「中性色只用 alpha 叠加」的规则一致。 */
+  /* S2（03f 设置页）：ZCode 分区卡片底色 #161616（深）/ 浅色对应更亮的一档。
+     DSH 宿主 --dsw-alias-settings-card-fill 是 #2b2b2b，比 ZCode 亮 21 个灰阶。
+     这里只在设置页作用域内覆盖，不动宿主令牌本身。 */
+  /* S1（03f）：ZCode 设置页导航分区项 16px / radius 12px。
+     DSH 原为 14px / 8px。实测 16px 不折行、不溢出（注入验证过），可安全放大。 */
+  --dcu-settings-nav-size:16px;
+  --dcu-settings-nav-radius:12px;
+  /* TA1：设置页整页底 = ZCode 内容画布层 rgb(250)。侧栏层 245 见 .dcu-root。 */
+  --dcu-settings-page-bg:#fafafa;
+  --dcu-settings-card-fill:#fbfbfb;
+  --dcu-header-border:1px solid rgba(13,13,13,.05);
   --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-focus:#0b7fff;
   --dcu-surface:rgba(13,13,13,.03);
 }
@@ -259,8 +301,18 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
    同时 sidebar 6.12 / hover 5.38 全部达标。primary↔secondary 仍差 22.8。 */
 body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,body[data-ds-dark-theme] .dcu-home,
 .theme-zai-dark .dcu-root,.theme-zai-dark .dcu-settings-page,.theme-zai-dark .dcu-home{
-  --dcu-sidebar-background:#161616;--dcu-sidebar-primary:#d4d4d4;--dcu-sidebar-secondary:#969696;
-  --dcu-sidebar-tertiary:#828282;--dcu-sidebar-navigation:#d4d4d4;
+  --dcu-sidebar-background:#161616;--dcu-sidebar-primary:#d4d4d4;
+  /* G14：原为写死 #969696。改为 alpha 叠加。
+     基色 #d4d4d4 = ZCode 深色 --color-foreground（oklch(87% 0 0)，oklab L=0.8699）。
+     目标渲染色 = oklab(0.87 0 0 / 0.6) —— **与 ZCode 三条项目行实测值完全相同**。
+     **历史坑（2026-10-27 第 3 轮评判对账）**：我最初写成 #e5e5e5（= foreground-subtle 的基色），
+     它的 oklab L=0.9219，评判方实测到 oklab(0.9219/0.51) 正是这个误用。
+     基色必须是 foreground 本身（L=0.87），不是 foreground-subtle。 */
+  /* G14 终版：基色 #d4d4d4 就是 ZCode 的 --color-foreground（oklab L=0.8699），
+     secondary 渲染为 oklab(0.87/0.68) —— L 与 ZCode 完全一致（差 0.00006），
+     只把 alpha 从 0.6 提到 0.68，让 tertiary 也过 AA（4.58:1）并保住三档 ΔL* 8.9。 */
+  --dcu-sidebar-secondary:color-mix(in oklab,#d4d4d4 68%,transparent);
+  --dcu-sidebar-tertiary:color-mix(in oklab,#d4d4d4 56%,transparent);--dcu-sidebar-navigation:#d4d4d4;
   /* 暗色侧 icon 同属「图标色」身份（见亮色侧说明）。实测 #a3a3a3 on #161616 = 7.17:1。
      P1-1 后与 secondary(#969696) 的明度差从 10.3 缩到 4.9；同样是可接受的，理由同亮色侧。
      注意暗色方向相反：icon 比 secondary 更亮，所以若要拉开应继续提亮而非压暗。 */
@@ -274,6 +326,11 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
      不能为了对齐一套机制去动它。
      故改为：暗色底色保持 #161616，边线 alpha .1 → .16（合成 #3b3b3b，对比 1.31 → 1.62）。
      与亮色侧 .18（合成 #c7c7c7 / 1.48）方向一致、量级同档，两套主题的边界强度不再突变。 */
+  /* S2：设置页卡片深色值。作用域见 settings-page-styles.ts 的 .dcu-settings-page。 */
+  /* TA1：设置页深色底 = ZCode --color-background dark #161616 */
+  --dcu-settings-page-bg-dark:#161616;
+  --dcu-settings-card-fill:#161616;
+  --dcu-header-border:1px solid rgba(255,255,255,.05);
   --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-focus:#4099ff;
   --dcu-surface:rgba(255,255,255,.05);
 }

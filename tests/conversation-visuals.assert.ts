@@ -78,9 +78,13 @@ assert.match(navigator, /max-width:240px/, '长摘要必须限制胶囊宽度并
 assert.match(navigator, /\.dcu-turn-summary\{[^}]*height:32px/, '悬停气泡高度必须是 Codex 的 32px 胶囊')
 assert.match(navigator, /\.dcu-turn-summary\{position:absolute/, '悬停摘要必须是独立胶囊，刻度不得拉成白条')
 assert.doesNotMatch(navigator, /\.dcu-turn-link:hover,.dcu-turn-link:focus-visible\{height:32px/, '悬停不得把刻度行拉高成白条')
-assert.match(navigator, /width:16px;height:8px/, '轮次导航命中区必须紧凑')
-assert.match(navigator, /--dcu-tick-w,5px/, '轮次导航默认必须是更短的微刻度')
-assert.match(navigator, /\.dcu-turn-list\{display:grid;gap:2px/, '刻度默认间距必须收紧')
+/* 2026-10-26 更新：自绘轨（dcu-turn-navigator）在宿主官方轮次导航挂载后已被
+   `html:has([data-dcu-official-turn-navigator]) .dcu-turn-navigator{display:none}` 隐藏，
+   改由官方轨承担显示。因此这三条从「宿主未提供时的兜底规格」改为「与 ZCode 实测一致」：
+   命中区 36×10、刻度 12×2、pitch 10（见 ZCODE-INDEX-SPEC.md）。 */
+assert.match(navigator, /width:36px;height:10px/, '轮次导航命中区必须紧凑（ZCode 36x10）')
+assert.match(navigator, /--dcu-tick-w,12px/, '轮次导航默认刻度必须与 ZCode 一致（12px）')
+assert.match(navigator, /\.dcu-turn-list\{display:grid;gap:0/, '刻度默认间距必须收紧（ZCode 靠 10px 行高实现，gap 为 0）')
 // 2026-10-12 更新：ZCode 改造后折叠轨不再靠根节点 `width:100%` 撑满，而是紧凑外壳自身固定 56px
 // （`.dcu-compact-shell{display:none;width:56px}` + 折叠态切换到它）。意图不变：窄轨必须正好填满宿主 56px 列。
 assert.match(sidebar, /\.dcu-compact-shell\{display:none;width:56px\}/, '折叠外壳必须固定 56px 宽，填满宿主列')
@@ -126,7 +130,21 @@ assert.match(sidebar, /dcu-sidebar-expanded-in var\(--dcu-motion-enter-duration\
 assert.match(sidebar, /\.dcu-compact-shell\{display:none;width:56px\}/, '窄轨必须固定为 56px 并锚定左侧，不能在正在变化的宿主列中居中漂移')
 assert.match(sidebar, /dcu-search-dialog-in var\(--dcu-motion-enter-duration\) var\(--dcu-motion-enter-ease\)/, '搜索弹窗是「内容出现」，必须使用进入档曲线')
 assert.doesNotMatch(sidebar, /transition:none!important/, '不得再关闭宿主侧栏的宽度动画')
-assert.match(theme, /--dcu-sidebar-background:#f0f0f0/, '浅色侧栏必须使用 Zai ZCode 的 #f0f0f0 中性灰背景')
+/* 2026-10-27（TA1，03g 主题审计）：浅色侧栏底 #f0f0f0 → #f7f7f7。
+   原断言措辞「Zai ZCode 的 #f0f0f0」**本身就是错的** —— 核对 tokens.json：
+     --color-sidebar    light = oklch(97% 0 0)   = 通道 245 ≈ #f5f5f5
+     --color-background light = oklch(98.5% 0 0) = 通道 248 ≈ #f8f8f8
+   #f0f0f0 是通道 240，比 ZCode 实际值暗 7~8 个通道。
+   取两者中值 #f7f7f7（247）作为侧栏底，更贴近 ZCode。
+   G14 的 secondary/tertiary alpha 不受影响（底色变亮 → 对比度只升不降，实测 6.34/4.76:1）。 */
+/* 2026-10-27 第 19 轮修正：ZCode 是**分层**的，不该取中值。
+   权威换算（canvas 像素回读，两个已知值反验通过）：
+     oklch(97%   0 0) → rgb(245)  = --color-sidebar     （侧栏层）
+     oklch(98.5% 0 0) → rgb(250)  = --color-background  （内容画布层）
+     反验：oklch(87%) → 212（深色前景）、oklch(37.1%) → 64（G14 基色）✅
+   245 与 250 的 5 通道差本身就是设计语言（侧栏略暗以区分层级）。
+   侧栏壳 .dcu-root 取 245；整页视图（设置页/首页）取 250，见 settings-page-styles.ts。 */
+assert.match(theme, /--dcu-sidebar-background:#f5f5f5/, '浅色侧栏壳底对齐 ZCode --color-sidebar oklch(97%) = rgb(245)')
 assert.match(theme, /--dcu-sidebar-background:#161616/, '暗色侧栏必须使用 Zai ZCode 的 #161616 背景')
 assert.match(sidebar, /body\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*pointer-events:none[^}]*--we-sidebar-color[^}]*--we-sidebar-alpha[^}]*backdrop-filter:blur\(var\(--we-sidebar-blur/, 'Wallpaper Engine 玻璃必须在不拦截点击的独立背景层复用颜色、透明度和模糊变量')
 assert.doesNotMatch(sidebar, /\.dcu-root\{[^}]*(?:backdrop-filter|transform|contain):/, '侧栏根节点不得创建 fixed 包含块，否则设置和搜索弹窗会被限制在侧栏内')
@@ -174,10 +192,28 @@ function lightness(hex: string): number {
   return y > 0.008856 ? 116 * y ** (1 / 3) - 16 : 903.3 * y
 }
 const sidebarTiers = ((): { bg: string; primary: string; secondary: string; tertiary: string; icon: string }[] => {
+  /*
+   * 2026-10-27（G14）：secondary 从写死 hex 改为 alpha 叠加（color-mix），
+   * 因此这里要能把 `color-mix(in oklab,#RRGGBB N%,transparent)` 解析成
+   * 「与背景合成后的等效 hex」再参与后续的对比度/明度差计算。
+   * 断言的真实诉求（≥4.5:1、ΔL*≥6）不变，只是取值方式适应了新写法。
+   */
+  const mixToHex = (fgHex: string, alpha: number, bgHex: string): string => {
+    const fg = [1, 3, 5].map(i => parseInt(fgHex.slice(i, i + 2), 16))
+    const bg = [1, 3, 5].map(i => parseInt(bgHex.slice(i, i + 2), 16))
+    const out = [0, 1, 2].map(i => Math.round(fg[i] * alpha + bg[i] * (1 - alpha)))
+    return '#' + out.map(v => v.toString(16).padStart(2, '0')).join('')
+  }
   const read = (block: string, name: string): string => {
-    const m = new RegExp('--dcu-sidebar-' + name + ':(#[0-9a-fA-F]{6})').exec(block)
-    assert.ok(m !== null, `主题块里必须定义 --dcu-sidebar-${name}`)
-    return m[1]
+    const bgMatch = new RegExp('--dcu-sidebar-background:(#[0-9a-fA-F]{6})').exec(block)
+    const bgHex = bgMatch !== null ? bgMatch[1] : '#ffffff'
+    const hex = new RegExp('--dcu-sidebar-' + name + ':(#[0-9a-fA-F]{6})').exec(block)
+    if (hex !== null) return hex[1]
+    const mix = new RegExp(
+      '--dcu-sidebar-' + name + ':color-mix\\(in oklab,(#[0-9a-fA-F]{6}) ([\\d.]+)%,transparent\\)',
+    ).exec(block)
+    assert.ok(mix !== null, `主题块里必须定义 --dcu-sidebar-${name}（hex 或 color-mix 形式）`)
+    return mixToHex(mix[1], Number(mix[2]) / 100, bgHex)
   }
   const lightStart = theme.indexOf('.dcu-root,.dcu-settings-page,.dcu-home{')
   const darkStart = theme.indexOf('body[data-ds-dark-theme] .dcu-root')
@@ -252,11 +288,14 @@ assert.match(navigator, /TURN_SUMMARY_LIMIT = 72/, '轮次摘要必须截断到 
 assert.match(navigator, /slice\(0, TURN_SUMMARY_LIMIT\)/, '轮次摘要必须真正应用截断')
 assert.match(navigator, /dcu-turn-scroll\{[^}]*overflow-y:auto/, '长会话刻度必须恢复纵向滚动，不得溢出遮挡输入区')
 assert.match(navigator, /dcu-turn-summary\{[^}]*background:#3a3d3c/, '轮次气泡必须用实色胶囊，不能被滚动容器裁掉')
-assert.deepEqual(tickMarkSize(2, null, true), { width: 5, height: 1 })
-assert.deepEqual(tickMarkSize(2, null, false), { width: 5, height: 1 })
-assert.ok(tickMarkSize(2, 2, true).width > 14, '悬停当前条必须明显拉长')
+/* 2026-10-26 更新为 ZCode 3.16.3 实测值（CDP 采自 [data-testid=v4-turn-navigator]）：
+   静息 12x2 / opacity .58；hover 递进 2.6 / 1.7 / 1.25，只影响 ±2 条。
+   规格见 优化UI插件区/ZCODE-INDEX-SPEC.md */
+assert.deepEqual(tickMarkSize(2, null, true), { width: 12, height: 2, opacity: 0.58 })
+assert.deepEqual(tickMarkSize(2, null, false), { width: 12, height: 2, opacity: 0.58 })
+assert.ok(tickMarkSize(2, 2, true).width > 30, '悬停当前条必须明显拉长（ZCode d0 = 2.6x = 31.2px）')
 assert.ok(tickMarkSize(3, 2, false).width > tickMarkSize(5, 2, false).width, '邻近刻度必须比远处更长')
-assert.ok(tickMarkSize(2, 5, true).width < 8, '悬停其他条时，原来的选中刻度必须收回去')
+assert.ok(tickMarkSize(2, 5, true).width <= 12, '悬停其他条时，原来的选中刻度必须收回到静息值')
 assert.match(navigator, /data-hovering/, '轨道悬停时必须进入仅高亮悬停条的状态')
 assert.match(navigator, /\[data-hovering=true\] \.dcu-turn-link\[aria-current=true\]/, '悬停时不得继续强调原来的选中刻度')
 assert.match(navigator, /transition:width var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/, '刻度长短切换属尺寸变化，必须使用移动档曲线')

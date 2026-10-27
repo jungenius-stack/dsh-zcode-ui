@@ -9,7 +9,7 @@
   - ⚠️ **不要把 DSH 自带的 Node 24 放到 PATH 前面**：它在 macOS 上加载不了 rolldown 的原生绑定
     （`code signature ... different Team IDs`），会让 `vitest` / `tsdown` 直接失败。
     本机可用 `~/.workbuddy/binaries/node/versions/22.22.2-6/bin`。
-- **Playwright 自带的 Chromium**（18 个真机布局脚本要用，一次性安装）：
+- **Playwright 自带的 Chromium**（22 个真机布局脚本要用，一次性安装）：
   ```bash
   ./node_modules/.bin/playwright install chromium
   ```
@@ -22,7 +22,7 @@
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元/集成 | `npm run test:unit`（或 `node node_modules/vitest/vitest.mjs run`） | 57 文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 断言套件 | `node tests/run-assertions.mjs` | 源码级契约断言，45 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)；含 `design-system.assert.ts`：字号刻度、动效意图、外来内容契约） |
-| 真机布局 | `npm run test:layout` | 18 个 Chromium 脚本，量真实几何与交互（含可读性与溢出：对比度 ≥4.5:1、标签不得截断、折叠轨不得横向溢出） |
+| 真机布局 | `npm run test:layout` | 22 个 Chromium 脚本，量真实几何与交互（含可读性与溢出：对比度 ≥4.5:1、标签不得截断、折叠轨不得横向溢出） |
 | **快速门禁（推荐）** | `npm run gate` | 上面四层串成一条；耗时见 [`docs/BASELINE.md`](docs/BASELINE.md) 实跑快照（分钟级，不是几十秒） |
 
 `npm run gate` 的已知红项集中在 `scripts/gate.mjs` 的三张登记表里（当前**全空**）；

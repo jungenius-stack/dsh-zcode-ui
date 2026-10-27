@@ -33,7 +33,14 @@ try {
       animation: getComputedStyle(node).animationName,
       duration: getComputedStyle(node).animationDuration,
     }))
-    assert.equal(preview.left, 38, `${tag}：预览必须位于导航右侧并保留 10px 间距`)
+    // 2026-10-26 二次更新：改用「刻度左缘 → 浮层左缘」这个跨端可比口径。
+    // ZCode 实测 navX=269 / btnX=281（按钮内缩 12）/ tipX=325 → 该口径为 44px。
+    // 之前的 56 是「距 nav 左缘」，而 DSH 按钮无内缩，照搬会宽出 12px（五轮验收报告坑 1）。
+    assert.equal(preview.left, 44, `${tag}：预览距刻度左缘必须为 44px（ZCode 同口径）`)
+    // 2026-10-26：宽度曾在插排版规则时被误删，回落宿主默认 300px 且门禁未拦住。
+    // 加这条回归断言：ZCode 实测 320px。
+    const previewWidth = await page.locator('[role=tooltip]').evaluate(node => getComputedStyle(node).width)
+    assert.equal(previewWidth, '320px', `${tag}：预览宽度必须为 320px（ZCode 实测），当前 ${previewWidth}`)
     assert.equal(preview.animation, 'dsh-turn-preview-enter', `${tag}：保留官方预览动画`)
     assert.equal(preview.duration, '0.12s', `${tag}：保留官方动画时长`)
     // 打印一份可自证夹具真被换过：.slot 的 container-type 只有 0.2.0-rc.2 起才存在。

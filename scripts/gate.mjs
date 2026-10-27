@@ -52,6 +52,17 @@ const LAYOUT = [
   ['scripts/verify-settings-backdrop.mjs', []],
   ['scripts/verify-settings-geometry.mjs', []],
   ['scripts/verify-upstream-style-regressions.mjs', []],
+  // 2026-10-27：dsh-zcode-ui 改为实体目录部署后，仓库 lib/ 与部署目录是两份拷贝。
+  // 本脚本逐字节比对，防止只写一份导致漂移（软链形态会自动跳过）。
+  // TCP-02 回归（2026-10-27 第 26 轮）：外部写 scrollTop 时插件必须让位。
+  // 反向验证过：去掉入口基线比对后本脚本会红（距底 18000+px、80+ 向上拖拽帧）。
+  // 产物新鲜度（2026-10-27 第 27 轮）：防止「页面跑的是旧 bundle」导致验收误判。
+  // 产物完整性（2026-10-27 第 27 轮事故）：部署产物里必须有源码定义的符号。
+  // 残缺包能通过语法校验、也能通过哈希自洽，只有这条能拦住。
+  ['scripts/verify-bundle-integrity.mjs', []],
+  ['scripts/verify-bundle-freshness.mjs', []],
+  ['scripts/verify-scroll-yield.mjs', []],
+  ['scripts/verify-deploy-parity.mjs', []],
   ['scripts/verify-state-shells.mjs', []],
   ['scripts/verify-a11y-and-overflow.mjs', []],
   // 2026-10-18：关系型/全量型断言（设计审计 §07 的 A2/A3/A4/A6）。

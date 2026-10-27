@@ -244,7 +244,9 @@ assert.match(workspaceBrowser, /\.dcu-wb-section\+\.dcu-wb-section\{margin-top:1
 // 层级区分已由 10px 缩进承担；审计也没给出 ZCode 侧栏把会话字号降到 13px 的一手依据
 // （DESIGN.md §Sidebar 只规定 8px 圆角 / 32px 行高，未规定会话行字号）。
 // 按「找不到依据的改动不做」原则保持 base 档，断言维持不变。
-assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '会话标题必须使用刻度 base（14px）')
+// 2026-10-27（G13，03b-sidebar 矩阵）：会话标题按 ZCode 实测改为 font-weight:500。
+// ZCode 会话行标题实测 500、分组行标题实测 400 —— 两者本来就不同，不能一并锁 400。
+assert.match(workspaceBrowser, /\.dcu-wb-session-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:500/, '会话标题必须使用刻度 base（14px）与 ZCode 的 500 字重')
 assert.match(workspaceBrowser, /\.dcu-wb-project-title\{[^}]*font-size:var\(--dsw-font-size-base\)[^}]*font-weight:400/, '项目标题必须使用刻度 base（14px）与常规字重，不能显得过黑')
 assert.match(workspaceBrowser, /dcu-wb-session-time/, '会话行右侧必须显示紧凑相对时间')
 // 2026-10-18：时间与行内 quick-actions（归档图标）曾同时用 right:8px，实测完全重叠 20px——

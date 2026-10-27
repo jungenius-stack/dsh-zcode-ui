@@ -21,7 +21,32 @@ import { computeBaseline } from '../scripts/baseline.mjs'
  */
 const BUDGET = {
   largestClientFileLines: 1136,
-  importantOccurrences: 48,
+  /* 2026-10-26 +2（48 → 50）：
+     CodexSidebar.tsx 的 `html[data-dcu-codex-sidebar-initialized] [data-...]{background-color:...!important}`
+     用于切断侧栏开合动画期间的壁纸穿透链。实测去掉后 computed 立刻回到 rgba(0,0,0,0)，
+     右侧「透明背景」问题复发；宿主对 frame 有更高优先级的底色规则，普通声明压不动。
+     只覆盖 background-color，不碰 backdrop-filter / background-image，原生毛玻璃不受影响。 */
+  /* 2026-10-26 +2（50 → 52）：
+     CodexSidebar.tsx 的浮层改为 ZCode 口径（320px / 左偏 56 / 顶对齐，CDP 实测三条刻度）。
+     `top` 必须 !important —— 宿主用 JS 内联写 top（--turn-preview-center 驱动），普通声明压不过内联。
+     `left`/`right` 同理是宿主定位属性，夹具实测去掉后 left 立刻回落到 -310。
+     其余属性（width/max-width/translate）已用 0,2,2 特异性覆盖，不再占用 !important。 */
+  /* 2026-10-27 +2（52 → 54）：
+     G11 自绘接管需要 `html:has([data-dcu-official-turn-empty]) .dcu-turn-navigator{display:block!important}`。
+     实测不加 !important 会被原有「supported=true 就 display:none」那条压住
+     （导航 display 仍是 none、宽高 0、点击打空）。这是**接管态必须赢过隐藏态**的
+     语义要求，属于有理由的强制优先级，不是随手加的。 */
+  /* 2026-10-27 +1（54 → 55），另 +3 为历史未同步的增量（详见下）：
+     本轮 P2 新增 1 处：`button.dsh-po-btn{border-radius:var(--dsw-radius-lg)!important}`。
+     原因：那颗「优化」按钮（来自 @y1x1n/dsh-prompt-optimizer）的 999px 是 **JS 内联样式**
+     （实测 style 属性里直接写着），内联优先级高于任何选择器，普通 CSS 压不动，
+     只有 !important 能改。它挂在 [data-composer-card] 里与宿主按钮同排，不统一会很突兀。
+     只此一处、只针对这一颗外来按钮。
+
+     实测总数 58 与登记 54 之间还有 3 处差额，来源是**过去几轮改动未同步预算**（非本轮引入）：
+     conversation-layout.ts 的 G11 接管规则（1）、conversation-header.ts（1）、
+     virtual-skip.ts（1）。这三处当时没走预算更新，属于本门禁漏记，本轮一并补上。 */
+  importantOccurrences: 58,
   todoMarkers: 0,
 }
 

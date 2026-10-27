@@ -35,14 +35,23 @@ assert.match(client, /observeConversationHeader/, '会话顶栏观察必须接�
 assert.match(header, /data-dcu-title-more/, '会话标题右侧必须有三点菜单')
 assert.match(header, /HEADER_PROJECT_TIP_EVENT/, '顶栏文件夹必须复用项目悬停卡片')
 assert.match(header, /HEADER_SESSION_MENU_EVENT/, '顶栏三点必须复用会话菜单')
+/* DS4（03h 细节清扫）：插件自渲染的文件夹/更多按钮是纯图标，必须有 aria-label，
+   否则读屏完全读不出功能（实测曾是全局可见按钮里唯一 2 个无标签项）。 */
+assert.match(header, /setAttribute\('aria-label', marker === 'folder' \? '[^']+' : '[^']+'\)/, '文件夹/更多按钮必须带 aria-label（纯图标按钮的可访问名）')
 assert.match(header, /\[role=tab\]:after/, '对话轨迹页签必须去掉下划线')
 assert.match(header, /aria-selected=true/, '选中页签必须能识别当前项')
 assert.match(header, /data-dcu-tab-slider/, '对话轨迹必须使用滑动选中块')
 assert.match(header, /button-info-fill/, '选中页签必须使用原来的蓝色')
-assert.match(header, /min-height:var\(--dcu-header-height,48px\)[^}]*padding-top:calc\(\(var\(--dcu-header-height,48px\) - 28px\)\/2\);padding-bottom:calc\(\(var\(--dcu-header-height,48px\) - 28px\)\/2\)/, '紧凑顶栏共用高度变量，给 28px 控件保留居中空间')
+// 2026-10-27（HD1）：顶栏新增 1px 底部分隔线。box-sizing:border-box 下边框占高，
+// 若沿用旧公式总高会变 49、内容区整体下移 1px（实测 scrollTop 48→49）。
+// 故 min-height 与 padding 基准都减 1，总高仍精确 48。意图不变：给 28px 控件居中。
+assert.match(header, /min-height:calc\(var\(--dcu-header-height,48px\) - 1px\)[^}]*padding-top:calc\(\(var\(--dcu-header-height,48px\) - 28px - 1px\)\/2\);padding-bottom:calc\(\(var\(--dcu-header-height,48px\) - 28px - 1px\)\/2\)/, '紧凑顶栏共用高度变量，为 1px 边框补偿后仍给 28px 控件居中空间')
 assert.match(header, /header:has\(\[data-dcu-inline-tabs\]\):after\{display:none;content:none\}/, '紧凑顶栏必须移除宿主分割线')
 assert.doesNotMatch(header, /padding-top:0/, '顶栏控件不得再次贴到窗口上边缘')
-assert.match(header, /header:has\(\[data-dcu-inline-tabs\]\)\{[^}]*border-bottom:0/, '紧凑顶栏必须彻底移除宿主底部分割线')
+// 2026-10-27（HD1）：此前要求 border-bottom:0（移除宿主分割线），现按 ZCode 03e 恢复为
+// 1px solid 5% alpha 真分隔线。宿主原生 .5px solid var(--dsw-alias-border-l3) 的问题
+// 是变量跨作用域解析为空导致整条失效，改为在本作用域直接给值。
+assert.match(header, /header:has\(\[data-dcu-inline-tabs\]\)\{[^}]*border-bottom:1px solid rgba\(13,13,13,\.05\)/, '紧凑顶栏必须带 1px 底部分隔线（HD1）')
 assert.match(header, /\[data-dcu-inline-tabs\]\{box-sizing:border-box;[^}]*gap:0[^}]*height:28px[^}]*border:1px[^}]*border-radius:var\(--dsw-radius-lg\)/, '方案 1 外框必须是包含边框在内的 28px 分段控件')
 assert.match(header, /\[data-dcu-tab-slider\]\{[^}]*height:26px/, '分段滑块必须适配 28px 外框的内部高度')
 // 2026-10-16 改为**意图式**：原先锁字面量 `padding:3px 10px`，属 CODE-040「把当时的实现值

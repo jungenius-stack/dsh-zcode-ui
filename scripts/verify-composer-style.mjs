@@ -32,19 +32,67 @@ try {
     const measure = () => page.locator('[data-composer-card]').evaluate(el => {
       const s = getComputedStyle(el), b = el.getBoundingClientRect()
       const button = el.querySelector('button[aria-label="发送"]'), bs = getComputedStyle(button)
-      return { height: b.height, radius: s.borderRadius, shadow: s.boxShadow, background: s.backgroundColor, overflow: document.documentElement.scrollWidth > innerWidth, button: button.getBoundingClientRect().height, transform: bs.transform }
+      // 2026-10-27（C5~C9）：把本轮对齐 ZCode 的五项一并纳入量测，
+      // 这样不依赖活宿主（CDP 9223）也能验证，且以后改回旧值会立刻报红。
+      const ed = el.querySelector('[contenteditable]')
+      const radii = [...el.querySelectorAll('button')]
+        .filter(x => !String(x.className).includes('dsh-po-'))
+        .map(x => getComputedStyle(x).borderRadius)
+      const rail = el.querySelector('[data-slot="conversation.input.attachments"] [class$="_rail"]')
+      return { height: b.height, radius: s.borderRadius, shadow: s.boxShadow, background: s.backgroundColor, overflow: document.documentElement.scrollWidth > innerWidth, button: button.getBoundingClientRect().height, transform: bs.transform,
+        borderTop: s.borderTopWidth + ' ' + s.borderTopStyle, borderColor: s.borderTopColor,
+        padding: s.padding, gap: s.gap, editorLineHeight: ed ? getComputedStyle(ed).lineHeight : null,
+        buttonRadii: [...new Set(radii)], railMarginBottom: rail ? getComputedStyle(rail).marginBottom : null }
     })
     // 合成页首帧可能仍在过渡中，读到中间值会偶发失败（实测到过 translateY(-2px) 与 28.0000038）。
     // 只消除读取竞态，不削弱断言：位移若真的存在，settle 之后照样能测到。
     await page.waitForTimeout(150)
     const before = await measure()
-    assert.ok(Math.abs(before.height - 92) < 0.5, '空态由 8px 顶部、44px 编辑区、4px 间距、28px 工具栏和 8px 底部自然撑高')
+    // 2026-10-27（C5/C6/C7 对齐 ZCode）：padding 8→12、gap 4→12，卡片自然高度随之变化。
+    // 推导：12(上) + 44(编辑区) + 12(gap) + 28(工具栏) + 12(下) + 2(上下各 1px 边框) = 110
+    // 实测 118 —— 差 8px 来自工具栏内部的行高余量（按钮 28 + 容器内 padding），
+    // 故这里断言「由新结构推导出的区间」而不是写死单一数字：只要 padding/gap 回退旧值就不再落在这个区间。
+    assert.ok(before.height >= 110 && before.height <= 122,
+      `空态高度应由 12px padding + 44px 编辑区 + 12px gap + 28px 工具栏撑出（实测 ${before.height}，期望 110~122；旧布局 92 不应出现）`)
     // 2026-10-12 由 Codex 口径（superellipse 25px / 20px）更新为 ZCode 的 16px 圆角（实测）。
     assert.equal(before.radius, '16px', 'ZCode 输入壳圆角为 16px')
     assert.ok(Math.abs(before.button - 28) < 0.5, '发送键宽度必须为 28px（rect 浮点值，用容差比较）')
     assert.equal(before.transform, 'none')
     assert.equal(before.overflow, false)
     assert.equal(before.shadow.includes('inset'), dark)
+    /* ── C5 边框：此前 --dcu-composer-border 跨作用域继承为空，整条 border 被丢弃（实测 0px none）。
+       现在必须真的是 1px solid，且深色 .15 白 / 浅色 .15 黑。 ── */
+    assert.equal(before.borderTop, '1px solid', 'C5：输入壳必须有 1px 实体边框（曾是 0px 被变量解析失败吃掉）')
+    assert.match(before.borderColor, dark ? /255,\s*255,\s*255,\s*0?\.15/ : /13,\s*13,\s*13,\s*0?\.15/,
+      'C5：边框色应为 15% alpha（深色白 / 浅色黑）')
+    /* ── C6/C7：ZCode 实测四边 12px、gap 12px ── */
+    assert.equal(before.padding, '12px', 'C6：卡片内边距对齐 ZCode 的 12px')
+    assert.equal(before.gap, '12px', 'C7：卡片 gap 对齐 ZCode 的 12px')
+    /* ── C8：编辑器行高 20px（ZCode 14px/20px） ── */
+    assert.equal(before.editorLineHeight, '20px', 'C8：编辑器行高对齐 ZCode 的 20px')
+    /* ── C9：按钮圆角统一 8px（排除外来插件的 dsh-po-*） ── */
+    assert.deepEqual(before.buttonRadii, ['8px'], 'C9：输入区按钮圆角必须统一 8px（ZCode 口径）')
+    /* P2：「优化」按钮（dsh-po-btn）的胶囊圆角是第三方插件写的**内联 style**，
+       内联优先级高于选择器，必须 !important 才能改。夹具里重建这颗按钮验证该规则真的生效。 */
+    const poProbe = await page.evaluate(() => {
+      const card = document.querySelector('[data-composer-card]')
+      const bar = card.querySelector('[data-input-scroll] + div') || card
+      const b = document.createElement('button')
+      b.className = 'dsh-po-btn dsh-po-opt'
+      // 复刻第三方插件的内联写法（这正是普通 CSS 压不动的原因）
+      b.setAttribute('style', 'border-radius:999px;display:inline-flex;padding:4px 12px')
+      b.textContent = '优化'
+      bar.appendChild(b)
+      const r = getComputedStyle(b).borderRadius
+      b.remove()
+      return r
+    })
+    assert.equal(poProbe, '8px',
+      'P2：「优化」按钮的**内联**圆角必须被 !important 覆盖为 8px（普通声明压不过内联）')
+    /* ── 附件轨道到正文保留官方 6px：gap 12 + (-6) 补偿 ── */
+    if (before.railMarginBottom !== null) {
+      assert.equal(before.railMarginBottom, '-6px', '附件补偿：gap 12px 下需 -6px 才能保留官方 6px 间距')
+    }
     await page.locator('[contenteditable]').focus()
     assert.deepEqual(await measure(), before, '聚焦不改变整框表面或几何尺寸')
     await page.locator('[contenteditable]').fill('多行内容\n第二行\n第三行\n第四行')

@@ -82,7 +82,16 @@ try {
     assert.ok(before.card.x >= 16)
     assert.ok(before.title.bottom <= before.workspace.y && before.workspace.bottom <= before.card.y + 10, '标题、工作区与输入框不能重叠')
     assert.equal(before.overflow, false)
-    if (height >= 600) assert.ok(before.card.y > height * .65, '输入框必须位于底部区域，不能回到标题下方居中')
+    /* 2026-10-27（C6/C7 对齐 ZCode）：卡片 padding 8→12、gap 4→12，高度 92→118。
+       卡片底边位置不变、上沿随高度上移 26px，导致 card.y 比旧阈值低 4px（实测 386 vs 390）。
+       这是几何事实，不是布局回退。改为**按底边**判定（底边才是「靠在底部」的真正语义），
+       并保留一个上沿的宽松下限，避免将来卡片真被拉回中间却测不出来。 */
+    if (height >= 600) {
+      assert.ok(before.card.bottom > height * .80,
+        `输入框必须靠在底部（card.bottom=${Math.round(before.card.bottom)}，阈值 ${Math.round(height * .8)}，视口高 ${height}）`)
+      assert.ok(before.card.y > height * .55,
+        `输入框上沿不能回到标题下方居中（card.y=${Math.round(before.card.y)}，下限 ${Math.round(height * .55)}，card.h=${Math.round(before.card.height)}）`)
+    }
     assert.equal(await page.locator('[class*="_heroWorkspaceRow"]').evaluate(el => getComputedStyle(el).justifyContent), 'flex-start')
     assert.ok(before.metrics.y >= before.card.bottom + 32, '保留底部信息区空间')
     await page.locator('.dcu-home-suggestions').evaluate(el => el.setAttribute('data-has-draft', 'true'))

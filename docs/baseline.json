@@ -4,7 +4,7 @@
     "assertScriptsTs": 40,
     "assertScriptsMjs": 5,
     "specFiles": 57,
-    "layoutScripts": 18,
+    "layoutScripts": 22,
     "tokens": {
       "light": 174,
       "dark": 174,
@@ -17,7 +17,7 @@
   "structure": {
     "largestClientFile": "src/client/CodexWorkspaceBrowser.tsx",
     "largestClientFileLines": 1136,
-    "importantOccurrences": 48,
+    "importantOccurrences": 58,
     "todoMarkers": 0
   }
 }

@@ -142,7 +142,7 @@
 | --- | --- | --- |
 | 「`zcode-skin.ts` 拒绝哈希类名，但其他文件仍在用 → 自相矛盾」 | **降级为措辞问题** | 原话的作用域是「本皮肤层」（该文件的上下文），而皮肤层确实一处都没用。集成层无法回避哈希类名。已在 `zcode-skin.ts` 补边界说明、并在 ZCODE-DESIGN §12 写清两层分工。**但其建议本身（装报警器）完全成立，已采纳** |
 | 「亮色下『拖动项目到此处置顶』的灰比 tertiary 更浅」 | **不成立** | 实机测得 `.dcu-wb-empty` 为 `rgb(104,104,104)` = `#686868`，正是 tertiary 本身，无额外 opacity。它比 secondary 浅是**设计分层**，不是缺陷。13px 抗锯齿在小字号下容易被看成更浅 |
-| 「`CodexWorkspaceBrowser.tsx` 有一个约 690 行的函数；`!important` 40 处」 | **承认，本轮不动** | 这两个数在登记时就已过期：2026-10-19 实测为 1136 行文件里的 741 行函数、`!important` 48 处。现在数字由 `scripts/baseline.mjs` 生成、`tests/structure-budget.assert.mjs` 做双向棘轮（涨了报红，降了也要求下调预算），不再依赖人工回头。741 行函数的重构风险远高于收益，`!important` 是皮肤层覆盖宿主所必需。登记为已知技术债，不做无谓改动 |
+| 「`CodexWorkspaceBrowser.tsx` 有一个约 690 行的函数；`!important` 40 处」 | **承认，本轮不动** | 这两个数在登记时就已过期：2026-10-26 实测为 1136 行文件里的 741 行函数、`!important` 58 处（较 48 增加 10：侧栏开合动画期间的壁纸穿透兜底 1 处、轮次导航刻度定位覆盖 1 处、悬停浮层改 ZCode 口径后的 top/left/right 各 1 处、G11 自绘接管态压过隐藏态的 display 1 处、P2「优化」按钮内联圆角覆盖 1 处、历史未同步 3 处；均见 CodexSidebar.tsx 行内注释与 tests/structure-budget.assert.mjs 的预算登记理由）。现在数字由 `scripts/baseline.mjs` 生成、`tests/structure-budget.assert.mjs` 做双向棘轮（涨了报红，降了也要求下调预算），不再依赖人工回头。741 行函数的重构风险远高于收益，`!important` 是皮肤层覆盖宿主所必需。登记为已知技术债，不做无谓改动 |
 
 **评审中已过期/已被修复的两条**（记录以免重复讨论）：
 
@@ -5106,3 +5106,178 @@ vitest 加载 `vitest.config.ts` 时要写 `node_modules/.vite-temp/`，在只�
 
 **反向测试**：把 `right:8px` 回注成 `right:56px` → `settings-integration.assert.ts` 报红，
 失败信息正是「1.15.7 的 right:56px 会在图标右侧留 48px 空白」。恢复后全绿。
+
+## 64. 轮次导航点击滚动的卡顿：归因到会话 DOM 规模，非本插件可修（2026-10-26）
+
+### 64.1 结论
+
+**「点刻度滚动不够顺」的根因是会话滚动区的 DOM 节点数，不是动画实现。**
+短会话下本插件的滚动已与 ZCode 同级，长会话才慢，且差距全部来自渲染量。
+
+### 64.2 实测数据
+
+同一探针（rAF 采 15 帧，逐帧写 scrollTop），三种场景：
+
+| 场景 | 滚动区 DOM 节点 | 内容高度 | 帧间隔均值 | 慢帧(>50ms) |
+|---|---|---|---|---|
+| 短会话（单轮） | **8,131** | 1,600px | **8ms** | 0/15 |
+| 长会话（本会话） | **52,630** | 61,033px | **57ms** | 多次 |
+| ZCode 3.16.3（对照） | **737**（总 DOM 1,752） | 6,535px | **8ms** | 0/20 |
+
+**短会话 8ms ≡ ZCode 8ms**：插件侧没有性能问题。长会话慢 7 倍，节点多 6.5 倍。
+
+### 64.3 已排除的替代解释（都试过，无效）
+
+| 假设 | 实测结果 |
+|---|---|
+| 用原生 `scrollTo({behavior:'smooth'})` 更快 | **在 DSH 容器上完全无效**：连续 20 帧 scrollTop 恒定（唯一值=1）。宿主接管了滚动，原生平滑被吞。同一个 API 在 ZCode 容器上正常（39 个不同值）。 |
+| 动画时长太短 | 拉到 4000ms 后**更差**：动画跑到一半被宿主「跟随底部」抢占，200 帧只有 3 个值、卡在中间值。上限 2200ms 是实测红线。 |
+| `content-visibility:auto` 能省渲染 | 13ms → 11ms，几乎无改善。 |
+| 缓动曲线形态错 | 确实错了（见 64.4），但那是手感问题，不是帧率问题。修完 CV 1.77→1.21，帧间隔未变。 |
+
+### 64.4 顺带修正的曲线形态（已修）
+
+Chrome 原生 scroll smooth 的实测 21 点归一化曲线：
+
+```
+[0, .011, .061, .204, .471, .652, .761, .834, .885, .923, .950, .970, .984, .993, .998, 1, 1]
+```
+
+**非对称 ease-out**：前 20% 时间走完 47%，后 40% 时间只走 1.6%。
+此前用的 `easeInOutCubic` 是**对称**曲线（t=.2 时只到 .03，应到 .47），所以起步偏慢、结尾偏快。
+已改为按实测数据查表插值。效果：步长变异系数 CV 1.77 → **1.21**（ZCode 基准 0.71），移动帧 83 → 121。
+
+### 64.5 当前实现参数（`turn-rail-zcode.ts`）
+
+- 拦截 click → 记起点 → `setTimeout(0)` 后读宿主瞬跳终点 → 回滚 → 自写 rAF 缓动。
+  用 `setTimeout(0)` 而非双 rAF：本机帧间隔可达 300ms，双 rAF 会让回滚晚 168ms（用户会先看到「跳走」再「弹回」）。实测降到 46ms。
+- 时长按距离自适应：`clamp(|Δ| / 3.2, 320ms, 2200ms)`，让每帧位移落在可控区间
+  （实测每帧 100px → 35ms/帧，3000px → 88ms/帧，滚得越远越慢）。
+
+### 64.6 要真正解决，只能改宿主
+
+三种可能的宿主侧方案，均超出本插件职责：
+
+1. 会话区改真虚拟列表（只渲染可见轮次）——宿主当前是「一次性渲染 + 高度估算」，节点数随会话线性增长。
+2. 折叠已完成轮次的内容 DOM（保留摘要占位）。
+3. 用户侧习惯：长会话定期新开。
+
+**核查方式**：在任意会话执行
+`document.querySelector('[data-conversation-scroll]').querySelectorAll('*').length`
+—— 超过约 15000 就应预期帧间隔 >30ms；低于 10000 时滚动应与 ZCode 无差别。
+
+## 65. 启动期 `dsh-zcode-ui: import failed` 崩溃：宿主后端未就绪，非插件缺陷（2026-10-27）
+
+**现象**：一天内多次出现
+```
+Error: web boot: 1 entry did not activate
+dsh-zcode-ui: import failed (see console for the import error)
+```
+官方 crash log 只记这一句，看不到真实异常，一度被误判为「插件产物损坏」或「构建覆写读到半截文件」。
+
+**定论证据**（启动期崩溃探针 `/tmp/dsh-boot-errors.log` 捕获，2026-10-27 09:17:14 UTC）：
+
+```text
+503 Service Unavailable × 8 个端点同时失败：
+  api/session/list                     api/permissionPresets/catalog
+  api/dynamicCordisRunner/inventory     api/session/modelCatalog
+  api/agentPresets/list ×2              api/settings/describe
+  api/dsh-codex-ui/dependencies
+09:17:15  ws://127.0.0.1:54061/api/remote.mux failed
+09:17:17  新进程 listening（重启成功）
+```
+
+**机制**：启动早期宿主后端尚未就绪 → 全部 API 返回 503 → remote.mux WebSocket 断开 →
+应用重启。插件加载依赖 `api/dsh-codex-ui/dependencies`，该请求 503 时插件 import 失败，
+于是成为 crash log 里唯一被点名的模块。
+
+**为什么可以确定不是插件导致的**：8 个端点**同时** 503。插件若自身出错，只会命中它自己那一条请求；
+能让 `session/list`、`settings/describe`、`permissionPresets/catalog` 一起挂的，只能是宿主后端整体不可用。
+
+**结论**：**宿主/应用层问题，插件侧不做任何工程改动。**
+排除过的其他假设（均已有反证，见 `design-language/04-open-gaps.md` 第十五～二十轮）：
+- ❌ 构建覆写读到半截文件 → P0 已把 `outDir` 隔离到 `dist/`，构建期 `lib/` 不再被触碰（inode 验证）
+- ❌ `/plugins/events` ERR_FAILED → 实测该端点是 **200 + `text/event-stream`** 的 SSE 长连接，
+  `ERR_FAILED` 只是流周期性关闭重连的资源层记录（约每 5 分钟一次），与启动期无交集
+
+**两种可观察形态，同一根因**：宿主启动期**文件服务与后端 API 均未就绪**。
+
+**证据链 A —— 多插件同时 404（2026-10-27 09:17:07 UTC）**：
+```text
+404  .../js,@deepseek-ai/dsh-client-ui-directory-picker-native/client.js&rev=5d51b3430cec
+404  dsh-app://app/plugins/??dsh-zcode-ui/client.js&rev=d0d1dd239…
+→ Error: web boot: 1 entry did not activate → dsh-zcode-ui: import failed
+→ 503 × 8 端点 → remote.mux WS 断 → 进程重启
+```
+**判定依据：两个互不相干的插件（directory-picker-native 与 dsh-zcode-ui）的 `client.js` 同时 404。**
+若是某个插件的清单被读空，不可能同时影响另一个包；只能是**宿主插件文件服务整体不可用**。
+
+> 术语更正（2026-10-27 第 17 轮评判指出）：URL 里的 `??` **不是「空模块列表前缀」**，
+> 而是 **es-module-shims 的组合加载语法标记**——`plugins/??a/client.js,b/client.js` 表示一次加载这些模块。
+> 单模块写成 `??dsh-zcode-ui/client.js` 是**结构合法**的，不代表清单为空。
+> 此前把它读成「清单串空」是误判，已更正。
+
+**证据链 B —— 8 端点同时 503（2026-10-27 09:17:14 UTC）**：
+```text
+503 × api/session/list、api/permissionPresets/catalog、
+      api/dynamicCordisRunner/inventory、api/session/modelCatalog、
+      api/agentPresets/list ×2、api/settings/describe、api/dsh-codex-ui/dependencies
+→ ws://…/api/remote.mux failed
+→ 新进程 listening
+```
+
+**两条链指向同一结论**：插件文件服务（404）与后端 API（503）**在启动早期同时不可用**，
+插件只是最先撞上这堵墙、因而被 crash log 点名的那一个
+（同刻产物实测 822574 字节、`node --check` 通过、与部署位逐字节一致，**文件本身没坏**）。
+
+**已否证的假设：软链读取时序（2026-10-27，实验记录）**
+
+曾怀疑「`dsh-zcode-ui` 是 40 个插件里**唯一用软链**部署的，软链文件读取时序与实体目录不同」
+是点名它的原因。**实验否证**：
+
+- 把部署位从软链改为**实体目录**（rsync 复制），并让 `sync-dist` 双写 + 加逐字节一致性断言；
+- **改造后仍然崩**（11:45:04 UTC），且反例形态与之前完全一致：
+  `directory-picker-native` 与 `dsh-zcode-ui` 的 `client.js` **同时 404**。
+
+→ **软链不是诱因**，已回滚为软链（`/tmp/restore-symlink.sh`）。
+**「为什么点名 zcode-ui」这个问题仍未解**，但已确认与部署形态无关。
+双写一致性断言保留在 gate 中（软链形态自动跳过），回滚后不会误报。
+
+**事故：残缺构建导致点击全链路失效（2026-10-27 第 27 轮评审发现）**
+
+**现象**：部署态 `lib/client.js`（821294 B / 21:24）里 0 处
+`function conversationScroller` / `function animateScroll` / `function slideTail`，
+而点击处理函数第 3 行就在调用 `conversationScroller()`。
+live 页面每次点击抛 `Uncaught ReferenceError: conversationScroller is not defined`。
+
+**后果（四条一起失效，同属一个函数体）**：TCP-01 平滑滚动、点击闪光（peak 2.6）、
+reduced-motion 点击瞬跳、TCP-02 等待窗口让位。
+
+**根因链**：
+1. `scroll-anim.ts` 是新建模块，`turn-rail-zcode.ts` 改为 `import` 它、并删掉本地函数定义；
+2. 某次 `tsdown` 产出的 `dist/client.js` **不含**该模块（源码已改、产物未同步到最新）；
+3. `sync-dist.mjs` 只做「语法能解析」校验 —— **缺函数体但调用点在，语法照样合法**；
+4. `verify-bundle-freshness.mjs` 只比哈希自洽 —— **残缺包同样能自洽**；
+5. 两层守卫都没拦住，残缺包被复制到 `lib/` 部署态。
+
+**为什么不是 rolldown 增量缓存**：实测把 `scroll-anim.ts` 移走后构建，rolldown 会正常报
+`UNRESOLVED_IMPORT: Could not resolve './scroll-anim.ts'` —— 构建**不会**静默产出残缺包。
+真正机制是「**产物与源码脱节**」：改完源码后只跑了 `sync-dist` 而没重跑 `tsdown`。
+
+**修复**：`rm -rf dist && npm run build:sync` → 825132 B，四符号各就位，哈希更新。
+
+**已加的守卫（本类事故唯一可防的方式）**：
+- `scripts/verify-bundle-integrity.mjs`：读**部署态** `lib/client.js`，
+  断言四个符号**存在定义**（`function X(` / `const X =` / `X =` 三种形式），
+  **不是只查包含字符串**（调用点也含 X，那样永远通过）。
+  反向验证：删掉函数定义 → 红并打印缺失清单 + 修复命令；恢复 → 绿。
+- 已接进 `gate.mjs` 与 `test:layout`，布局脚本 21 → **22**。
+
+**教训**：
+- 「语法能解析」和「哈希自洽」都不等于「产物完整」；
+- 验收失败先查**产物是否包含源码定义的符号**，再查逻辑；
+- 改完源码必须 `build` 再 `sync`，只 `sync` 会发布上一版产物。
+
+**遗留的可观测手段**：`tools/boot-probe.mjs` 常驻探针（由 `restart-with-debug.sh` 第 4 步自动拉起），
+日志 `/tmp/dsh-boot-errors.log`，每行一条 JSON。以后再遇同类崩溃直接从该日志取证，
+不必再从官方 crash log 那句无信息量的话反推。

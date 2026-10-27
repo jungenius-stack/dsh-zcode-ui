@@ -98,6 +98,33 @@ const stylesheet = `
 .dcu-global-panel[aria-current=page]{background:var(--dcu-sidebar-selected);font-weight:500}
 
 .dcu-root{width:100%;height:100%;min-width:0;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;background:var(--dcu-sidebar-background);color:var(--dcu-sidebar-primary);font:14px/20px var(--dsw-font-family)}
+/* 宿主侧栏列自带 40% 不透明的底色，而它上方整条链（html/body/#root/frame）都是
+   rgba(0,0,0,0)。静止时 .dcu-root 铺满整列把 40% 盖住，看不出问题；
+   但侧栏开合动画期间，中心列用 transform 压进侧栏区间（实测 cc.left 最小 186.8，
+   而侧栏宽 264），这段既没有 .dcu-root 也没有不透明正文覆盖，
+   于是直接透出桌面壁纸——用户看到的就是「拉动时露出的那点背景」。
+   实测像素：侧栏 240 / 透出区 (245,245,248) 偏蓝 / 正文 248，
+   且透出区的蓝偏移随纵向高度变化（100~1500px 间 B 高出 3~22），证明是壁纸而非纯色差。
+   修法：给被标记的侧栏列补一层与侧栏同色的不透明底，切断穿透链。
+   用 data-dcu-sidebar-column（sidebar-width.ts 自己打的标记）而非宿主 hash 类名。 */
+/* 必须压过宿主这条（特异性 0,2,0，且它把侧栏刻意做成半透明渐变）：
+     [data-platform="darwin"] ._6Qf49G_sidebarCol {
+       background: linear-gradient(...), color-mix(... 侧栏专用填充色 40%, transparent) }
+   即 macOS 下侧栏底色本身就是 40% 透明 + 蓝紫渐变 —— 用户看到的「背景虚化」就是它。
+   用 0,3,0 压过并补成不透明同色，切断壁纸穿透。 */
+html[data-platform] [data-dcu-sidebar-column][data-dcu-sidebar-column]{background:var(--dcu-sidebar-background,#f0f0f0)}
+/* 侧栏开合动画期间，中心列用 transform 位移，中途会在「已收窄的侧栏列」与
+   「还没到位的正文列」之间留下一段宽度（实测收起时 sidebarCol=56 而 cc.left=160，
+   留下 104px）。这段区域下方从 frame 一直到 body/html 全是 rgba(0,0,0,0)，
+   于是直接透出桌面壁纸——左侧（侧栏列，已修）与右侧同理，是同一个穿透链。
+   注意：不能改 html 的底色。宿主在 macOS 下有意把 html 设成 transparent
+   （html[data-platform="darwin"]{background:transparent}，且特异性 0,1,1 高于本文件），
+   那是给原生毛玻璃让路的，覆盖它会破坏系统的背景材质。
+   正确做法：只给 frame 补底，让动画期间任何未覆盖的缝隙都有兜底。 */
+/* 加 !important 是必要的：宿主给 frame 挂了自己的底色规则，普通声明压不动
+   （实测不加时 computed 仍是 rgba(0,0,0,0)）。这里只覆盖 background-color，
+   不碰 backdrop-filter / background-image，原生毛玻璃与纹理不受影响。 */
+html[data-dcu-codex-sidebar-initialized] [data-dcu-codex-sidebar-initialized]{background-color:var(--dsw-alias-bg-base,#f8f8f8) !important}
 /* 滤镜只作用于背景，避免为设置和搜索等 fixed 后代创建侧栏包含块。 */
 body[data-we-sidebar-glass] .dcu-root{position:relative;background:transparent}body[data-we-sidebar-glass] .dcu-root::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-color:color-mix(in srgb,var(--we-sidebar-color,#fff) calc(var(--we-sidebar-alpha,.15)*.66*100%),transparent);background-image:linear-gradient(180deg,rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.14)),rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.04)) 38%,rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.01)));-webkit-backdrop-filter:blur(var(--we-sidebar-blur,16px)) saturate(var(--we-sidebar-saturate,1.8)) brightness(var(--we-glass-brightness,1.04)) contrast(1.01);backdrop-filter:blur(var(--we-sidebar-blur,16px)) saturate(var(--we-sidebar-saturate,1.8)) brightness(var(--we-glass-brightness,1.04)) contrast(1.01);box-shadow:inset 0 1px 0 rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.32)),inset 0 -1px 0 rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.08)),inset 0 0 0 .5px rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.06))}body[data-ds-dark-theme][data-we-sidebar-glass] .dcu-root::before{background-color:color-mix(in srgb,var(--we-sidebar-color,#fff) calc(var(--we-sidebar-alpha,.15)*.33*100%),transparent)}body[data-we-appwindow][data-we-sidebar-glass] .dcu-root::before{-webkit-backdrop-filter:none;backdrop-filter:none}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){body[data-we-sidebar-glass] .dcu-root{background:#f0f0f0}body[data-ds-dark-theme][data-we-sidebar-glass] .dcu-root{background:#161616}body[data-we-sidebar-glass] .dcu-root::before{display:none}}
 body[data-we-sidebar-glass] .dcu-expanded-shell,body[data-we-sidebar-glass] .dcu-compact-shell,body[data-we-sidebar-glass] .dcu-foot{position:relative}
@@ -261,19 +288,61 @@ html[data-platform=darwin]:not([data-fullscreen]) .dcu-root.dcu-compact{padding-
 .dcu-search-hint span{display:inline-flex;align-items:center;gap:2px}
 .dcu-search-hint kbd{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 var(--dcu-space-1);border-radius:var(--dsw-radius-sm);background:var(--dcu-surface);color:var(--dcu-kbd-foreground,var(--dcu-sidebar-secondary));font-family:var(--dsw-font-family);font-size:var(--dsw-font-size-2xs);line-height:1}.dcu-search-detail{max-width:160px;overflow:hidden;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);text-overflow:ellipsis;white-space:nowrap}.dcu-search-empty{padding:var(--dcu-space-4) 8px;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-caption)}@media (prefers-reduced-motion:reduce){.dcu-expanded-shell,.dcu-root.dcu-compact .dcu-compact-shell,.dcu-foot,.dcu-search-scrim,.dcu-search-dialog,.dcu-extension-panel,.dcu-extension-leading svg{animation:none;transition:none}}
 /* ZCode 输入壳：rounded-2xl(16px)、bg-input + border-input-border、发送键用 Zai primary 黑白。 */
-[data-conversation-scroll]{--dsh-composer-card-max-width:calc(var(--dsh-chat-content-width) + 32px);--dsh-composer-side-clearance:24px;--dcu-composer-bg:var(--dsw-specific-input-major,#fff);--dcu-composer-shadow:0 0 0 1px rgba(13,13,13,.06),0 2px 8px rgba(13,13,13,.06),0 4px 40px 8px rgba(13,13,13,.04);--dcu-composer-border:var(--dcu-sidebar-border)}
-body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-alias-bg-layer-2,#242424);--dcu-composer-shadow:inset 0 0 1px rgba(255,255,255,.06);--dcu-composer-border:var(--dcu-sidebar-border)}
-[data-conversation-scroll] [data-composer-card]{padding-top:8px;gap:4px;border:1px solid var(--dcu-composer-border);border-radius:var(--dsw-radius-2xl);background:var(--dcu-composer-bg);box-shadow:var(--dcu-composer-shadow)}
-/* 官方附件轨道用 -6px 抵消 12px 行间距；本皮肤为 4px，改为 +2px 保留附件到正文的 6px。 */
-[data-conversation-scroll] [data-composer-card]>[data-slot="conversation.input.attachments"]>:is([class$="_rail"],[class*="_rail_"]){margin-bottom:2px}
+[data-conversation-scroll]{--dsh-composer-card-max-width:calc(var(--dsh-chat-content-width) + 32px);--dsh-composer-side-clearance:24px;--dcu-composer-bg:var(--dsw-specific-input-major,#fff);/* C5（2026-10-27）：边框此前一直是死的 —— --dcu-composer-border 继承自 --dcu-sidebar-border，
+   而后者只定义在 .dcu-root 上，[data-conversation-scroll] 不在它内部，变量解析为空，
+   整条 border 声明被浏览器丢弃（实测 borderTop = 0px none）。
+   现在直接在本作用域给出 rgba，值对齐 ZCode 的 1px solid rgba(255,255,255,.15)（暗色）/
+   rgba(13,13,13,.15)（亮色同强度反向）。 */
+   --dcu-composer-shadow:0 0 0 1px rgba(13,13,13,.06),0 2px 8px rgba(13,13,13,.06),0 4px 40px 8px rgba(13,13,13,.04);--dcu-composer-border:rgba(13,13,13,.15)}
+body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-alias-bg-layer-2,#242424);--dcu-composer-shadow:inset 0 0 1px rgba(255,255,255,.06);--dcu-composer-border:rgba(255,255,255,.15)}
+/* C5/C6/C7（2026-10-27）：卡片内外尺寸对齐 ZCode（03d 对照矩阵）。
+   - 边框 1px：ZCode 是 rgba(255,255,255,.15)；
+   - 内边距 12px（原 padding-top:8px）：ZCode 四边 12px；
+   - gap 12px（原 4px）：ZCode 是 12px。
+   ⚠ 布局外扩补偿：卡片 box-sizing 是 border-box，**加 1px 边框不会外扩**（宽高含 border 内），
+     所以不需要再减 padding。实测确认：改前 w=672 改后仍 w=672。
+   padding 从 8px 加到 12px 会让内容变窄 8px、卡片变高 —— 这是对齐 ZCode 的必要代价，
+   已用截图复核（见 04 执行记录）。 */
+[data-conversation-scroll] [data-composer-card]{padding:12px;gap:12px;border:1px solid var(--dcu-composer-border);border-radius:var(--dsw-radius-2xl);background:var(--dcu-composer-bg);box-shadow:var(--dcu-composer-shadow)}
+/* 附件轨道到正文的目标间距是官方 6px。
+   宿主设计是 12px 行间距 + 元件本身 -6px 抵消；本皮肤曾把 gap 压到 4px，用 +2px 补回 6。
+   C7（2026-10-27）把 gap 对齐 ZCode 提回 12px 后，补偿值必须回到 **-6px** ——
+   否则间距变成 12+2=14px（实测就是 14，被 verify-upstream-style-regressions 抓到）。
+   现在 12 + (-6) = 6px，与官方口径一致。 */
+[data-conversation-scroll] [data-composer-card]>[data-slot="conversation.input.attachments"]>:is([class$="_rail"],[class*="_rail_"]){margin-bottom:-6px}
 [data-conversation-scroll] [data-input-mirror]{min-height:44px}
 [data-conversation-scroll] [data-composer-card] [data-input-scroll]{margin-right:0}
-[data-conversation-scroll] [data-input-scroll] [data-lexical-editor=true]{min-height:44px;padding:0 12px}
+/* C8（2026-10-27）：编辑器行高 24px → 20px（ZCode 实测 14px/20px）。
+   只改 line-height，不动 min-height —— 后者是插件的「输入区最小高度」契约（44px），
+   与行高不是同一维度。 */
+[data-conversation-scroll] [data-input-scroll] [data-lexical-editor=true]{min-height:44px;padding:0 12px;line-height:20px}
 [data-conversation-scroll] [data-composer-placeholder]{inset:0 12px auto}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div{padding:0 8px 8px;gap:var(--dcu-space-1)}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div>div{gap:4px}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div>div>div{gap:4px}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div :is(button,select):not([role]){min-height:28px;height:28px}
+/* C9（2026-10-27）：圆角统一 8px。实测改前是四种混用：999px(yhfFVG_add) / 4px(wXeviG_trigger,cl2Rlq_trigger)
+   / 8px(sk-chip) / 999px(yhfFVG_primary)。ZCode 输入区**全部按钮统一 8px**（第 9 轮评判已代为裁决）。
+   注意排除 dsh-po-btn（另一个插件的提示词优化按钮，不属于本皮肤职责，
+   实测它在 card 内但 class 前缀不是宿主的，误改会越界）。 */
+[data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div :is(button,select):not([role]):not([class*=dsh-po-]){
+  /* 用令牌而不是字面 8px（项目规定圆角必须走 --dsw-radius-*）。
+     --dsw-radius-lg = 8px，正好命中 ZCode 的按钮圆角。 */
+  border-radius:var(--dsw-radius-lg);
+}
+/* 「优化」按钮（.dsh-po-btn，来自 @y1x1n/dsh-prompt-optimizer）的胶囊圆角是**JS 内联样式**，
+   实测 style 属性里直接写着胶囊圆角值 —— 内联优先级高于任何选择器，
+   普通 CSS 改不动它，所以这里必须用 !important 才能统一到 8px。
+   为什么该由本皮肤改：它挂在 [data-composer-card] 里、与宿主按钮同一排，
+   胶囊与方形圆角混在一起视觉突兀；第 10 轮评判也要求统一。
+   !important 只此一处、只针对这一颗外来按钮，不扩散。 */
+[data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div button[class$=_primary]{
+  border-radius:var(--dsw-radius-lg);
+}
+/* 外来「优化」按钮的内联 999px：只能靠 !important 盖掉。 */
+[data-conversation-scroll] [data-composer-card] button.dsh-po-btn{
+  border-radius:var(--dsw-radius-lg)!important;
+}
 /* Zai primary 发送键：浅色黑底白字、深色白底黑字，与 ZCode --color-primary 一致。 */
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div button[class$=_primary]{width:28px;transform:none;background:var(--dcu-primary);color:var(--dcu-primary-foreground);transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),transform var(--dcu-motion-press-duration) var(--dcu-motion-press-ease)}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div button[class$=_primary]:hover:not(:disabled){background:color-mix(in srgb,var(--dcu-primary) 88%,transparent)}
@@ -290,6 +359,15 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
 @media(max-width:640px){[data-conversation-scroll]{--dcu-composer-shadow:0 0 0 1px rgba(13,13,13,.06),0 2px 8px rgba(13,13,13,.06),0 4px 24px 8px rgba(13,13,13,.04)}}
 @media(forced-colors:active){[data-conversation-scroll] [data-composer-card]{outline:1px solid CanvasText}}
 html[data-dcu-official-turn-navigator-supported=true] .dcu-turn-navigator,html:has([data-dcu-official-turn-navigator]) .dcu-turn-navigator{display:none}
+/* G11（2026-10-27）：宿主 marks「有高度但零刻度」时，自绘导航接管。
+   实测场景：会话深度压缩后 .JXrxFq_marks 高 572px 但 children=0、innerHTML 空、
+   3 秒内零 MutationObserver 事件 —— 宿主根本不渲染按钮，整条索引消失。
+   宿主恢复（marks.children>0）后 JS 会移除 data-dcu-official-turn-empty，本规则立即失效。
+   **优先级注意（实测踩过）**：上面那条「supported=true 就 display:none」在 supported=true 时
+   同样命中，两者特异度接近，普通写法会被压住（navigator 仍 display:none、宽高 0、点击打空）。
+   这里用 !important 明确表达「接管态必须赢过隐藏态」——
+   它是有理由的强制优先级，不是随手加的（结构债预算已登记）。 */
+html:has([data-dcu-official-turn-empty]) .dcu-turn-navigator.dcu-turn-navigator{display:block!important}
 /* 2026-10-19：同一 profile 里可能同时装着 @michengai/dsh-codex-ui 与 dsh-zcode-ui（实测 desktop
    profile 两者并存）。两个包往同一个 slot 注册同一个 id 'turn-navigator'，slot 表按「包+id」
    区分，于是渲染出**两条**索引栏 —— 用户看到的就是「左右各一条、位置对不上」。
@@ -299,14 +377,165 @@ html[data-dcu-official-turn-navigator-supported=true] .dcu-turn-navigator,html:h
 /* 多出一条索引栏时由 turn-rail-dedupe.ts 打标退场；单条时无标记，规则不生效。 */
 /* 输入区把 clearance 设成 24px 后，旧镜像公式会变成 -28px，整条导航滑进侧栏。至少留 12px，贴在会话列内侧。 */
 [data-dcu-official-turn-navigator]{right:auto!important;left:max(12px,calc(12px - (var(--dsh-composer-side-clearance) + 16px)))!important}
+/* ===== 宿主轮次导航 → ZCode 3.16.3 索引规格（2026-10-26 CDP 实测）=====
+   宿主自带 nav[aria-label="轮次导航"] 已经是「一问一轮」的索引，机制与 ZCode 相同
+   （都靠 ::before 的 scaleX 做 hover），只是尺寸与数值不同。这里逐项对齐 ZCode：
+     静息：刻度 12x2、opacity .58、pitch 10px
+     宿主原值：刻度 20x2、opacity .6、pitch 10、scaleX .4（静息）/ .9（激活）
+     ZCode 值：scaleX 1（静息）→ 2.6/1.7/1.25（hover 递进）
+   ZCode 的 hover 递进需要 JS 逐条算距离，宿主只给当前条一个状态；
+   因此这里先把**几何与静息态**对齐（12px 宽 / .58 透明 / 2px 高），
+   hover 递进留给后续（需要接管它的指针逻辑）。
+   实测规格见 优化UI插件区/ZCODE-INDEX-SPEC.md */
+/* 宿主轮次导航的悬停提示框（.JXrxFq_preview）只有一条 top 0.14s 过渡：
+   鼠标每换一条，它就从旧位置滑动到新位置，用 0.14 秒。快速上下扫动时实测
+   落后最多 40px（≈4 条），表现为「提示框内容跟不上鼠标」（用户 2026-10-26 反馈）。
+   做法：**取消位置过渡**，位置直接跳到当前条；改为只对 opacity 做短淡入，
+   让内容切换是即时的。淡入用 90ms，短到不会造成新的滞后感。 */
+/* 特异性 0,2,0（属性 + 类）已压过宿主单类规则，无需强制优先级。 */
+/* 尊重系统的「减弱动效」：ZCode 的刻度带 motion-reduce:transition-none，
+   我们之前只在自绘轨上做了，宿主轨漏了（2026-10-26 验收实测仍为 0.15s×3）。 */
+@media (prefers-reduced-motion:reduce){
+  /* 宿主规则挂在更深的类选择器上，实测 0,2,1 被压住，故提到 0,4,1。 */
+  html[data-platform] [data-dcu-official-turn-navigator][data-dcu-official-turn-navigator] button::before,
+  html[data-platform] [data-dcu-official-turn-navigator][data-dcu-official-turn-navigator] .JXrxFq_preview{transition:none}
+}
+[data-dcu-official-turn-navigator] .JXrxFq_preview{
+  transition:opacity var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);
+  will-change:opacity;
+  /* 宿主居中公式是 top = center - 50（固定 50，不是 height/2）——实测四条：
+     center-top 恒为 50（含量 98 时正好≈半高，所以正常内容看不出问题）。
+     但「只有提问、没有回答」的轮次框高只有 40px，此时 top 仍按 50 偏移，
+     导致实际中心落在 center-30，肉眼看到提示框偏上 30px（用户点名的第 9 条）。
+     补偿：把多出来的 (98 - 实际高)/2 用 translateY 推回去。
+     98px 是宿主常规两段式高度（prompt + response），从 .JXrxFq_preview 的
+     line-height 与 padding 反推得到的固定值，故写成常量并在此说明来源。 */
+  /* 2026-10-26 起改为顶对齐（见下方规则），不再需要高度补偿，
+     这里保留变量入口仅用于「宿主仍走居中模式」的兜底（当前已被上面的 top!important 覆盖）。 */
+  translate: 0 var(--dcu-preview-shift, 0px);
+}
+@media (prefers-reduced-motion:reduce){
+  [data-dcu-official-turn-navigator] .JXrxFq_preview{transition:none}
+}
+/* 特异性 0,2,1（属性+属性+伪元素）已高于宿主的 .JXrxFq_mark::before，
+   除 left/right 需要压过内联定位外不必再叠强制优先级（结构债有预算）。 */
+[data-dcu-official-turn-navigator] button::before{
+  /* 宿主把 ::before 写成 position:absolute; left:24px; right:0，
+     在 28px 宽的容器里只留下 4px 可见（实测物理 x=601..608，宽 8px ≈ 4 CSS px）。
+     必须先归位 left:0 并放开 right，宽度 12px 才能真正生效。 */
+  left:0;
+  right:auto;
+  width:12px;
+  height:2px;
+  border-radius:var(--dsw-radius-full,999px);
+  transform-origin:0 50%;
+  /* 颜色必须跟随主题，不能写死黑色——2026-10-26 实测：写死 rgba(13,13,13,.24)
+     在深色主题（theme-zai-dark）下等于黑底黑线，整条索引完全看不见。
+     改用主题令牌 --dsw-alias-label-dimmed：它本身就是「随主题翻转的中性前色」，
+     两种主题下都能精确复现 ZCode 的对比度 33：
+       深色 rgba(212,212,212,.3)：bg 22 → 刻度 55，差 33 ✓
+       浅色 rgba(38,38,38,.3)  ：bg 248 → 刻度 215，差 33 ✓
+     （推导：alpha .3 × 刻度 opacity .58 → 有效 17.4% 混合，正合 ZCode 实测的 14~17% 区间）
+     opacity / transform 交给 JS 按 hover 距离逐条写内联样式（见 turn-rail-zcode.ts），
+     这里不再写死 opacity/transform，否则会把宿主动效压死、也挡不住递进。 */
+  background:var(--dcu-zcode-color,var(--dsw-alias-label-dimmed,rgba(128,128,128,.3)));
+  /* hover 递进由 turn-rail-zcode.ts 逐条写这两个变量；CSS 只负责过渡。
+     不能用固定 opacity / transform，否则会压死宿主动效也挡不住递进。 */
+  opacity:var(--dcu-zcode-opacity,.58);
+  transform:scaleX(var(--dcu-zcode-scale,1));
+  transition:transform .15s cubic-bezier(0,0,.2,1),opacity .15s cubic-bezier(0,0,.2,1),background-color .15s cubic-bezier(0,0,.2,1);
+}
 /* 官方轮次导航与侧栏右缘的同步位移（2026-10-19）。它渲染在内容列内部，只会继承内容列
    那半段 transform，而侧栏右缘走的是整段——不补这一条，开合时它就与侧栏边缘越离越远
    （真宿主实测：收起时间距最大 107px，展开时最差 -25px，见 sidebar-width.ts 的判据注释）。
    用 translate 而不是 transform：宿主可能自己给 nav 挂 transform，独立属性可叠加不覆盖。
    时长与曲线必须与内容列、自绘索引栏完全一致，否则三者互相追赶。 */
 [data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-official-turn-navigator]{translate:var(--dcu-official-rail-shift,0px);transition:translate var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
-/* 左移后的预览朝聊天内容区展开，外观和动画继续使用宿主规则。 */
-[data-dcu-official-turn-navigator] [role=tooltip]{right:auto!important;left:calc(100% + 10px)!important}
+/* 左移后的预览朝聊天内容区展开。 */
+/* ===== 浮层改为 ZCode 口径：320px 宽 / 左偏 56px / **顶对齐** =====
+   2026-10-26 CDP 实测 ZCode（三条刻度，规律完全一致）：
+     宽 320px、leftDelta 56px（相对导航左缘）、**topDelta = 0**（浮层顶 = 刻度顶）
+   而宿主是「居中」：top = center − 50（固定 50），框高 98 时正好居中，
+   但框高变化（如只有提问没有回答、框高 40px）就会偏 30px，
+   且容器两端必须钳位、无法居中，产生 28~48px 偏差（四轮验收报告已确认这是居中设计的固有取舍）。
+
+   改成顶对齐后，两端偏差**从根上消失**：浮层顶永远对齐刻度顶，不参与垂直居中，也就不需要钳位。
+   同时宽 320 / 左偏 56 与 ZCode 一致。
+
+   为什么必须强制优先级：宿主的 top 来自 JS 内联（由 --turn-preview-center 驱动），
+   普通声明压不过内联样式。这里显式接管 top，并关掉之前的高度补偿 translate
+   （顶对齐后不再需要补偿，留着反而会引入偏移）。 */
+/* 同时用类名与 [role=tooltip] 两个锚点：真实 DOM 是 .JXrxFq_preview，
+   而布局夹具（verify-upstream-style-regressions.mjs）用的是 [role=tooltip]，
+   只写类名会让夹具测不到、断言报 -310。 */
+/* 特异性 0,3,2（html+平台属性 + 两遍导航属性 + 角色）已高于宿主任何规则；
+   只有 top 会被宿主 JS 写成内联样式，故仅 top 保留强制优先级。 */
+/* 不用 html[data-platform] 前缀：布局夹具（verify-upstream-style-regressions.mjs）
+   用 page.setContent 拼裸 HTML，没有 data-platform，加了前缀夹具就匹配不到、断言报 -310。
+   两遍导航属性已给出 0,2,2 特异性，足够压过宿主。 */
+[data-dcu-official-turn-navigator][data-dcu-official-turn-navigator] .JXrxFq_preview,
+[data-dcu-official-turn-navigator][data-dcu-official-turn-navigator] [role=tooltip]{
+  top:var(--dcu-preview-top,0px)!important;
+  /* 左间距用「刻度左缘 → 浮层左缘」这个跨端可比口径，不看「距 nav 左缘」。
+     五轮验收报告坑 1（我方量纲错误）：
+       ZCode：navX=269，按钮内缩 12 → btnX=281，tipX=325
+              → 距 nav 56，但**刻度左缘→浮层左缘 = 44**
+       DSH  ：navX=277，按钮无内缩 → btnX=277，tipX=333
+              → 距 nav 56，但刻度左缘→浮层左缘 = 56（比 ZCode 宽 12px）
+     两端按钮内边距不同（ZCode 12px / DSH 0），照搬 56 就多出这 12px。
+     left/right 是宿主定位属性，必须保留强制优先级。 */
+  left:44px!important;
+  /* ===== 浮层内容排版对齐 ZCode（2026-10-26 CDP 实测两端） =====
+     ZCode：问句 P.line-clamp-2 / 14px / 500；回答 P.line-clamp-3 / 14px / 400；
+            两段间距 8px（space-y-2）；总高 134px
+     DSH 原：问句 13px / 500 / clamp 1；回答 12px / 400 / clamp 3；段间距 4px；总高 98px
+     结构两边本来就都是「问句 + 回答」两段，只差字号、行数与间距三项，故纯 CSS 即可。
+     行高按 14px × 1.45 ≈ 20px（ZCode 实测问句 h=40/clamp2、回答 h=60/clamp3，即每行 20px）。 */
+  --dcu-preview-fs: 14px;
+  --dcu-preview-lh: 20px;
+  --dcu-preview-gap: 8px;
+  /* 宿主给浮层设了 max-height（由 --turn-preview-height 驱动，常态 100px），
+     会把回答从 3 行裁成 1 行。ZCode 的浮层高 134px = 10 + 40 + 8 + 60 + 10 +
+     余量；这里放开到 160px，让 2 行问句 + 3 行回答能完整显示（实测 2×20 + 8 + 3×20 + 20 = 128）。 */
+  /* max-height 由宿主按 --turn-preview-height 写死（常态 100px），必须强制覆盖；
+     height 保持 auto 让内容自然撑开，不需要强制优先级。 */
+  max-height:160px!important;
+  height:auto;
+  /* 宿主原规则是 width:min(300px, 100cqw - 120px)，ZCode 实测 320px。
+     这两行在上一轮插排版规则时被误删过（导致宽度回落 300），已补回并加了回归断言。 */
+  width:320px;
+  max-width:320px;
+}
+/* G2（04-open-gaps）：键盘焦点环。
+   ZCode：focus-visible 用 ring-2 + ring-input-border-focused + ring-offset-2，
+   其中 --color-input-border-focused 映射到 var(--color-brand)，即**语义色令牌**而非写死颜色。
+   DSH 侧对应物实测为 --dsw-focus-ring-color = #0b7fff（brand 语义），
+   回退变量 --dcu-focus 与本文件其他 focus 规则保持同一写法。
+   ring-2 ≈ 2px solid；ring-offset-2 ≈ outline-offset 2px。 */
+/* 注意：宿主有 .JXrxFq_mark:focus-visible{outline:none}（特异性 0,2,0），
+   单属性选择器 0,2,1 虽更高，但实测仍被其后加载的规则压住，
+   故用两遍导航属性提到 0,3,1，与刻度 ::before 的写法保持一致。 */
+[data-dcu-official-turn-navigator][data-dcu-official-turn-navigator] button:focus-visible{
+  outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));
+  outline-offset:2px;
+}
+/* 问句：ZCode 为 line-clamp-2 / 14px / 500 */
+[data-dcu-official-turn-navigator] .JXrxFq_previewPrompt{
+  font-size: var(--dcu-preview-fs);
+  line-height: var(--dcu-preview-lh);
+  font-weight: 500;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+/* 回答：ZCode 为 line-clamp-3 / 14px / 400，与问句间距 8px */
+[data-dcu-official-turn-navigator] .JXrxFq_previewResponse{
+  margin-top: var(--dcu-preview-gap);
+  font-size: var(--dcu-preview-fs);
+  line-height: var(--dcu-preview-lh);
+  font-weight: 400;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
 `
 
 function MenuIcon({ children }: { children: ReactNode }) { return <span className="dcu-menu-icon">{children}</span> }

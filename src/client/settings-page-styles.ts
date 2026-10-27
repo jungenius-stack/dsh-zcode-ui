@@ -37,8 +37,24 @@
  * verify-settings-geometry 量到错误宽度而假失败。
  */
 export const settingsPageStyles = `
-.dcu-settings-page{--sp-bg:var(--dsw-alias-bg-base);--sp-nav:var(--dcu-sidebar-background,#f0f0f0);--sp-card:var(--dsw-alias-settings-card-fill);--sp-border:var(--dsw-alias-border-l2);--sp-text:var(--dsw-alias-label-primary);--sp-muted:#6b6b6b;--sp-muted-on-card:#6b6b6b;--sp-hover:var(--dsw-alias-interactive-bg-hover);--sp-active:var(--dcu-sidebar-selected);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
-body[data-ds-dark-theme] .dcu-settings-page{--sp-muted:#8f8f8f;--sp-muted-on-card:#9a9a9a;color-scheme:dark}
+.dcu-settings-page{/* TA1 分层（03g，2026-10-27）：设置页整页背景用 ZCode 的**内容画布层** rgb(250)
+   = --color-background oklch(98.5% 0 0)，宿主 --dsw-alias-bg-base 是 rgb(248)。
+   注意：整页底色来自 --sp-bg（不是 --dcu-sidebar-background，后者只驱动导航栏）。
+   写法：在设置页作用域内**覆盖宿主令牌本身**，--sp-bg 仍直接引用它（满足断言）。 */
+--dsw-alias-bg-base:var(--dcu-settings-page-bg,#fafafa);
+--sp-bg:var(--dsw-alias-bg-base);--sp-nav:var(--dcu-sidebar-background,#f0f0f0);/* S2（03f）：ZCode 分区卡片底色 #161616（深）/ #fbfbfb（浅），
+   宿主 --dsw-alias-settings-card-fill 是 #2b2b2b（深）。
+   在设置页作用域内覆盖宿主令牌本身，--sp-card 仍直接引用它（满足断言），
+   但本页内取值改由 --dcu-settings-card-fill 决定（主题层定义深色 #161616）。 */
+--dsw-alias-settings-card-fill:var(--dcu-settings-card-fill,#fbfbfb);
+--sp-card:var(--dsw-alias-settings-card-fill);--sp-border:var(--dsw-alias-border-l2);--sp-text:var(--dsw-alias-label-primary);--sp-muted:#6b6b6b;--sp-muted-on-card:#6b6b6b;--sp-hover:var(--dsw-alias-interactive-bg-hover);--sp-active:var(--dcu-sidebar-selected);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
+/* TA1：深色设置页底必须显式回落，否则会继承浅色定义里的 #fafafa → 亮底深色页。
+   ⚠ 不能写 var(--dsw-alias-bg-base)：上面已把 --dsw-alias-bg-base 定义成
+   var(--dcu-settings-page-bg, …)，两者互引会形成循环 → 解析为空 → 底色变透明（实测踩过）。
+   深色画布取 ZCode --color-background dark = #161616。 */
+body[data-ds-dark-theme] .dcu-settings-page{--sp-muted:#8f8f8f;--sp-muted-on-card:#9a9a9a;color-scheme:dark;
+  --dcu-settings-page-bg:var(--dcu-settings-page-bg-dark);
+  --dsw-alias-bg-base:var(--dcu-settings-page-bg-dark);}
 .dcu-settings-page *{box-sizing:border-box}
 .dcu-settings-page button,.dcu-settings-page input{font:inherit}
 .dcu-settings-page button{cursor:pointer}
@@ -57,7 +73,7 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-search input::placeholder{color:var(--sp-muted-on-card)}
 .dcu-settings-group{flex-shrink:0;margin:0 0 16px}
 .dcu-settings-group-label{margin:0 8px 4px;color:var(--sp-muted);font-size:var(--dsw-font-size-sm);font-weight:500}
-.dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 8px;border:0;border-radius:var(--dsw-radius-lg);overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dsw-font-size-base)!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 8px;border:0;border-radius:var(--dsw-radius-xl);overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dcu-settings-nav-size,var(--dsw-font-size-base))!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 /* Codex Desktop SidebarItem / SidebarSection：30px 行高、1px 行距、内收焦点圈。 */
 .dcu-settings-link+.dcu-settings-link{margin-top:1px}
 .dcu-settings-back:focus-visible,.dcu-settings-link:focus-visible{outline-offset:-2px}
@@ -79,6 +95,18 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-general-group{margin-bottom:44px}
 .dcu-settings-general-group h2{margin:0 0 16px;font-size:var(--dsw-font-size-base);font-weight:600;color:var(--sp-text)}
 .dcu-settings-card{border:1px solid var(--sp-border);border-radius:var(--dsw-radius-xl);background:var(--sp-card);padding:0 16px;overflow:hidden}
+/* S3（03f 设置页）：下拉控件对齐 ZCode 的 h32 / r8 / fs14。
+   宿主下拉实测 h36 / r8 / fs13（类名 Mka9mW_selector / AsDdya_selector / _28qALa_selector 等，
+   都是 CSS Modules 哈希前缀，无法枚举全）。改用结构判据：设置页内所有 selector 类。
+   注意排除主题选择块（-I09Na_themeCube，它 h81 是有意的大块，不该压成 32）。
+   字号走令牌 --dsw-font-size-base（14px），写死会被 design-system 断言拦截。 */
+.dcu-settings-page [class*=selector]:not([class*=themeCube]){
+  box-sizing:border-box;
+  height:32px;
+  min-height:32px;
+  font-size:var(--dsw-font-size-base);
+}
+
 .dcu-settings-row+.dcu-settings-row{border-top:1px solid var(--sp-border)}
 .dcu-settings-row>[data-slot]{display:contents}
 .dcu-settings-row>[data-slot]>*{padding:12px 0!important;border-bottom:0!important;margin:0!important;min-width:0}

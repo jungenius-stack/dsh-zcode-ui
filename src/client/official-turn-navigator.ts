@@ -5,10 +5,19 @@ const OFFICIAL_TURN_NAVIGATOR_ATTRIBUTE = 'data-dcu-official-turn-navigator'
 const OFFICIAL_TURN_MARK_ATTRIBUTE = 'data-dcu-official-turn-mark'
 const OFFICIAL_TURN_TOOLTIP_ATTRIBUTE = 'data-dcu-official-turn-tooltip'
 const OFFICIAL_TURN_NAVIGATOR_SUPPORTED_ATTRIBUTE = 'data-dcu-official-turn-navigator-supported'
+/** G11：宿主 marks 有高度但零刻度时标记，交由自绘导航接管。 */
+const OFFICIAL_TURN_EMPTY_ATTRIBUTE = 'data-dcu-official-turn-empty'
 const CAPABILITIES_ENDPOINT = `${CODEX_UI_API_ENDPOINTS.dependencies}?action=capabilities`
 
 function isOfficialTurnNavigator(element: Element): element is HTMLElement {
   if (!(element instanceof HTMLElement) || element.tagName !== 'NAV') return false
+  /*
+   * 结构锚点：宿主轮次导航的标志是内含 .JXrxFq_marks（刻度容器）。
+   * 用结构判定而不是「必须已有按钮」——G11 要解决的正是「按钮一个都没有」的形态，
+   * 若把「有按钮」当前置条件，就永远识别不到那种 nav，接管逻辑也就永远不触发。
+   */
+  const hasMarks = element.querySelector('.JXrxFq_marks') !== null
+  if (hasMarks) return true
   if (element.querySelector('button[type="button"][aria-label]') === null) return false
   // 0.1.5 把自然高度写进行内样式；0.1.7 去掉了这个变量，刻度按钮改为带 data-index。
   return element.style.getPropertyValue('--turn-natural-height') !== ''
@@ -28,8 +37,35 @@ export function markOfficialTurnNavigators(root: ParentNode = document): number 
   for (const element of root.querySelectorAll('nav')) {
     if (!isOfficialTurnNavigator(element)) continue
     element.setAttribute(OFFICIAL_TURN_NAVIGATOR_ATTRIBUTE, 'true')
+    markEmptyMarks(element)
   }
   return root.querySelectorAll(`[${OFFICIAL_TURN_NAVIGATOR_ATTRIBUTE}]`).length
+}
+
+/**
+ * G11：宿主 marks 容器「有高度但零刻度」时打标记，让自绘导航接管。
+ *
+ * 背景（2026-10-27 实测）：会话深度压缩后，宿主 `.JXrxFq_marks` 会同时满足
+ *   ① 高度正常（572px，说明宿主知道轮次数）
+ *   ② 子元素 = 0，innerHTML 空串，3 秒 MutationObserver 零事件（宿主根本不渲染按钮）
+ * 整条索引就在视觉上消失了。ZCode 靠目录水合保证压缩下索引仍完整，这是真实能力差。
+ *
+ * 插件侧本来就有完整自绘导航（TurnNavigator.tsx，239 行，数据源是会话锚点、
+ * 与宿主 marks 无关），只是被一条 CSS 在「宿主支持」时隐藏了。
+ * 这里只负责「让 CSS 知道现在该接管」，不改宿主 DOM、不写会话数据。
+ *
+ * 交还条件：marks.children > 0 时立刻移除该属性，自绘退回 display:none。
+ */
+function markEmptyMarks(nav: HTMLElement): void {
+  const marks = nav.querySelector<HTMLElement>('.JXrxFq_marks')
+  if (marks === null) {
+    nav.removeAttribute(OFFICIAL_TURN_EMPTY_ATTRIBUTE)
+    return
+  }
+  const hasBox = marks.getBoundingClientRect().height > 0
+  const isEmpty = marks.children.length === 0
+  if (hasBox && isEmpty) nav.setAttribute(OFFICIAL_TURN_EMPTY_ATTRIBUTE, 'true')
+  else nav.removeAttribute(OFFICIAL_TURN_EMPTY_ATTRIBUTE)
 }
 
 function nodeTouchesTurnNavigator(node: Node): boolean {
@@ -107,6 +143,7 @@ export function observeOfficialTurnNavigators(doc: Document = document, fetchImp
     doc.documentElement.removeAttribute(OFFICIAL_TURN_NAVIGATOR_SUPPORTED_ATTRIBUTE)
     for (const element of doc.querySelectorAll(`[${OFFICIAL_TURN_NAVIGATOR_ATTRIBUTE}],[${OFFICIAL_TURN_MARK_ATTRIBUTE}],[${OFFICIAL_TURN_TOOLTIP_ATTRIBUTE}]`)) {
       element.removeAttribute(OFFICIAL_TURN_NAVIGATOR_ATTRIBUTE)
+      element.removeAttribute(OFFICIAL_TURN_EMPTY_ATTRIBUTE)
       element.removeAttribute(OFFICIAL_TURN_MARK_ATTRIBUTE)
       element.removeAttribute(OFFICIAL_TURN_TOOLTIP_ATTRIBUTE)
     }

@@ -29,9 +29,9 @@ const stylesheet = `
 @media (prefers-reduced-motion:reduce){.dcu-turn-navigator[data-dcu-rail-sync]{transition:none}}
 .dcu-turn-scroll{width:16px;max-height:inherit;overflow-x:hidden;overflow-y:auto;scrollbar-width:none;pointer-events:none}
 .dcu-turn-scroll::-webkit-scrollbar{display:none}
-.dcu-turn-list{display:grid;gap:2px;margin:0;padding:4px 0;list-style:none;width:16px;pointer-events:none}
-.dcu-turn-link{pointer-events:auto;position:relative;display:flex;align-items:center;width:16px;height:8px;overflow:visible;padding:0;border:0;border-radius:var(--dsw-radius-sm);background:transparent;color:var(--dsw-alias-label-tertiary);font:13px/18px var(--dsw-font-family);text-align:left;cursor:pointer;transition:color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
-.dcu-turn-link::before{width:var(--dcu-tick-w,5px);height:var(--dcu-tick-h,1px);flex:0 0 var(--dcu-tick-w,5px);border-radius:var(--dsw-radius-xs);background:currentcolor;content:'';transition:width var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),height var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),flex-basis var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-turn-list{display:grid;gap:0;margin:0;padding:4px 0;list-style:none;width:16px;pointer-events:none}
+.dcu-turn-link{pointer-events:auto;position:relative;display:flex;align-items:center;justify-content:flex-start;width:36px;height:10px;overflow:visible;padding:0;border:0;border-radius:var(--dsw-radius-sm);background:transparent;color:var(--dsw-alias-label-tertiary);font:13px/18px var(--dsw-font-family);text-align:left;cursor:pointer;transition:color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-turn-link::before{width:var(--dcu-tick-w,12px);height:var(--dcu-tick-h,2px);flex:0 0 var(--dcu-tick-w,12px);border-radius:var(--dsw-radius-full,999px);background:currentcolor;content:'';transform-origin:0 50%;opacity:var(--dcu-tick-op,.58);transition:width var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),height var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),flex-basis var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),opacity var(--dcu-motion-move-duration) var(--dcu-motion-move-ease),background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 .dcu-turn-summary{position:absolute;left:16px;top:var(--dcu-summary-top,50%);transform:translateY(-50%);box-sizing:border-box;width:max-content;max-width:240px;height:32px;padding:0 12px;border-radius:var(--dsw-radius-2xl);background:#3a3d3c;color:#e8ebe9;box-shadow:0 8px 24px rgba(0,0,0,.28);pointer-events:none;z-index:2;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:32px}
 .dcu-turn-link[data-active=true]{color:var(--dsw-alias-label-primary)}
 .dcu-turn-link[aria-current=true]{color:var(--dsw-alias-label-primary)}
@@ -43,13 +43,32 @@ const stylesheet = `
 @media (max-width:760px){.dcu-turn-summary{max-width:200px}}
 `
 
-export function tickMarkSize(index: number, hoverAt: number | null, _isCurrent: boolean): { width: number; height: number } {
-  if (hoverAt === null) return { width: 5, height: 1 }
+/**
+ * 刻度尺寸：按 ZCode 3.16.3 的**离散缩放表**复刻（2026-10-26 CDP 实测）。
+ *
+ * ZCode 的 hover 不是连续高斯曲线，而是一张只有四档的表，且只影响 ±2 条：
+ *   距离 0 → scaleX 2.6 / opacity 1.00   （12px × 2.6 = 31.2px）
+ *   距离 1 → scaleX 1.7 / opacity 0.86   （20.4px）
+ *   距离 2 → scaleX 1.25 / opacity 0.72  （15px）
+ *   距离 ≥3 → scaleX 1   / opacity 0.58  （静息 12px）
+ * 静息态：12 × 2px，圆角 full，transform-origin 左侧。
+ * 实测数据见 优化UI插件区/ZCODE-INDEX-SPEC.md。
+ */
+const ZCODE_TICK_BASE_W = 12
+const ZCODE_TICK_BASE_H = 2
+const ZCODE_HOVER_SCALE = [2.6, 1.7, 1.25] as const
+const ZCODE_HOVER_OPACITY = [1, 0.86, 0.72] as const
+const ZCODE_IDLE_OPACITY = 0.58
+
+export function tickMarkSize(index: number, hoverAt: number | null, _isCurrent: boolean): { width: number; height: number; opacity: number } {
+  if (hoverAt === null) return { width: ZCODE_TICK_BASE_W, height: ZCODE_TICK_BASE_H, opacity: ZCODE_IDLE_OPACITY }
   const distance = Math.abs(index - hoverAt)
-  const wave = Math.exp(-(distance * distance) / 2.1)
+  const scale = ZCODE_HOVER_SCALE[distance] ?? 1
+  const opacity = ZCODE_HOVER_OPACITY[distance] ?? ZCODE_IDLE_OPACITY
   return {
-    width: Number((5 + 13 * wave).toFixed(1)),
-    height: Number((1 + 1.2 * wave).toFixed(1)),
+    width: Number((ZCODE_TICK_BASE_W * scale).toFixed(1)),
+    height: ZCODE_TICK_BASE_H,
+    opacity,
   }
 }
 
@@ -208,13 +227,20 @@ export function TurnNavigator({ useChat, useSession, t }: TurnNavigatorProps) {
   return <nav ref={navRef} className="dcu-turn-navigator" data-hovering={hoverAt !== null || undefined} data-dcu-rail-sync="" aria-label={t('turns.label')} style={style}><style>{stylesheet}</style><div className="dcu-turn-scroll"><ol ref={listRef} className="dcu-turn-list" onMouseMove={moveHover} onMouseLeave={() => { setHoverAt(null) }}>{turns.map((turn, index) => {
     const mark = tickMarkSize(index, hoverAt, current === turn.key)
     const active = hoverAt !== null && index === activeIndex
-    const tickStyle = hoverAt === null ? undefined : { '--dcu-tick-w': `${mark.width}px`, '--dcu-tick-h': `${mark.height}px` } as CSSProperties
+    const tickStyle = { '--dcu-tick-w': `${mark.width}px`, '--dcu-tick-h': `${mark.height}px`, '--dcu-tick-op': `${mark.opacity}` } as CSSProperties
     return <li key={turn.key}><button type="button" className="dcu-turn-link" data-active={active || undefined} aria-current={current === turn.key || undefined} aria-label={t('turns.jump', { index: index + 1, summary: turn.summary })} style={tickStyle} onFocus={() => { setHoverAt(index) }} onBlur={() => { setHoverAt(null) }} onClick={() => {
       const host = conversationScrollRoot()
       const anchor = host === null ? null : conversationAnchor(host, turn.key)
       if (host === null || anchor === null) return
-      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-      host.scrollTo({ top: host.scrollTop + anchor.getBoundingClientRect().top - host.getBoundingClientRect().top - 12, behavior: reduceMotion ? 'auto' : 'smooth' })
+      /*
+       * G11b（2026-10-27）：这里原来是 原生 scrollTo smooth，
+       * 但**该 API 在本容器完全无效**（实测 20 帧 scrollTop 恒定，宿主接管了滚动）——
+       * 所以点击后 target 算得对、onClick 不报错，画面却纹丝不动。
+       * 改为直接赋值：跨距离的平滑由 turn-rail-zcode.ts 的 animateScroll 负责
+       * （它用的 Chrome 21 点曲线 + 自适应时长，已验证）。
+       * 直接赋值还有一个好处：与 G1 的 reduced-motion 语义天然一致（瞬跳）。
+       */
+      host.scrollTop = host.scrollTop + anchor.getBoundingClientRect().top - host.getBoundingClientRect().top - 12
     }} /></li>
   })}</ol></div>{activeTurn !== undefined && <span className="dcu-turn-summary">{activeTurn.summary}</span>}</nav>
 }
