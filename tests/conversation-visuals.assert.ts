@@ -164,7 +164,7 @@ assert.match(sidebar, /body\[data-ds-dark-theme\]\[data-we-sidebar-glass\] \.dcu
 // 现方案是玻璃层本身半透明，另由 `body[data-we-appwindow]` 关闭模糊（见下一行断言）；
 // 文字可读性依赖宿主背景 + 主题文字色，不再有独立实底兜底。此处的意图变化记录在 KNOWN-ISSUES §3。
 assert.match(sidebar, /body\[data-we-appwindow\]\[data-we-sidebar-glass\] \.dcu-root::before\{-webkit-backdrop-filter:none;backdrop-filter:none\}/, '应用窗口内必须关闭毛玻璃，退回纯色层保证文字可读')
-assert.match(theme, /--dcu-tip-bg:#ffffff/, '浅色悬停卡片必须是浅底，不得写死深色')
+assert.match(theme, /--dcu-tip-bg:#f0f0f0/, '浅色悬停卡片必须是浅底，不得写死深色（2026-10-28 03m：ZCode --color-tooltip light #f0f0f0 实测，原 #ffffff 为估值）')
 assert.match(theme, /--dcu-tip-bg:#2b2b2b/, '暗色悬停卡片必须使用 ZCode 的中性深灰背景')
 // 2026-10-13 更新：ZCode 的 foreground-subtle/subtlest 是叠在**白底**上推导的，落到侧栏 #f0f0f0 上
 // 实测只有 3.93:1 / 2.32:1（低于 WCAG AA 4.5:1）。此处按侧栏底色重新取值。

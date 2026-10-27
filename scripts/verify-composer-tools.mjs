@@ -72,7 +72,7 @@ try {
     if (geometry.shellRadius !== '8px' || geometry.radius !== '6px') {
       throw new Error(`${mode}/${width}: 菜单圆角不符合宪章（壳应为 rounded-lg 8px、项应为 rounded-md 6px，实得 壳=${geometry.shellRadius} 项=${geometry.radius}）`)
     }
-    if (geometry.font !== '13px' || geometry.background !== (dark ? 'rgb(43, 43, 43)' : 'rgb(255, 255, 255)')) throw new Error('建议菜单未套用 ZCode 外观（字号 = caption；暗色底 = ZCode menu #2b2b2b）')
+    if (geometry.font !== '13px' || geometry.background !== (dark ? 'rgb(43, 43, 43)' : 'rgb(240, 240, 240)')) throw new Error('建议菜单未套用 ZCode 外观（字号 = caption；暗色底 = ZCode menu #2b2b2b）')
     // 壳内衬由 5px 收到 4px（宪章 p-1 = 4px），故内滚动区与外壳的差值为 2×4=8。
     if (geometry.marked || geometry.outer !== geometry.card || geometry.inner !== geometry.outer - 8) throw new Error(`${mode}/${width}: 建议菜单没有铺满输入区`)
     await page.locator('[data-composer-card]').evaluate(card => { card.style.width = '280px' })

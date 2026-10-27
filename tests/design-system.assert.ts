@@ -542,7 +542,7 @@ assert.match(toolMenuStyle, /background:var\(--dsw-specific-menu,var\(--dcu-tip-
 assert.match(toolMenuStyle, /backdrop-filter:var\(--dsw-menu-backdrop-filter,none\)/, '必须保留宿主菜单的毛玻璃（不再用 !important 抹掉）')
 assert.match(toolMenuStyle, /box-shadow:var\(--dcu-tip-shadow\)/, '菜单投影必须取 --dcu-tip-shadow')
 // 浮层三件套必须挂在 :root：菜单经 portal 渲染到 body，挂在侧栏作用域上 var() 会静默失效。
-assert.match(theme, /:root\{[^}]*--dcu-tip-bg:#ffffff/, '浮层底色令牌必须挂在 :root（portal 到 body 的表面才取得到）')
+assert.match(theme, /:root\{[^}]*--dcu-tip-bg:#f0f0f0/, '浮层底色令牌必须挂在 :root（portal 到 body 的表面才取得到）；2026-10-28 03m 浅色 #f0f0f0=ZCode tooltip 实测')
 assert.match(theme, /body\[data-ds-dark-theme\][^}]*--dcu-tip-bg:#2b2b2b/, '暗色下浮层底色必须重取（不能靠亮色值 + 补丁）')
 
 // ── 17. 合成夹具必须按 modality 注入令牌（2026-10-14 新增）────────────────────
