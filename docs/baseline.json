@@ -6,18 +6,18 @@
     "specFiles": 57,
     "layoutScripts": 22,
     "tokens": {
-      "light": 174,
-      "dark": 174,
+      "light": 176,
+      "dark": 176,
       "structural": 26,
       "structuralDsw": 23,
-      "union": 200,
-      "dswPrefixed": 197
+      "union": 202,
+      "dswPrefixed": 199
     }
   },
   "structure": {
     "largestClientFile": "src/client/CodexWorkspaceBrowser.tsx",
     "largestClientFileLines": 1136,
-    "importantOccurrences": 58,
+    "importantOccurrences": 59,
     "todoMarkers": 0
   }
 }

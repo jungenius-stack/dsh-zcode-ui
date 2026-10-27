@@ -142,7 +142,7 @@
 | --- | --- | --- |
 | 「`zcode-skin.ts` 拒绝哈希类名，但其他文件仍在用 → 自相矛盾」 | **降级为措辞问题** | 原话的作用域是「本皮肤层」（该文件的上下文），而皮肤层确实一处都没用。集成层无法回避哈希类名。已在 `zcode-skin.ts` 补边界说明、并在 ZCODE-DESIGN §12 写清两层分工。**但其建议本身（装报警器）完全成立，已采纳** |
 | 「亮色下『拖动项目到此处置顶』的灰比 tertiary 更浅」 | **不成立** | 实机测得 `.dcu-wb-empty` 为 `rgb(104,104,104)` = `#686868`，正是 tertiary 本身，无额外 opacity。它比 secondary 浅是**设计分层**，不是缺陷。13px 抗锯齿在小字号下容易被看成更浅 |
-| 「`CodexWorkspaceBrowser.tsx` 有一个约 690 行的函数；`!important` 40 处」 | **承认，本轮不动** | 这两个数在登记时就已过期：2026-10-26 实测为 1136 行文件里的 741 行函数、`!important` 58 处（较 48 增加 10：侧栏开合动画期间的壁纸穿透兜底 1 处、轮次导航刻度定位覆盖 1 处、悬停浮层改 ZCode 口径后的 top/left/right 各 1 处、G11 自绘接管态压过隐藏态的 display 1 处、P2「优化」按钮内联圆角覆盖 1 处、历史未同步 3 处；均见 CodexSidebar.tsx 行内注释与 tests/structure-budget.assert.mjs 的预算登记理由）。现在数字由 `scripts/baseline.mjs` 生成、`tests/structure-budget.assert.mjs` 做双向棘轮（涨了报红，降了也要求下调预算），不再依赖人工回头。741 行函数的重构风险远高于收益，`!important` 是皮肤层覆盖宿主所必需。登记为已知技术债，不做无谓改动 |
+| 「`CodexWorkspaceBrowser.tsx` 有一个约 690 行的函数；`!important` 40 处」 | **承认，本轮不动** | 这两个数在登记时就已过期：2026-10-26 实测为 1136 行文件里的 741 行函数、`!important` 59 处（较 48 增加 11：侧栏开合动画期间的壁纸穿透兜底 1 处、轮次导航刻度定位覆盖 1 处、悬停浮层改 ZCode 口径后的 top/left/right 各 1 处、G11 自绘接管态压过隐藏态的 display 1 处、P2「优化」按钮内联圆角覆盖 1 处、历史未同步 3 处；均见 CodexSidebar.tsx 行内注释与 tests/structure-budget.assert.mjs 的预算登记理由）。现在数字由 `scripts/baseline.mjs` 生成、`tests/structure-budget.assert.mjs` 做双向棘轮（涨了报红，降了也要求下调预算），不再依赖人工回头。741 行函数的重构风险远高于收益，`!important` 是皮肤层覆盖宿主所必需。登记为已知技术债，不做无谓改动 |
 
 **评审中已过期/已被修复的两条**（记录以免重复讨论）：
 

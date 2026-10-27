@@ -2,8 +2,9 @@
  * 会话区布局与排版：对齐 ZCode（03c-conversation.md 矩阵 C1/C2/C3）。
  *
  * 背景（2026-10-27 盘点结论）：插件此前对会话区**消息内容零覆盖**，
- * 视觉 100% 来自宿主默认。本模块是会话区覆盖的第一块，只做「骨架三件」，
- * 不碰气泡、不碰代码块、不碰工具卡（那些是 G17/D 系列，待裁决/待样本）。
+ * 视觉 100% 来自宿主默认。本模块是会话区覆盖的第一块，只做「骨架三件」。
+ * 2026-10-28 追加 G17 扁平化（用户已裁决：去气泡、跟随 ZCode）。
+ * 不碰代码块、不碰工具卡（D 系列待样本）。
  *
  * 所有值来自 ZCode 活页面实测（03c-conversation-zcode-spec.json）：
  *   contentWidth 924 / 轮组 margin-top 20 / 正文 14px 行高 24.5
@@ -68,6 +69,65 @@ export const CONVERSATION_LAYOUT_STYLE = `
    它随主题翻转，符合「中性色不用死值」的设计逻辑。 */
 [data-conversation-scroll] .icaHSq_column .ppByMG_action{
   color:var(--dsw-alias-label-dimmed,rgba(212,212,212,.3));
+}
+
+/* ── G17 用户轮扁平化（2026-10-28 裁决：去气泡，跟随 ZCode）──────────
+   ZCode 用户轮 = 透明行：无底色、无圆角、无内边距、全宽左对齐、正文同款排版
+   （03c 矩阵 C-0；zcode-spec textSamples：P 14px/24.5、oklch(0.87 0 0)，与助手一致）。
+   DSH 气泡现状（CDP 实测）：.IzP3Va_bubble bg rgb(32,32,32) / radius 12px /
+   pad 10px 16px / 文字 14px/22px；右对齐来自 userRow+userStack 的
+   align-items:flex-end；限宽来自 userStack max-width:min(449.28px,82%)。
+   文字色 rgb(212,212,212) 即宿主 alias-label，与 ZCode oklch(0.87 0 0) 同源，不动。 */
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble{
+  background:transparent;
+  border-radius:0;
+  padding:0;
+  line-height:${ZCODE_LINE_HEIGHT}px;
+}
+/* 右对齐 → 左对齐：两个容器都写了 flex-end，两处都要翻（特异性 0,3,0 > 宿主 0,1,0）。 */
+[data-conversation-scroll] .icaHSq_column .IzP3Va_userRow,
+[data-conversation-scroll] .icaHSq_column .IzP3Va_userStack{align-items:flex-start}
+/* 82% 限宽 → 全宽：ZCode 用户轮随内容列 924 换行（C1 同宽）。 */
+[data-conversation-scroll] .icaHSq_column .IzP3Va_userStack{max-width:none}
+
+/* ── D1 围栏代码块（2026-10-28，ZCode asar 静态提取定案）────────────
+   ZCode 聊天码卡解剖（MessageResponse → ob/rb + streamdown code-block-body）：
+     外层   my-4 + border border-border + bg-card —— 无圆角、1px --color-border、--color-card
+     头部   无独立底色条（rb: pl-3 pr-2 pt-2，语言名 lowercase mono，与卡同底）
+     码体   rounded-md + border border-border，底/字 = shiki 主题 editor.bg/fg
+            （默认 github-dark #24292e/#e1e4e8、github-light #ffffff/#24292e），内边距 8/8/0/12
+     行内码 rounded-md + bg-markdown-inline-code/50 + px-1.5 py-0.5，无边框
+   DSH 现状（CDP 实测）：卡 #202020/radius 8/无边框；banner #161616 独立条；
+     pre 透明 pad 6/22/20；行内码 #2b2b2b 实底 + 0.5px 边 + radius 4。
+   宿主消费 --dsw-alias-markdown-code-block/-inline-code（底色不动，令牌值已在
+   zcode-tokens.ts 改齐）；这里只补结构差：边框/圆角/条带/码体/内边距。 */
+[data-conversation-scroll] .md-code-block{
+  border:1px solid var(--dsw-alias-border-l2);
+  border-radius:0;
+  background:var(--dsw-alias-markdown-code-block);
+}
+[data-conversation-scroll] .md-code-block [class*="_bannerWrap"]{
+  background:transparent;
+  border-radius:0;
+  padding:8px 8px 8px 12px;
+}
+[data-conversation-scroll] .md-code-block pre{
+  /* shiki 会给部分 pre 盖内联 style（var(--shiki-background/foreground)），
+     内联优先级高于本规则——在这里重定义这两个变量，让内联引用也落到 ZCode 值上。 */
+  --shiki-background:var(--dsw-alias-markdown-code-editor-bg);
+  --shiki-foreground:var(--dsw-alias-markdown-code-editor-fg);
+  background:var(--dsw-alias-markdown-code-editor-bg);
+  color:var(--dsw-alias-markdown-code-editor-fg);
+  border:1px solid var(--dsw-alias-border-l2);
+  border-radius:var(--dsw-radius-md);
+  padding:6px 8px 12px;
+}
+[data-conversation-scroll] .icaHSq_column :not(pre) > code{
+  background:var(--dsw-alias-markdown-inline-code);
+  border:0;
+  border-radius:var(--dsw-radius-md);
+  padding:2px 6px;
+  font-size:var(--dsw-font-size-sm,12px);
 }
 `
 

@@ -285,8 +285,10 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
   --dcu-settings-nav-size:16px;
   --dcu-settings-nav-radius:12px;
   /* TA1：设置页整页底 = ZCode 内容画布层 rgb(250)。侧栏层 245 见 .dcu-root。 */
+  /* TA4（2026-10-28 静态定案）：ZCode 深色设置卡 = --color-background（#161616，与画布
+     同底、仅边框分隔——S2 实测）。浅色对称取画布值 #fafafa（旧 #fbfbfb 是未验证猜测）。 */
   --dcu-settings-page-bg:#fafafa;
-  --dcu-settings-card-fill:#fbfbfb;
+  --dcu-settings-card-fill:#fafafa;
   --dcu-header-border:1px solid rgba(13,13,13,.05);
   --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-focus:#0b7fff;
   --dcu-surface:rgba(13,13,13,.03);

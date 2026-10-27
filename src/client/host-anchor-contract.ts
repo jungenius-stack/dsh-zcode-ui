@@ -57,6 +57,11 @@ export const HOST_ANCHOR_GROUPS: readonly HostAnchorGroup[] = [
     consequence: '发送键会退回宿主默认配色，加号的悬停底与输入壳尺寸规则失效',
     anchors: ['[class$=_primary]', '[class*="_add"]'],
   },
+  {
+    scope: '[data-conversation-scroll] .md-code-block',
+    consequence: 'D1 围栏码卡只剩令牌底色：头部条退回宿主深条、码体失去 shiki 底/字与圆角',
+    anchors: ['[class*="_bannerWrap"]'],
+  },
 ]
 
 /** 缺失的锚点描述，形如 `[data-phase=hero] > [class$="_headline"]`。 */

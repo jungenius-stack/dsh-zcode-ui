@@ -210,6 +210,11 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   // 50% 是圆形拇指。两者均随 --dsw-alias-* 令牌走配色，几何形状本身保持字面量。
   'settings-page-styles.ts:999px': 1,
   'settings-page-styles.ts:50%': 1,
+  // 2026-10-28 G17 用户轮扁平化：`.IzP3Va_bubble{border-radius:0}`——
+  // 0 是「无圆角」（去气泡化，ZCode 用户轮为透明行），不是标度档位。
+  // 2026-10-28 D1 围栏码卡扁平化：`.md-code-block` 与其 banner 同为 0——
+  // ZCode 码卡无圆角（`border border-border bg-card`，无 rounded 类）。
+  'conversation-layout.ts:0': 3,
 }
 const radiusLiterals = new Map<string, number>()
 for (const { name, text } of clientFiles) {

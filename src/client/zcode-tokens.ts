@@ -203,9 +203,16 @@ export const ZCODE_LIGHT: TokenMap = {
 
   // ── Markdown / 代码块 ─────────────────────────────────────────────
   // ZCode: --color-card / --color-tag / --color-surface
-  '--dsw-alias-markdown-code-block': '#f5f5f5',
-  '--dsw-alias-markdown-code-block-banner': '#f0f0f0',
-  '--dsw-alias-markdown-inline-code': '#f0f0f0',
+  // 2026-10-28 TA3/D1（asar 静态提取 styles-9Z13W0KP.css，2026-10-23 构建）：
+  //   ZCode 浅色 --color-card #ffffff（旧值 #f5f5f5 为未验证猜测）；
+  //   围栏块无头部条——banner 与卡同底；行内码 = color-mix(in oklab, --color-tag 50%, transparent)。
+  '--dsw-alias-markdown-code-block': '#ffffff',
+  '--dsw-alias-markdown-code-block-banner': '#ffffff',
+  '--dsw-alias-markdown-inline-code': 'rgba(230, 230, 230, 0.5)',
+  // ZCode 围栏码体底/字 = streamdown code-block-body 的 --sdm-bg/--sdm-fg
+  //   = shiki 主题 editor.background/foreground（codePreviewSettings 默认 github-light）
+  '--dsw-alias-markdown-code-editor-bg': '#ffffff',
+  '--dsw-alias-markdown-code-editor-fg': '#24292e',
   '--dsw-alias-markdown-tag': '#e6e6e6',
   '--dsw-alias-markdown-citation': '#f0f0f0',
   '--dsw-alias-markdown-placeholder': '#f5f5f5',
@@ -422,9 +429,14 @@ export const ZCODE_DARK: TokenMap = {
   '--dsw-static-blue-100': 'rgba(64, 153, 255, 0.16)',
 
   // ── Markdown / 代码块 ─────────────────────────────────────────────
-  '--dsw-alias-markdown-code-block': '#202020',
+  // 2026-10-28 TA3/D1（asar 静态提取）：ZCode 深色 --color-card #2b2b2b（旧值 #202020
+  //   是 DSH 现状不是 ZCode 值）；banner 与卡同底；行内码 = --color-tag(#363636) 50% 透明。
+  '--dsw-alias-markdown-code-block': '#2b2b2b',
   '--dsw-alias-markdown-code-block-banner': '#2b2b2b',
-  '--dsw-alias-markdown-inline-code': '#2b2b2b',
+  '--dsw-alias-markdown-inline-code': 'rgba(54, 54, 54, 0.5)',
+  // 围栏码体底/字 = shiki github-dark 的 editor.background/foreground
+  '--dsw-alias-markdown-code-editor-bg': '#24292e',
+  '--dsw-alias-markdown-code-editor-fg': '#e1e4e8',
   '--dsw-alias-markdown-tag': '#363636',
   '--dsw-alias-markdown-citation': '#2b2b2b',
   '--dsw-alias-markdown-placeholder': '#2b2b2b',

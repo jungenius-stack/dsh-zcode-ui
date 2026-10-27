@@ -45,8 +45,13 @@ const BUDGET = {
 
      实测总数 58 与登记 54 之间还有 3 处差额，来源是**过去几轮改动未同步预算**（非本轮引入）：
      conversation-layout.ts 的 G11 接管规则（1）、conversation-header.ts（1）、
-     virtual-skip.ts（1）。这三处当时没走预算更新，属于本门禁漏记，本轮一并补上。 */
-  importantOccurrences: 58,
+     virtual-skip.ts（1）。这三处当时没走预算更新，属于本门禁漏记，本轮一并补上。
+
+     2026-10-27 +1（58 → 59）：第 28~30 轮侧栏浮层批次（CodexSidebar.tsx 8 → 18、
+     conversation-layout.ts 0 → 1，净增 11）只把预算推到 58，实测 59，漏记 1 处。
+     逐处核过用途：全部属于已登记三类（压宿主 JS 内联的 top/left/right 定位、
+     接管态必须赢过隐藏态的 display、切宿主底色规则），无新增类别，本条补记差额。 */
+  importantOccurrences: 59,
   todoMarkers: 0,
 }
 
