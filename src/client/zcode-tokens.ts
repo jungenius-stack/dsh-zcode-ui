@@ -503,7 +503,9 @@ export const ZCODE_STRUCTURAL: TokenMap = {
   //   本插件用 :root:root（(0,2,0)）压过宿主 :root（(0,1,0)），删掉这一行 = 上述表面
   //   全部回落到 28px（也是"宿主圆角命名空间被整体接管"的同一个机制，见 KNOWN-ISSUES）。
   //   取值 12px（一级容器）而非宿主的 28px：与卡片/控件同一语言，且相对上一版 10px 只 +2px。
-  '--dsw-radius-panel': '12px',
+  // 2026-10-28 03j：ZCode 弹层家族实测全部 rounded-2xl=16px（创建项目对话框/⌘K 浮层/搜索浮层一致），
+  //   原 12px 是早期估值。Modal/设置面板/反馈弹窗/浮动面板随此值统一抬到 16。
+  '--dsw-radius-panel': '16px',
   // 白名单大圆角（宪章仅允许：主聊天输入壳 / 会话状态浮层 / Toast / 品牌图标底盘）
   '--dsw-radius-2xl': '16px',
   // 胶囊：round-full 是「刻意的胶囊或圆形」，不因组件类型获得
