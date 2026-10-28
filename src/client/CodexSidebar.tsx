@@ -164,9 +164,11 @@ body[data-we-sidebar-glass] .dcu-expanded-shell,body[data-we-sidebar-glass] .dcu
    与树底部 padding-bottom:24px 配套使用（那边留空间，这边给视觉边界）。 */
 /* 2026-10-28：页脚回现的时长从 move(300ms) 改为 enter(160ms) —— 紧凑轨的图标
    用 enter 档进场，页脚若还挂 300ms 就会出现「上面已就位、下面还在慢慢浮现」的不同步。 */
-/* 页脚不做透明度过渡（2026-10-28）：内容切换与宽度落定同帧瞬时完成，
-   任何淡入都会让底部图标比顶部晚一拍。 */
+/* 页脚跟随紧凑轨同支入场动画（enter 档，与顶部同帧起跑）；
+   平时不做透明度过渡 —— 内容切换与宽度动画同帧，切换本身不单独演出。 */
 .dcu-foot{display:grid;width:100%;gap:4px;padding:8px;box-shadow:0 -8px 12px -8px rgba(0,0,0,.10);transition:none}
+.dcu-root.dcu-compact .dcu-foot{animation:dcu-sidebar-compact-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}
+.dcu-root:not(.dcu-compact) .dcu-foot{animation:dcu-sidebar-expanded-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}
 body[data-ds-dark-theme] .dcu-foot{box-shadow:0 -8px 12px -8px rgba(0,0,0,.18)}
 /* footer 插槽由各插件自绘（如 cost-meter 的余额卡片是块级卡片，记忆/任务/归档/设置是图标行），
    它们此前同处一个无样式容器里，视觉上粘成一片。这里补上容器内分隔与间距，
@@ -229,7 +231,9 @@ body[data-ds-dark-theme] .dcu-foot{box-shadow:0 -8px 12px -8px rgba(0,0,0,.18)}
 .dcu-root.dcu-collapsing .dcu-compact-shell{position:absolute;left:0;top:calc(var(--dcu-sidebar-top-clearance,0px) + (var(--dcu-header-height,40px) - 32px)/2);bottom:8px;display:flex;flex-direction:column;align-items:center;animation:dcu-sidebar-compact-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease) var(--dcu-motion-exit-duration) both}
 .dcu-root.dcu-collapsing .dcu-compact-shell .dcu-icon{width:32px;height:32px;flex:none}.dcu-root .dcu-compact-shell>.dcu-icon,.dcu-root.dcu-collapsing .dcu-compact-shell>.dcu-icon{width:28px;height:28px;flex:none;margin:0;padding:0;border-radius:var(--dsw-radius-lg)}
 /* 收尾仅移除宽态层，窄轨不重复淡入，否则会在半秒处闪烁。 */
-.dcu-root.dcu-compact .dcu-compact-shell{animation:none}
+/* 2026-10-28：紧凑轨与页脚共用同一支入场动画（enter 档）——内容点击帧切换后，
+   顶部与底部**同曲线、同时长、同帧起跑**地出现，快而自然（用户裁决：不要闪现）。 */
+.dcu-root.dcu-compact .dcu-compact-shell{animation:dcu-sidebar-compact-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}
 /* 原生交通灯覆盖网页顶部；宽态、窄轨和动画层共用宿主安全区，保持页脚在窗口内。 */
 .dcu-root{--dcu-sidebar-top-clearance:0px}
 html[data-platform=darwin]:not([data-fullscreen]) .dcu-root{--dcu-sidebar-top-clearance:var(--dsh-frame-top-clearance,48px);padding-top:var(--dcu-sidebar-top-clearance)}
