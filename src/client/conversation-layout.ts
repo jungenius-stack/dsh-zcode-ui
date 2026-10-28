@@ -27,6 +27,13 @@ const ZCODE_TURN_GAP = 20
 const ZCODE_LINE_HEIGHT = 24.5
 
 export const CONVERSATION_LAYOUT_STYLE = `
+/* ── X1 会话区禁止横向滚动（2026-10-28）────────────────────────────
+   ZCode 的会话滚动容器显式设置 overflow-x-hidden（纵向 auto）——横向永不出滚动条；
+   需要横滚的内容自己滚：代码块 pre 与表格 _tableScroll 各自带 overflow-x:auto（已实测）。
+   DSH 宿主是 overflow-x:auto，任何一次内容变宽（宽表格/长 URL/临时态）都会在会话底部
+   冒出横向滚动条——与 ZCode 不符，且与「会话只需上下滚」的直觉冲突。 */
+[data-conversation-scroll]{overflow-x:hidden}
+
 /* ── C1 内容列宽 640 → 924 ──────────────────────────────────────────
    宿主用 .icaHSq_column{max-width:640px} 限宽，宽度由 max-width 决定、
    两侧留白是 margin auto 的结果。所以这里改 max-width，不动 margin。
