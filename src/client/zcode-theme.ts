@@ -227,6 +227,14 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
      secondary #595959 → L*37.8，ΔL*(s,t)=6.2，对比度 sidebar 6.15 / hover 5.56，
      primary↔secondary 仍差 22.7（远大于 6）。
    取 6.2 而非更大值，是为了不把 primary 与 secondary 的区别也压没。 */
+/* ⚠ 2026-10-28 白缝修复（深色主题）：宿主的侧栏列 [data-dcu-sidebar-column] 是 .dcu-root 的
+   **祖先**，祖先读不到后代作用域里定义的变量 —— 于是 CodexSidebar 那条
+   background:var(--dcu-sidebar-background, #f0f0f0) 在宿主列上一直取兜底 #f0f0f0（浅灰）。
+   静止态被插件自己的壳盖住看不见，但开合动画期间「已收窄的侧栏列」与「未到位的正文列」
+   之间会露出这段宽度（实测收起时 104px），深色主题下就是一道白缝。
+   修法：在 html/body 上也挂一份同名变量，让祖先链能解析；壳内同名声明值相同，不冲突。 */
+:root{--dcu-sidebar-background:#f5f5f5}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-sidebar-background:#161616}
 .dcu-root,.dcu-settings-page,.dcu-home{
   /* TA1（03g 主题审计，2026-10-27）：浅色底按 ZCode **分层**取值，不再取中值。
      ZCode tokens.json 实测（浏览器 canvas 像素回读换算，双已知值反验通过）：

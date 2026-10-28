@@ -124,7 +124,15 @@ html[data-platform] [data-dcu-sidebar-column][data-dcu-sidebar-column]{backgroun
 /* 加 !important 是必要的：宿主给 frame 挂了自己的底色规则，普通声明压不动
    （实测不加时 computed 仍是 rgba(0,0,0,0)）。这里只覆盖 background-color，
    不碰 backdrop-filter / background-image，原生毛玻璃与纹理不受影响。 */
-html[data-dcu-codex-sidebar-initialized] [data-dcu-codex-sidebar-initialized]{background-color:var(--dsw-alias-bg-base,#f8f8f8) !important}
+/* ⚠ 2026-10-28 修复「深色下开合闪白缝」：原选择器是
+     html[data-dcu-codex-sidebar-initialized] [data-dcu-codex-sidebar-initialized]
+   但 data-dcu-codex-sidebar-initialized 只打在 frame 上（sidebar-width.ts 的
+   frame.setAttribute），html 上从来没有 —— 选择器恒为 0 匹配（实测 querySelector 返回
+   false、frame computed 一直是 rgba(0,0,0,0)）。于是链条根本没被切断：动画中露出的
+   那 104px 直接透出桌面壁纸。浅色皮肤下壁纸是浅色，看不出来；深色皮肤下就是一道白缝。
+   修法两点：① 去掉 html 前缀；② **只在 motion 期间上底色**（frame 在 runSidebarSlide 时
+   带 data-dcu-sidebar-motion，结束后移除），静止态保留宿主壁纸/毛玻璃，不改变常驻观感。 */
+[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]{background-color:var(--dsw-alias-bg-base,#f8f8f8) !important}
 /* 滤镜只作用于背景，避免为设置和搜索等 fixed 后代创建侧栏包含块。 */
 body[data-we-sidebar-glass] .dcu-root{position:relative;background:transparent}body[data-we-sidebar-glass] .dcu-root::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-color:color-mix(in srgb,var(--we-sidebar-color,#fff) calc(var(--we-sidebar-alpha,.15)*.66*100%),transparent);background-image:linear-gradient(180deg,rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.14)),rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.04)) 38%,rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.01)));-webkit-backdrop-filter:blur(var(--we-sidebar-blur,16px)) saturate(var(--we-sidebar-saturate,1.8)) brightness(var(--we-glass-brightness,1.04)) contrast(1.01);backdrop-filter:blur(var(--we-sidebar-blur,16px)) saturate(var(--we-sidebar-saturate,1.8)) brightness(var(--we-glass-brightness,1.04)) contrast(1.01);box-shadow:inset 0 1px 0 rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.32)),inset 0 -1px 0 rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.08)),inset 0 0 0 .5px rgba(255,255,255,calc(var(--we-sidebar-sheen,1)*.06))}body[data-ds-dark-theme][data-we-sidebar-glass] .dcu-root::before{background-color:color-mix(in srgb,var(--we-sidebar-color,#fff) calc(var(--we-sidebar-alpha,.15)*.33*100%),transparent)}body[data-we-appwindow][data-we-sidebar-glass] .dcu-root::before{-webkit-backdrop-filter:none;backdrop-filter:none}@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){body[data-we-sidebar-glass] .dcu-root{background:#f0f0f0}body[data-ds-dark-theme][data-we-sidebar-glass] .dcu-root{background:#161616}body[data-we-sidebar-glass] .dcu-root::before{display:none}}
 body[data-we-sidebar-glass] .dcu-expanded-shell,body[data-we-sidebar-glass] .dcu-compact-shell,body[data-we-sidebar-glass] .dcu-foot{position:relative}
