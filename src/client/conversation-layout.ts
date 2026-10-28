@@ -114,6 +114,44 @@ export const CONVERSATION_LAYOUT_STYLE = `
   line-height:calc(21px + var(--dsh-content-font-delta,0px));
 }
 
+/* ── G18 用户气泡长文本折叠（2026-10-28，ZCode asar + 9224 实测）──────
+   ZCode 真实参数：内容 max-height 120（溢出阈 121）；展开 max(scrollHeight,120)；
+   过渡走 move 档令牌（300ms / 0,0,.2,1）；溢出未展开时内容底部 30% 渐隐；
+   reduced-motion 由主题令牌层统一归零，这里不单独写 transition:none。
+   宿主根节点是 display:contents，没有盒子可限高 —— 这里只把它换成块盒（纯属性），
+   inline max-height / 折叠钮 / data 状态由 user-bubble-collapse.ts 维护。
+   位置（DSH 适配）：宿生气泡内自带常驻动作行（28px，图标左对齐）。折叠态把钮放在
+   该行右侧空位，避免像 ZCode 那样压在渐隐的正文上（实测三种压字位置都会挡字）；
+   展开态独占一行居中。ZCode 无此动作行，故此项与 ZCode 有意不同。 */
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble{position:relative}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble > :first-child{display:block}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble[data-dcu-bubble-overflow] > :first-child{
+  overflow:hidden;
+  transition:max-height var(--dcu-motion-move-duration) var(--dcu-motion-move-ease);
+}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble[data-dcu-bubble-overflow][data-dcu-bubble-state="collapsed"] > :first-child{
+  -webkit-mask-image:linear-gradient(to bottom,black 0%,black 70%,transparent 100%);
+  mask-image:linear-gradient(to bottom,black 0%,black 70%,transparent 100%);
+}
+.dcu-bubble-toggle{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:32px;padding:0;
+  border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));
+  border-radius:var(--dsw-radius-full,999px);
+  background:var(--dsw-alias-bg-base,#161616);
+  color:var(--dsw-alias-label-secondary,rgba(212,212,212,.6));
+  box-shadow:var(--dsw-shadow-lv1,0 1px 2px 0 rgba(0,0,0,.05));
+  backdrop-filter:blur(4px);
+  cursor:pointer;
+  z-index:1;
+  transition:color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);
+}
+.dcu-bubble-toggle:hover{color:var(--dsw-alias-label-primary,#d4d4d4)}
+.dcu-bubble-toggle svg{display:block;transition:transform var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+[data-dcu-bubble-state="expanded"] > .dcu-bubble-toggle{display:flex;position:static;margin:8px auto 0}
+[data-dcu-bubble-state="collapsed"] > .dcu-bubble-toggle{position:absolute;left:50%;bottom:8px;transform:translateX(-50%)}
+[data-dcu-bubble-state="expanded"] > .dcu-bubble-toggle svg{transform:rotate(180deg)}
+
 /* ── D1 围栏代码块（2026-10-28，ZCode asar 静态提取定案）────────────
    ZCode 聊天码卡解剖（MessageResponse → ob/rb + streamdown code-block-body）：
      外层   my-4 + border border-border + bg-card —— 无圆角、1px --color-border、--color-card

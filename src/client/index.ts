@@ -55,6 +55,7 @@ import { prefillNewConversation, createDraftPresenceSource } from './new-convers
 import { observeComposerToolMenus } from './composer-tool-menus.ts'
 import { installComposerVisuals } from './composer-visuals.ts'
 import { installConversationLayout } from './conversation-layout.ts'
+import { installUserBubbleCollapse } from './user-bubble-collapse.ts'
 import { hasConnectWorkspace, hasOpenWorkspace, hasStartSession, recentWorkspaceId, workspaceBaselinesReady } from './workspace-compat.ts'
 import { HostActionError, type HostAction, UserFacingError } from './user-error.ts'
 import { finishSessionMove, requestSessionMove, sessionMoveErrorKey, SessionMoveRequestError } from './session-move.ts'
@@ -197,6 +198,8 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => observeOfficialTurnNavigators(), 'zcode-ui-for-dsh: official turn navigator')
   // 会话区骨架三件（C1 列宽 / C2 轮组间距 / C3 行高），对齐 ZCode 03c 矩阵
   ctx.effect(() => installConversationLayout(), 'zcode-ui-for-dsh: conversation layout')
+  // 用户气泡长文本折叠（ZCode：120px + 展开钮 + 底部渐隐）
+  ctx.effect(() => installUserBubbleCollapse(), 'zcode-ui-for-dsh: user bubble collapse')
   // ZCode 索引的 hover 递进（按距离逐条缩放），宿主原生只做当前条。
   ctx.effect(() => {
     observeZcodeTurnRail()

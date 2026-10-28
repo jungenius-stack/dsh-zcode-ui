@@ -185,7 +185,7 @@ Four layers, all runnable locally. `npm run gate` chains them and the `pre-push`
 | Layer | Command | What it covers |
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
-| Unit / integration | `npm run test:unit` | 57 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Unit / integration | `npm run test:unit` | 58 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Contract assertions | `node tests/run-assertions.mjs` | 45 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Real-browser layout | `npm run test:layout` | 22 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 

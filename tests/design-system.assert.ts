@@ -1347,6 +1347,9 @@ const COLOR_LITERAL_ALLOW: Record<string, Record<string, string>> = {
     '#8f8f8f': '--sp-muted 暗色档',
     '#9a9a9a': '--sp-muted-on-card 暗色档',
   },
+  'conversation-layout.ts': {
+    black: 'G18 折叠渐隐 mask：mask 只取 alpha，颜色本身不可见（ZCode 原文 black 70% → transparent）',
+  },
 }
 
 /** 全仓真实定义过的自定义属性名（用于校验 var() 回退是否安全）。 */
