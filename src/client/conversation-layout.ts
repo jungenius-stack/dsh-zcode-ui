@@ -12,8 +12,15 @@
  * 纪律：只写属性、不加节点、不用 !important（全部靠特异性达标）。
  */
 
-/** ZCode 实测内容列宽。宿主默认 640（由 --dsh-chat-content-width 驱动）。 */
-const ZCODE_CONTENT_WIDTH = 924
+/**
+ * ZCode 实测**文字列**宽 = 784px。
+ *
+ * 2026-10-28 更正（原值 924 是错的口径）：活页实测 ZCode 会话列容器
+ * max-width:896px + 左右 padding:24px → 正文实际 784px（1202px 视口下）。
+ * 原先 03c 规格里的 924 量的是滚动容器而不是文字列，导致 DSH 每行 64 个汉字，
+ * 比 ZCode（55 个）宽 15%——长行是「像文档、不像对话」的主因。
+ */
+const ZCODE_CONTENT_WIDTH = 784
 /** ZCode 轮组间距（轮组制，不是逐条）。 */
 const ZCODE_TURN_GAP = 20
 /** ZCode 正文行高（14px 字号下 1.75 倍）。 */
