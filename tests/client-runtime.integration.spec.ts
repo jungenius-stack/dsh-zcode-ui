@@ -361,13 +361,12 @@ test('搜索和窄轨切换不会重渲染或重新挂载工作区树', async ()
     expect(container.querySelector('.dcu-search-scrim')).not.toBeNull()
     expect(workspaceRenders).toBe(1)
 
+    // 2026-10-28：内容切换提前到点击帧（SETTLE_MS = 0），收起即紧凑态，不再有中间态。
+    // 0ms 定时器在下一个宏任务触发，这里推进 0ms 即可冲刷。
     await act(async () => { root.render(createElement(CodexSidebar, { ...base, collapsed: true, width: 56 } as never)) })
-    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-collapsing')).toBe(true)
-    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-compact')).toBe(false)
-    await act(async () => { vi.advanceTimersByTime(250) })
-    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-collapsing')).toBe(true)
-    await act(async () => { vi.advanceTimersByTime(250) })
+    await act(async () => { vi.advanceTimersByTime(0) })
     expect(container.querySelector('.dcu-root')?.classList.contains('dcu-compact')).toBe(true)
+    expect(container.querySelector('.dcu-root')?.classList.contains('dcu-collapsing')).toBe(false)
     expect(workspaceRenders).toBe(1)
 
     await act(async () => { root.render(createElement(CodexSidebar, base as never)) })

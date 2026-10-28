@@ -44,7 +44,11 @@ const subscribeEmptyCompanionTabs = (): (() => void) => () => {}
 const getEmptyCompanionTabs = (): CompanionTabAvailability => EMPTY_COMPANION_TABS
 const emptyFooterActions: readonly FooterAction[] = []
 const getEmptyFooterActions = (): readonly FooterAction[] => emptyFooterActions
-const SIDEBAR_COLLAPSE_SETTLE_MS = 500
+/* 2026-10-28：紧凑内容切换从「滑动结束后 500ms 再换」改为「点击即换」。
+   原时序 = 滑动(300ms) → 空 200ms → 内容切换，用户看到的是
+   「滑过去 → 停一下 → 图标跳一下」三段；提前到点击帧换内容后，
+   整个收起只剩「宽度滑到 56」一个动作，内容从头到尾就是紧凑态。 */
+const SIDEBAR_COLLAPSE_SETTLE_MS = 0
 const SIDEBAR_EXPANSION_STORAGE_KEY = 'dsh-codex-ui.sidebar-expansion.v1'
 const EXTENSIONS_EXPANSION_KEY = 'extensions'
 
