@@ -90,6 +90,7 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: '_rail', why: '只在输入框有附件时出现' },
   { anchor: '_toBottomSlot', why: '只在会话未位于底部时渲染（回到底部按钮出现时）' },
   { anchor: '_workspace', why: '只在 hero 的工作区行存在时渲染（无工作区时整行不渲染）' },
+  { anchor: '_leadingSeat', why: '标题栏左侧座位：只在桌面标题栏布局下渲染；关合侧栏去重时用 :has(button[aria-label=打开侧边栏]) 限定，缺失即不隐藏（安全降级）' },
 ]
 
 /** 在给定根节点下审计锚点，返回缺失项。作用域不在场时跳过该组（不报）。 */
