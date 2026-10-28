@@ -104,7 +104,9 @@ export const ZCODE_LIGHT: TokenMap = {
   '--dsw-alias-label-secondary': 'rgba(38, 38, 38, 0.6)',
   '--dsw-alias-label-tertiary': 'rgba(38, 38, 38, 0.5)',
   '--dsw-alias-label-caption': 'rgba(38, 38, 38, 0.4)',
-  '--dsw-alias-label-dimmed': 'rgba(38, 38, 38, 0.3)',
+  // ZCode 的 foreground-subtlest 是**分主题**的：dark 30% / light 40%（9224 活体 + asar 双证）。
+  // 之前两套都写 30%，浅色下工具行/时间戳/列表点比 ZCode 淡一档。
+  '--dsw-alias-label-dimmed': 'rgba(38, 38, 38, 0.4)',
   '--dsw-alias-label-quaternary': 'rgba(38, 38, 38, 0.35)',
   '--dsw-alias-label-error': '#e03131',
   '--dsw-alias-label-shimmer': 'rgba(13, 13, 13, 0.3)',
