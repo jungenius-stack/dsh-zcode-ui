@@ -259,6 +259,10 @@ export const ZCODE_LIGHT: TokenMap = {
   '--dsw-focus-ring-color': '#0b7fff',
   '--dsw-specific-input-major': '#ffffff',
   '--dsw-specific-menu-item-hover': '#f0f0f0',
+  // ZCode: --color-surface = color-mix(in oklab, --color-neutral-950 3%, transparent)
+  //   消费点：会话用户气泡（宿主 .IzP3Va_bubble 读这个令牌）。
+  //   宿主原值是不透明灰，与 ZCode 的「前景 3% 叠加」不同源，浅色下会灰得发闷。
+  '--dsw-specific-bubble': 'rgba(13, 13, 13, 0.03)',
 }
 
 /**
@@ -481,6 +485,9 @@ export const ZCODE_DARK: TokenMap = {
   '--dsw-focus-ring-color': '#4099ff',
   '--dsw-specific-input-major': '#2b2b2b',
   '--dsw-specific-menu-item-hover': '#363636',
+  // ZCode: --color-surface = color-mix(in oklab, --color-white 5%, transparent)（深色）
+  //   消费点：会话用户气泡（宿主 .IzP3Va_bubble 读这个令牌）。
+  '--dsw-specific-bubble': 'rgba(255, 255, 255, 0.05)',
 }
 
 /**

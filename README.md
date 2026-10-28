@@ -70,7 +70,7 @@ Collapsed rail — icon-only, with tooltips on hover:
 
 This fork keeps upstream's interaction scaffolding and data layer, and adds:
 
-- **The ZCode skin itself** — 176 `--dsw-*` tokens per theme (light and dark) plus 23 structural tokens, 199 unique token names in total. Every token consumed anywhere in `src/` is covered by the maps; the `token-coverage` assertion fails the build if that ever stops being true.
+- **The ZCode skin itself** — 177 `--dsw-*` tokens per theme (light and dark) plus 23 structural tokens, 200 unique token names in total. Every token consumed anywhere in `src/` is covered by the maps; the `token-coverage` assertion fails the build if that ever stops being true.
 - **Theme single-source-of-truth** — the host attribute is the only signal. No `prefers-color-scheme` fallback, which used to split the sidebar and the content area when the host was light but the OS was dark.
 - **Fixes found by looking at the real interface**, not by reading code: session hover card trimmed to the title only, send button rendered in the real primary colour (`--dcu-primary` is now defined at `:root` so the composer — which lives outside `.dcu-root` — can resolve it), a "back to conversation" entry when a global panel is open, self-drawn sidebar separator lines removed, marquee title clipping, footer separation, and shorter empty-state cards.
 - **A verification stack that actually runs on this machine** — see [Verification](#verification). Upstream's browser-based layout scripts had never been executed here before (the Chromium binary was missing), which is how five stale assertions stayed hidden.

@@ -13,11 +13,11 @@
 | └ ES Module | 5 | `tests/*.assert.mjs` |
 | vitest 文件 | 57 | `tests/*.spec.ts` |
 | 真机布局脚本 | 22 | `scripts/gate.mjs` 的 LAYOUT（与 package.json test:layout 交叉校验） |
-| 令牌 · 明 | 176 | `ZCODE_LIGHT` 键数 |
-| 令牌 · 暗 | 176 | `ZCODE_DARK` 键数 |
+| 令牌 · 明 | 177 | `ZCODE_LIGHT` 键数 |
+| 令牌 · 暗 | 177 | `ZCODE_DARK` 键数 |
 | 令牌 · 结构 | 26（其中 `--dsw-` 23） | `ZCODE_STRUCTURAL` 键数 |
-| 令牌 · 并集 | 202 | 三份映射表的唯一令牌名 |
-| 令牌 · `--dsw-` | 199 | 并集中 `--dsw-` 前缀的数量（README 的构词口径） |
+| 令牌 · 并集 | 203 | 三份映射表的唯一令牌名 |
+| 令牌 · `--dsw-` | 200 | 并集中 `--dsw-` 前缀的数量（README 的构词口径） |
 
 ## 结构债
 

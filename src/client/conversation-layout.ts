@@ -3,11 +3,12 @@
  *
  * 背景（2026-10-27 盘点结论）：插件此前对会话区**消息内容零覆盖**，
  * 视觉 100% 来自宿主默认。本模块是会话区覆盖的第一块，只做「骨架三件」。
- * 2026-10-28 追加 G17 扁平化（用户已裁决：去气泡、跟随 ZCode）。
- * 不碰代码块、不碰工具卡（D 系列待样本）。
+ * 2026-10-28 追加 G17（用户轮 = 右侧气泡，按 ZCode 活页二次实测覆写；
+ *   上一轮的「扁平化」把它当成了 assistant 行，已推翻）。
+ * 2026-10-28 追加 D1 围栏代码块（ZCode asar 静态提取定案）。
  *
  * 所有值来自 ZCode 活页面实测（03c-conversation-zcode-spec.json）：
- *   contentWidth 924 / 轮组 margin-top 20 / 正文 14px 行高 24.5
+ *   正文文字列 784（spec 的 924 是滚动容器口径，见常量注释）/ 轮组 margin-top 20 / 正文 14px 行高 24.5
  *
  * 纪律：只写属性、不加节点、不用 !important（全部靠特异性达标）。
  */
@@ -85,24 +86,33 @@ export const CONVERSATION_LAYOUT_STYLE = `
   color:var(--dsw-alias-label-dimmed,rgba(212,212,212,.3));
 }
 
-/* ── G17 用户轮扁平化（2026-10-28 裁决：去气泡，跟随 ZCode）──────────
-   ZCode 用户轮 = 透明行：无底色、无圆角、无内边距、全宽左对齐、正文同款排版
-   （03c 矩阵 C-0；zcode-spec textSamples：P 14px/24.5、oklch(0.87 0 0)，与助手一致）。
-   DSH 气泡现状（CDP 实测）：.IzP3Va_bubble bg rgb(32,32,32) / radius 12px /
-   pad 10px 16px / 文字 14px/22px；右对齐来自 userRow+userStack 的
-   align-items:flex-end；限宽来自 userStack max-width:min(449.28px,82%)。
-   文字色 rgb(212,212,212) 即宿主 alias-label，与 ZCode oklch(0.87 0 0) 同源，不动。 */
-[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble{
-  background:transparent;
-  border-radius:0;
-  padding:0;
-  line-height:${ZCODE_LINE_HEIGHT}px;
-}
-/* 右对齐 → 左对齐：两个容器都写了 flex-end，两处都要翻（特异性 0,3,0 > 宿主 0,1,0）。 */
+/* ── G17 用户轮 = 右侧气泡（2026-10-28 二次实测，推翻上一轮的「扁平化」）──
+   ⚠ 上一轮把用户轮改成透明全宽左对齐是**错的**：那套规格是 ZCode 的 assistant 行，
+   不是 user 行。ZCode 活页  .history-message > .group/user-row （CDP 实测，2026-10-28）：
+     容器   display:flex / flex-direction:column / align-items:flex-end（右对齐）
+     气泡   [data-v4-user-input-bubble]
+              bg       --color-surface → 深色 #ffffff0d（白 5%）/ 浅色 #0d0d0d08（黑 3%）
+              border   1px solid --color-border（10% 前景：#ffffff1a / #0d0d0d1a）
+              radius   12px 2px 12px 12px（rounded-xl + rounded-tr-xs，右上 2px 是「尾巴」角）
+              padding  12px 16px（px-4 py-3）
+              max-w    576px（@min-[624px]/conversation:max-w-xl）
+              文字     14px / 21px（text-ui-base，1.5 倍），white-space:pre-wrap
+     动作行   气泡下方、右对齐，间距 4px（mt-1），默认 opacity:0、hover/focus 才现
+   宿主默认已接近（右对齐 / radius 12 / pad 10px 16px / lh 22px），只差：
+     无边框、无尾巴角、限宽 550.4（=784×0.702）、内边距少 2px、行高多 1px。
+   气泡底色读宿主令牌 --dsw-specific-bubble，值已在 zcode-tokens.ts 换成 ZCode surface。 */
 [data-conversation-scroll] .icaHSq_column .IzP3Va_userRow,
-[data-conversation-scroll] .icaHSq_column .IzP3Va_userStack{align-items:flex-start}
-/* 82% 限宽 → 全宽：ZCode 用户轮随内容列 924 换行（C1 同宽）。 */
-[data-conversation-scroll] .icaHSq_column .IzP3Va_userStack{max-width:none}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_userStack{align-items:flex-end}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_userRow{gap:4px}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_userStack{max-width:576px}
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble{
+  border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));
+  /* 右上角 2px = ZCode 的 rounded-tr-xs（气泡「尾巴」），其余 12px = rounded-xl */
+  border-radius:var(--dsw-radius-xl) var(--dsw-radius-xs) var(--dsw-radius-xl) var(--dsw-radius-xl);
+  padding:12px 16px;
+  /* 21px = ZCode text-ui-base 的 1.5 倍行高；+ delta 保住宿主正文字号缩放 */
+  line-height:calc(21px + var(--dsh-content-font-delta,0px));
+}
 
 /* ── D1 围栏代码块（2026-10-28，ZCode asar 静态提取定案）────────────
    ZCode 聊天码卡解剖（MessageResponse → ob/rb + streamdown code-block-body）：

@@ -212,11 +212,10 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   'settings-page-styles.ts:50%': 1,
   // 2026-10-28 03i 搜索输入胶囊：rounded-full 是「全圆形状」语义（同 999px 先例）
   'CodexSidebar.tsx:9999px': 1,
-  // 2026-10-28 G17 用户轮扁平化：`.IzP3Va_bubble{border-radius:0}`——
-  // 0 是「无圆角」（去气泡化，ZCode 用户轮为透明行），不是标度档位。
   // 2026-10-28 D1 围栏码卡扁平化：`.md-code-block` 与其 banner 同为 0——
   // ZCode 码卡无圆角（`border border-border bg-card`，无 rounded 类）。
-  'conversation-layout.ts:0': 3,
+  // （G17 用户气泡已按 ZCode 实测改回 var(--dsw-radius-*) 标度，不再占字面量额度。）
+  'conversation-layout.ts:0': 2,
 }
 const radiusLiterals = new Map<string, number>()
 for (const { name, text } of clientFiles) {
