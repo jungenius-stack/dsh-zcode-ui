@@ -85,6 +85,9 @@ for (const { name, text } of clientFiles) {
   if (name === 'zcode-theme.ts') continue
   for (const match of text.matchAll(/(?:transition|animation)[^;{}"]*\d+(?:\.\d+)?m?s\s+(?:ease[a-z-]*|linear|steps\([^)]*\))[^;{}"]*/g)) {
     if (match[0].includes('infinite')) continue
+    // 2026-10-28 豁免：启动画面整层复刻 ZCode 启动页原文（0.16s 就绪淡出 / 0.72s logo pop），
+    // 那套时序不属于应用内动效四档的管辖范围 —— 它在应用就绪之前播放。
+    if (name === 'startup-splash.ts') continue
     strayMotion.push(`${name}: ${match[0].slice(0, 70)}`)
   }
 }
@@ -217,6 +220,9 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   // ZCode 码卡无圆角（`border border-border bg-card`，无 rounded 类）。
   // （G17 用户气泡已按 ZCode 实测改回 var(--dsw-radius-*) 标度，不再占字面量额度。）
   'conversation-layout.ts:0': 2,
+  // 2026-10-28 启动徽标：96×96 / 圆角 24 —— ZCode 启动页原文值（startup-logo-shell），
+  // 是启动层的独立标度，不属于应用内圆角标度管辖（该层在应用就绪前播放）。
+  'startup-splash.ts:24px': 1,
 }
 const radiusLiterals = new Map<string, number>()
 for (const { name, text } of clientFiles) {
@@ -1178,6 +1184,7 @@ const unregisteredStyleTemplates: string[] = []
  */
 const STYLE_BLOCK_BUDGET: Record<string, number> = {
   'AboutSection.tsx': 1,
+  'startup-splash.ts': 1,
   'CodexSidebar.tsx': 1,
   'CodexWorkspaceBrowser.tsx': 4,
   'ConnectorsSection.tsx': 4,
@@ -1331,6 +1338,9 @@ console.log(`✓ 样式模板串完整性：AST 解析 ${clientFiles.length} 个
 // ④ 半透明 `rgba()/hsla()`（alpha<1，支持数字/百分比/slash 三种语法）放行。
 const COLOR_LITERAL_ALLOW: Record<string, Record<string, string>> = {
   'zcode-theme.ts': { '*': '令牌真值源' },
+  // 2026-10-28 启动画面：整层复刻 ZCode 启动页原文（遮罩底色 / 徽标黑壳渐变 / 白鲸鱼），
+  // 播放时机在应用令牌层就绪之前，不可能消费 --dsw-* 变量。
+  'startup-splash.ts': { '*': 'ZCode 启动页 1:1 复刻（就绪前无法消费令牌层）' },
   'zcode-tokens.ts': { '*': '令牌真值源' },
   // 第三方品牌图标：Telegram/微信/QQ/Slack 等商标色，不属设计系统、不该改。
   'channel-brand.tsx': { '*': '第三方品牌商标色' },

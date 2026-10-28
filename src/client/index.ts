@@ -1,3 +1,5 @@
+// 启动画面必须是**第一个导入**：模块顶层注入遮罩，抢在宿主首帧之前。
+import './startup-splash.ts'
 import { openConversation, openConversationWithDraft, selectGlobalPanel } from './session-navigation.ts'
 import { createNavigationHistory } from './navigation-history.ts'
 import { createWorkspaceShortcutSource } from './workspace-shortcuts.ts'
