@@ -7,6 +7,8 @@ const OFFICIAL_TURN_TOOLTIP_ATTRIBUTE = 'data-dcu-official-turn-tooltip'
 const OFFICIAL_TURN_NAVIGATOR_SUPPORTED_ATTRIBUTE = 'data-dcu-official-turn-navigator-supported'
 /** G11：宿主 marks 有高度但零刻度时标记，交由自绘导航接管。 */
 const OFFICIAL_TURN_EMPTY_ATTRIBUTE = 'data-dcu-official-turn-empty'
+/** 侧栏开合动画期间打在同 frame 上的标记（sidebar-width.ts 写入），用于暂停布局读取。 */
+const SIDEBAR_MOTION_ATTRIBUTE = 'data-dcu-sidebar-motion'
 const CAPABILITIES_ENDPOINT = `${CODEX_UI_API_ENDPOINTS.dependencies}?action=capabilities`
 
 function isOfficialTurnNavigator(element: Element): element is HTMLElement {
@@ -110,8 +112,23 @@ export function observeOfficialTurnNavigators(doc: Document = document, fetchImp
   if (doc.body === null || doc.documentElement === null) return () => {}
   let active = true
   let frame: number | undefined
+  let pending = false
   const run = (): void => {
     frame = undefined
+    // 2026-10-28 性能修复（T2 深审）：侧栏开合动画期间每帧都有 style 写入 → 观察器每帧触发 →
+    // 这里做「全文档 querySelectorAll('nav') + marks.getBoundingClientRect()」，而 marks 的布局
+    // 正被动画改写，读取即强制同步布局。实测 900ms 开合内 Layout 33 次 / 232ms、
+    // getBoundingClientRect 累计 249ms —— 就是用户感知到的那一下卡顿。
+    // 动画期间导航与刻度不可能变化，直接跳过；属性移除（动画结束）时由观察器补跑。
+    if (doc.querySelector(`[${SIDEBAR_MOTION_ATTRIBUTE}]`) !== null) {
+      pending = true
+      // 兜底：宿主要是连属性一起重建、移除事件没触达观察器，400ms 后自己补一次。
+      window.setTimeout(() => {
+        if (pending && doc.querySelector(`[${SIDEBAR_MOTION_ATTRIBUTE}]`) === null) schedule()
+      }, 400)
+      return
+    }
+    pending = false
     markOfficialTurnNavigators(doc)
   }
   const schedule = (): void => {
@@ -125,9 +142,14 @@ export function observeOfficialTurnNavigators(doc: Document = document, fetchImp
   // 因此只要 childList 有变更就调度一次（markOfficialTurnNavigators 本身是幂等的，
   // 且已被 rAF 合并），不再依赖那次注定落空的「插入节点自身匹配 nav」判定。
   const observer = new MutationObserver(records => {
+    // 开合动画的开始/结束都记在这条属性上：结束时补跑一次（run 在动画期间是空转的）。
+    if (records.some(record => record.type === 'attributes' && record.attributeName === SIDEBAR_MOTION_ATTRIBUTE)) {
+      if (doc.querySelector(`[${SIDEBAR_MOTION_ATTRIBUTE}]`) === null) schedule()
+      return
+    }
     if (records.some(record => record.type === 'childList') || turnNavigatorMutationRelevant(records)) schedule()
   })
-  observer.observe(doc.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] })
+  observer.observe(doc.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', SIDEBAR_MOTION_ATTRIBUTE] })
   schedule()
   void runtimeSupportsOfficialTurnNavigator(fetchImpl).then(supported => {
     if (!active) return
