@@ -133,20 +133,21 @@ assert.deepEqual(
   `引用了未定义的动效档位：${unknownMotion.join(', ')}（已定义：${[...definedMotion].sort().join(', ')}）`,
 )
 
-// ── 7. 签名细节：发送键的回应只用位移与明度，不引入新色 ───────────────────────
-// 单色系统里没有色相可用，签名只能靠位移、明度与节奏——如果它引入了颜色，就不是这套系统的签名。
-const signature = sidebar.match(/\/\* 签名细节[\s\S]*?\*\//)?.[0] ?? ''
-assert.ok(signature.length > 0, '签名细节必须保留说明注释：读者要知道这处动效是有意为之，不是随手加的')
-assert.doesNotMatch(signature, /#[0-9a-fA-F]{3,8}\b|rgba?\(/, '签名细节不得引入颜色，只能用位移与明度')
+// ── 7. 发送键反馈：按下有回应，悬停只走明度 ───────────────────────────────────
+// 单色系统里没有色相可用，反馈只能靠位移、明度与节奏——如果它引入了颜色，就不是这套系统的签名。
+// 2026-10-28 用户裁决：悬停把箭头右移 1px 会被读成「按钮往右偏」，已删除，并在此反向锁定。
+const signature = sidebar.match(/\/\* 发送键反馈[\s\S]*?\*\//)?.[0] ?? ''
+assert.ok(signature.length > 0, '发送键反馈必须保留说明注释：读者要知道这处动效是有意为之，不是随手加的')
+assert.doesNotMatch(signature, /#[0-9a-fA-F]{3,8}\b|rgba?\(/, '发送键反馈不得引入颜色，只能用位移与明度')
 assert.match(
   sidebar,
   /button\[class\$=_primary\]:active:not\(:disabled\)\{transform:scale\(\.94\)\}/,
   '发送键按下必须有回应（压到 .94 并回弹）——这是本插件唯一的签名交互',
 )
-assert.match(
+assert.doesNotMatch(
   sidebar,
-  /button\[class\$=_primary\]:hover:not\(:disabled\) svg\{transform:translateX\(1px\)\}/,
-  '发送键悬停时箭头必须前倾 1px',
+  /button\[class\$=_primary\]:hover:not\(:disabled\)[^{]*\{[^}]*transform:translate/,
+  '发送键悬停不得位移（2026-10-28 起固定：位移会让按钮看起来在往右跑）',
 )
 assert.match(
   sidebar,
