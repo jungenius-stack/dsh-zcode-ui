@@ -386,6 +386,11 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
    原先悬停会把箭头 svg 右移 1px 当「前倾」手感，用户实测反馈是「按钮往右偏」——
    在一个每轮都要点的按钮上，任何悬停位移都会被读成布局不稳，删掉。 */
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div button[class$=_primary]:active:not(:disabled){transform:scale(.94)}
+/* 2026-10-28：会话区左右两条「拖动改宽」手柄（宿主 ST7X_W_widthHandle，10px 宽、通高）在
+   鼠标扫过时会亮出 2px 半透明竖线（::after，opacity 0→1）。用户反馈这条线在阅读时会
+   突然出现、像内容分隔线，要求不要。只藏视觉提示，**保留 10px 拖动区与 col-resize 光标**——
+   改宽能力本身没动（实测拖拽仍会改输入框宽度）。 */
+[class*="widthHandle"]::after{display:none}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div :is(button,select):focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
 /* 窄屏 composer 阴影加强：阈值与 InputHistoryDock 隐藏历史提示的 640px 共用一档。
    此前这里是 639px，与 640px 构成 1px 不一致窗口——那个窗口里阴影已加强、提示却还在。 */

@@ -15,7 +15,9 @@ export function initializeComposerWidth(storage: Pick<Storage, 'getItem' | 'setI
 export function observeHeroWidthHandles(label: string): () => void {
   const mounted = new Map<HTMLElement, () => void>()
   const style = document.createElement('style')
-  style.textContent = `[data-phase=hero]:has([data-conversation-scroll]){position:relative}[data-dcu-width-handle]{position:absolute;top:0;bottom:0;width:32px;padding:0;border:0;background:transparent;cursor:col-resize;touch-action:none;z-index:8;outline-offset:-5px}[data-dcu-width-handle=left]{right:calc(50% + var(--dsh-chat-user-width,640px) / 2 + 16px);left:auto}[data-dcu-width-handle=right]{left:calc(50% + var(--dsh-chat-user-width,640px) / 2 + 16px);right:auto}[data-dcu-width-handle]::after{content:'';position:absolute;top:50%;transform:translateY(-50%);height:100px;width:3px;left:14px;border-radius:var(--dsw-radius-full);background:linear-gradient(transparent,var(--dsw-alias-scrollbar-hover-l1),transparent);opacity:0}[data-dcu-width-handle]:hover::after,[data-dcu-width-handle]:focus-visible::after,[data-dcu-width-handle][data-dragging]::after{opacity:1}[data-phase=hero]:has([data-conversation-composer-overlay]) [data-dcu-width-handle]{display:none}`
+  // 2026-10-28：删掉手柄的 ::after 竖线（原为 100px 渐变线，hover/focus/dragging 时亮起）。
+  // 用户反馈这条线在阅读时会突然亮出来、像内容分隔线。拖动能力与 col-resize 光标保留。
+  style.textContent = `[data-phase=hero]:has([data-conversation-scroll]){position:relative}[data-dcu-width-handle]{position:absolute;top:0;bottom:0;width:32px;padding:0;border:0;background:transparent;cursor:col-resize;touch-action:none;z-index:8;outline-offset:-5px}[data-dcu-width-handle=left]{right:calc(50% + var(--dsh-chat-user-width,640px) / 2 + 16px);left:auto}[data-dcu-width-handle=right]{left:calc(50% + var(--dsh-chat-user-width,640px) / 2 + 16px);right:auto}[data-phase=hero]:has([data-conversation-composer-overlay]) [data-dcu-width-handle]{display:none}`
   document.head.append(style)
   const sync = () => {
     for (const [root, dispose] of mounted) {

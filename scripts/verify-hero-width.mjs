@@ -39,14 +39,15 @@ try {
     assert.ok(Math.abs(mid - geo.rootCenter) <= 2, `内容区必须关于容器中心对称（中心 ${geo.rootCenter}，实测 ${Math.round(mid)}）`)
   }
   // 指示条：纵向固定居中，不得随指针移动（旧实现写 --dcu-pointer-y 会让它跟着鼠标上下跑）
+  // 2026-10-28：手柄指示条（::after 竖线）已按用户要求删除 —— 它在阅读时会突然亮起，
+  // 被当成内容分隔线。断言改为「不得再有可见指示条」，同时下面的拖动用例继续保证手柄可用。
   {
     const bar = await page.evaluate(() => {
       const el = document.querySelector('[data-dcu-width-handle=left]')
       const a = getComputedStyle(el, '::after')
-      return { top: a.top, transform: a.transform, h: a.height }
+      return { content: a.content, display: a.display }
     })
-    assert.ok(!bar.top.includes('--dcu-pointer-y'), '指示条不得再用 --dcu-pointer-y 定位')
-    assert.ok(bar.top === '50%' || bar.transform !== 'none', '指示条必须垂直居中（top:50% + translateY(-50%)）')
+    assert.ok(bar.content === 'none' || bar.display === 'none', '宽度手柄不得再有可见指示条（2026-10-28 删除，见 03d §6）')
   }
   assert.equal(await width(), 672)
   await drag('right', 60)
