@@ -40,10 +40,10 @@ assert.match(settingsPage, /createPortal\([\s\S]*data-dcu-settings-page[\s\S]*do
 assert.match(settings, /body:has\(\.dcu-settings-page\) \.dcu-root/, '透明设置页隔离必须覆盖 portal 到 body 后的侧栏根')
 
 assert.doesNotMatch(sidebar, /--dsh-chat-content-width:\s*800px/, '会话内容列必须保留宿主自适应和拖拽宽度')
-assert.match(sidebar, /--dsh-composer-card-max-width:calc\(var\(--dsh-chat-content-width\) \+ 32px\)/, '输入卡片必须继续从宿主会话宽度轴派生')
+assert.match(sidebar, /--dsh-composer-card-max-width:calc\(var\(--dsh-chat-content-width\) \+ 32px\)/, '输入卡片必须继续从宿主会话宽度轴派生（宽度轴同时被宿主的拖拽宽度契约消费，2026-10-28 未动）')
 assert.doesNotMatch(sidebar, /\[data-chat-flow\]\{gap:/, '不得在宿主逐行间距之外叠加旧版 flex gap')
 assert.doesNotMatch(sidebar, /\[data-composer-card\]\{[^}]*min-height:/, '输入卡片由编辑区和工具栏自然撑高，不额外强制整卡最小高度')
-assert.match(sidebar, /\[data-input-mirror\]\{min-height:44px/, '空输入镜像高度必须接近 Codex 单行区')
+assert.match(sidebar, /\[data-input-mirror\]\{min-height:40px/, '空输入镜像高度对齐 ZCode 的 min-h-10（40px，2026-10-28 浅色活体）')
 assert.match(client, /conversation\.session\.header\.utilities/, '轮次导航必须挂在原生会话扩展位')
 assert.doesNotMatch(client, /registerSidebarExpandControls/, '折叠入口统一保留在窄轨，不再注册标题栏按钮')
 assert.match(navigator, /conversationAnchor/, '轮次跳转必须使用集中管理的 DSH 聊天锚点适配层')

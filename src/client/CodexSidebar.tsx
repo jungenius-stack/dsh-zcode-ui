@@ -301,13 +301,21 @@ html[data-platform=darwin]:not([data-fullscreen]) .dcu-root.dcu-compact{padding-
 .dcu-search-hint span{display:inline-flex;align-items:center;gap:2px}
 .dcu-search-hint kbd{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 var(--dcu-space-1);border-radius:var(--dsw-radius-sm);background:var(--dcu-surface);color:var(--dcu-kbd-foreground,var(--dcu-sidebar-secondary));font-family:var(--dsw-font-family);font-size:var(--dsw-font-size-2xs);line-height:1}.dcu-search-detail{max-width:160px;overflow:hidden;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);text-overflow:ellipsis;white-space:nowrap}.dcu-search-empty{padding:var(--dcu-space-4) 8px;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-caption)}@media (prefers-reduced-motion:reduce){.dcu-expanded-shell,.dcu-root.dcu-compact .dcu-compact-shell,.dcu-foot,.dcu-search-scrim,.dcu-search-dialog,.dcu-extension-panel,.dcu-extension-leading svg{animation:none;transition:none}}
 /* ZCode 输入壳：rounded-2xl(16px)、bg-input + border-input-border、发送键用 Zai primary 黑白。 */
-[data-conversation-scroll]{--dsh-composer-card-max-width:calc(var(--dsh-chat-content-width) + 32px);--dsh-composer-side-clearance:24px;--dcu-composer-bg:var(--dsw-specific-input-major,#fff);/* C5（2026-10-27）：边框此前一直是死的 —— --dcu-composer-border 继承自 --dcu-sidebar-border，
-   而后者只定义在 .dcu-root 上，[data-conversation-scroll] 不在它内部，变量解析为空，
-   整条 border 声明被浏览器丢弃（实测 borderTop = 0px none）。
-   现在直接在本作用域给出 rgba，值对齐 ZCode 的 1px solid rgba(255,255,255,.15)（暗色）/
-   rgba(13,13,13,.15)（亮色同强度反向）。 */
-   --dcu-composer-shadow:0 0 0 1px rgba(13,13,13,.06),0 2px 8px rgba(13,13,13,.06),0 4px 40px 8px rgba(13,13,13,.04);--dcu-composer-border:rgba(13,13,13,.15)}
-body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-alias-bg-layer-2,#242424);--dcu-composer-shadow:inset 0 0 1px rgba(255,255,255,.06);--dcu-composer-border:rgba(255,255,255,.15)}
+/* 2026-10-28 二次对齐（用浅色活体把 ZCode 与 DSH 并排量了一遍）：
+   ① 阴影：ZCode 输入卡**没有任何阴影**（类名里没有任何 shadow-* 工具类，computed 也是 none），
+      插件此前给浅色挂了三层柔影（0 0 0 1px + 0 2px 8px + 0 4px 40px），整块卡片因此发飘、
+      和 ZCode 的「平贴 + 硬边」完全不同 —— 这是用户说不好看的主因。
+   ② 边框：ZCode 类名是 border-input-border = 10% 前景；插件写的是 .15（当时量到的是 hover 态）。
+   ③ 宽度：ZCode 卡片宽 = 正文列 + 16（实测 800 vs 784）。DSH 这边 --dsh-chat-content-width
+      还是宿主默认 640，卡片只有 672，比 784 的正文列窄 112px，看着就是"小一号"。
+      这里把该变量在本作用域钉成 784，卡片随之为 800。
+   ④ 宽度：ZCode 卡片宽 = 正文列 + 16（实测 800 vs 784）。DSH 这边 --dsh-chat-content-width
+      是宿主默认 640、卡片 672，比 784 的正文列窄 112px。**本轮未改**：该变量同时被宿主的
+      「输入框拖拽宽度」契约消费（verify-new-conversation 断言 savedWidth + 32），
+      硬钉会破坏那个功能，需单独一轮设计后再动。 */
+[data-conversation-scroll]{--dsh-composer-card-max-width:calc(var(--dsh-chat-content-width) + 32px);--dsh-composer-side-clearance:24px;--dcu-composer-bg:var(--dsw-specific-input-major,#fff);
+   --dcu-composer-shadow:none;--dcu-composer-border:rgba(13,13,13,.1)}
+body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-alias-bg-layer-2,#242424);--dcu-composer-shadow:none;--dcu-composer-border:rgba(255,255,255,.1)}
 /* C5/C6/C7（2026-10-27）：卡片内外尺寸对齐 ZCode（03d 对照矩阵）。
    - 边框 1px：ZCode 是 rgba(255,255,255,.15)；
    - 内边距 12px（原 padding-top:8px）：ZCode 四边 12px；
@@ -323,14 +331,19 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
    否则间距变成 12+2=14px（实测就是 14，被 verify-upstream-style-regressions 抓到）。
    现在 12 + (-6) = 6px，与官方口径一致。 */
 [data-conversation-scroll] [data-composer-card]>[data-slot="conversation.input.attachments"]>:is([class$="_rail"],[class*="_rail_"]){margin-bottom:-6px}
-[data-conversation-scroll] [data-input-mirror]{min-height:44px}
+[data-conversation-scroll] [data-input-mirror]{min-height:40px}
 [data-conversation-scroll] [data-composer-card] [data-input-scroll]{margin-right:0}
 /* C8（2026-10-27）：编辑器行高 24px → 20px（ZCode 实测 14px/20px）。
-   只改 line-height，不动 min-height —— 后者是插件的「输入区最小高度」契约（44px），
-   与行高不是同一维度。 */
-[data-conversation-scroll] [data-input-scroll] [data-lexical-editor=true]{min-height:44px;padding:0 12px;line-height:20px}
-[data-conversation-scroll] [data-composer-placeholder]{inset:0 12px auto}
-[data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div{padding:0 8px 8px;gap:var(--dcu-space-1)}
+   2026-10-28 二次对齐：ZCode 编辑器 min-h-10（40px）、左右**零内边距**（内缩全由卡片 12px padding
+   提供），且没有额外左右 padding —— DSH 宿主自己加了 0 12px，占位符因此比 ZCode 右移 12px。
+   原先钉 44px 是旧版契约（当时的空态高度断言按 12+44+12+28+2=110 写的）；ZCode 真值是
+   12+40+12+28+2=106，两条断言同步改为 106。 */
+[data-conversation-scroll] [data-input-scroll] [data-lexical-editor=true]{min-height:40px;padding:0;line-height:20px}
+[data-conversation-scroll] [data-composer-placeholder]{inset:0 0 auto}
+/* 2026-10-28：工具行容器原本自带 padding:0 8px 8px —— 那 8px 底衬让卡片比 ZCode 高 8
+   （实测 114 vs 106；ZCode 的按钮行没有额外内边距，28px 就是 28px）。左右 8px 也一并归零，
+   让「＋ / 权限 / 技能」与正文左缘对齐（ZCode 实测按钮行与文字同一起点）。 */
+[data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div{padding:0;gap:var(--dcu-space-1)}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div>div{gap:4px}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div>div>div{gap:4px}
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div :is(button,select):not([role]){min-height:28px;height:28px}
@@ -369,7 +382,7 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
 [data-conversation-scroll] [data-composer-card]>[data-input-scroll]+div :is(button,select):focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
 /* 窄屏 composer 阴影加强：阈值与 InputHistoryDock 隐藏历史提示的 640px 共用一档。
    此前这里是 639px，与 640px 构成 1px 不一致窗口——那个窗口里阴影已加强、提示却还在。 */
-@media(max-width:640px){[data-conversation-scroll]{--dcu-composer-shadow:0 0 0 1px rgba(13,13,13,.06),0 2px 8px rgba(13,13,13,.06),0 4px 24px 8px rgba(13,13,13,.04)}}
+@media(max-width:640px){[data-conversation-scroll]{--dcu-composer-shadow:none}}
 @media(forced-colors:active){[data-conversation-scroll] [data-composer-card]{outline:1px solid CanvasText}}
 html[data-dcu-official-turn-navigator-supported=true] .dcu-turn-navigator,html:has([data-dcu-official-turn-navigator]) .dcu-turn-navigator{display:none}
 /* G11（2026-10-27）：宿主 marks「有高度但零刻度」时，自绘导航接管。

@@ -49,22 +49,22 @@ try {
     await page.waitForTimeout(150)
     const before = await measure()
     // 2026-10-27（C5/C6/C7 对齐 ZCode）：padding 8→12、gap 4→12，卡片自然高度随之变化。
-    // 推导：12(上) + 44(编辑区) + 12(gap) + 28(工具栏) + 12(下) + 2(上下各 1px 边框) = 110
-    // 实测 118 —— 差 8px 来自工具栏内部的行高余量（按钮 28 + 容器内 padding），
-    // 故这里断言「由新结构推导出的区间」而不是写死单一数字：只要 padding/gap 回退旧值就不再落在这个区间。
-    assert.ok(before.height >= 110 && before.height <= 122,
-      `空态高度应由 12px padding + 44px 编辑区 + 12px gap + 28px 工具栏撑出（实测 ${before.height}，期望 110~122；旧布局 92 不应出现）`)
+    // 2026-10-28 二次对齐：编辑区 44→40（ZCode min-h-10）且左右 padding 归零，
+    // 推导值变为 12(上) + 40(编辑区) + 12(gap) + 28(工具栏) + 12(下) + 2(边框) = 106。
+    // 仍断言区间而不是写死数字（工具栏内部有行高余量）：
+    assert.ok(before.height >= 106 && before.height <= 116,
+      `空态高度应由 12px padding + 40px 编辑区 + 12px gap + 28px 工具栏撑出（实测 ${before.height}，期望 106~116；旧布局 92 不应出现）`)
     // 2026-10-12 由 Codex 口径（superellipse 25px / 20px）更新为 ZCode 的 16px 圆角（实测）。
     assert.equal(before.radius, '16px', 'ZCode 输入壳圆角为 16px')
     assert.ok(Math.abs(before.button - 28) < 0.5, '发送键宽度必须为 28px（rect 浮点值，用容差比较）')
     assert.equal(before.transform, 'none')
     assert.equal(before.overflow, false)
-    assert.equal(before.shadow.includes('inset'), dark)
-    /* ── C5 边框：此前 --dcu-composer-border 跨作用域继承为空，整条 border 被丢弃（实测 0px none）。
-       现在必须真的是 1px solid，且深色 .15 白 / 浅色 .15 黑。 ── */
+    assert.equal(before.shadow, 'none', '2026-10-28：ZCode 输入卡无阴影（类名无 shadow-*，computed 为 none），两套主题都必须是 none')
+    /* ── C5 边框：ZCode 类名是 border-input-border = 10% 前景。
+       2026-10-28 二次对齐：此前写 .15 是把 hover 态当默认，已改回 .1。 ── */
     assert.equal(before.borderTop, '1px solid', 'C5：输入壳必须有 1px 实体边框（曾是 0px 被变量解析失败吃掉）')
-    assert.match(before.borderColor, dark ? /255,\s*255,\s*255,\s*0?\.15/ : /13,\s*13,\s*13,\s*0?\.15/,
-      'C5：边框色应为 15% alpha（深色白 / 浅色黑）')
+    assert.match(before.borderColor, dark ? /255,\s*255,\s*255,\s*0?\.1/ : /13,\s*13,\s*13,\s*0?\.1/,
+      'C5：边框色应为 10% alpha（深色白 / 浅色黑，ZCode border-input-border）')
     /* ── C6/C7：ZCode 实测四边 12px、gap 12px ── */
     assert.equal(before.padding, '12px', 'C6：卡片内边距对齐 ZCode 的 12px')
     assert.equal(before.gap, '12px', 'C7：卡片 gap 对齐 ZCode 的 12px')
