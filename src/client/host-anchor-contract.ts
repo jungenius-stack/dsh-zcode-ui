@@ -123,6 +123,10 @@ export function observeHostAnchors(root: HTMLElement | null = typeof document ==
 
   const check = (): void => {
     scheduled = false
+    // 2026-10-28（T2 深审）：侧栏开合动画期间每帧都有 DOM 写入 → 观察器每帧调度一次，
+    // 而一次审计要对每组作用域做 querySelector（全文档走查）。
+    // 动画期间锚点不可能改名或消失，跳过；动画结束后的下一批 mutation 会自然再跑。
+    if (typeof document !== 'undefined' && document.querySelector('[data-dcu-sidebar-motion]') !== null) return
     const missing = findMissingHostAnchors(root)
     if (missing.length === 0) return
     // 按组聚合，避免一次改名刷出 5 条几乎相同的警告。
