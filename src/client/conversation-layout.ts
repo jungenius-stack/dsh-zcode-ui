@@ -173,7 +173,29 @@ export const CONVERSATION_LAYOUT_STYLE = `
 /* ④ 列表内段落归零 */
 [data-conversation-scroll] .icaHSq_column li > p{margin:0;display:inline}
 
-/* ⑤ 工具行弱化（2026-10-28 实测对照）：
+/* ⑤ 分隔线与尾行（2026-10-28 实测对照）：
+   ZCode 全文档 0 个可见 hr——章节之间只靠留白与标题分层（实测 hrs=0）；
+   DSH 的 markdown 分隔线渲染成 1px 10% 白线 + 上下 32px，等于给文档画格子，是「毛坯感」主因之一。
+   这里保留 32px 间距、抹掉线条本身。
+   尾行口径：ZCode 时间戳 = 12px / 前景 30%（text-ui-sm text-foreground-subtlest）；
+   DSH 现为 13px/12px、50%——统一到 12px/30%。 */
+[data-conversation-scroll] .icaHSq_column hr{
+  border:0;
+  height:0;
+  background:transparent;
+  margin:24px 0;
+}
+[data-conversation-scroll] .icaHSq_column .ppByMG_timeStart,
+[data-conversation-scroll] .icaHSq_column .ppByMG_timeEnd{
+  font-size:var(--dsw-font-size-sm,12px);
+  color:var(--dsw-alias-label-dimmed,rgba(212,212,212,.3));
+}
+[data-conversation-scroll] .icaHSq_column .cm-note summary,
+[data-conversation-scroll] .icaHSq_column .IzP3Va_retryRow summary{
+  color:var(--dsw-alias-label-dimmed,rgba(212,212,212,.3));
+}
+
+/* ⑥ 工具行弱化（2026-10-28 实测对照）：
    ZCode「已运行命令 / 思考 · 持续了 N 秒」= 14px / lh21 / 前景 30% / 字重 500；
    DSH 现为 14px / 50% / 400 —— 偏亮偏细，读起来像正文的碎片。
    用宿主自带的稳定锚点 data-process-activity（按钮上，非哈希类名）。 */
