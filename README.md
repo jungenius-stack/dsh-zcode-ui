@@ -59,13 +59,17 @@ The two images at the top of this page are the light and dark sidebar + workspac
 > Project names, conversation titles and the balance figures in every screenshot are **demo data** — the
 > captures are sanitised before committing so no real workspace ever appears in this repository.
 >
-> **Re-captured for 1.15.0** (2026-10-18) against a live host (`0.2.1-rc.2`) in an isolated profile,
-> so the session indent, monochrome card icons and wider group spacing shown here are the real thing.
-> Demo data only — no real workspace appears in this repository.
+> **Re-captured for 2.0.0** (2026-10-29) against a live host (`0.2.1-rc.2`): the collapsed rail,
+> the pinned titlebar (host's duplicate buttons hidden), the flat composer card and the table/quote
+> styling shown here are the shipped 2.0 look.
 
 Settings page — selected states are neutral, matching the sidebar (no blue leftovers from the host defaults):
 
 ![Settings page, light theme](assets/screenshots/settings-light.png)
+
+Collapsed rail — icon-only, expand button on top, footer icons pinned to the bottom (dark):
+
+![Collapsed rail, dark theme](assets/screenshots/collapsed-dark.png)
 
 Header search across conversations and settings:
 
