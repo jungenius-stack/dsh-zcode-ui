@@ -23,6 +23,29 @@
 > It is a fork of the open-source project [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui) (Apache-2.0), and its design values are taken from [zai-org/ZCode](https://github.com/zai-org/ZCode) (Apache-2.0).
 > "DeepSeek", "DeepSeek Harness" and "ZCode" are the property of their respective owners; the names are used here only to describe compatibility and design provenance.
 
+---
+
+## Every pixel, measured. Every motion, earned.
+
+Most skins eyeball a screenshot and start copying. We didn't.
+
+**dsh-zcode-ui** is the result of a six-week design-inheritance program in which nothing — not a
+single radius, not a single frame of easing — was guessed. We opened ZCode itself with the Chrome
+DevTools Protocol and read its computed styles live. We unpacked its startup page and lifted the
+keyframes verbatim. We sampled its dialog shadows pixel by pixel. Then we rebuilt that language
+inside DeepSeek Harness — 14,480 lines of TypeScript, 85+ modules, one design system.
+
+The result doesn't imitate ZCode. It **speaks ZCode, natively, inside another app**.
+
+And it stays fast doing it: sidebar collapse runs a single 300ms glide with **zero long tasks**,
+the composer sits flat and still under your cursor, and a cinematic splash — your app icon popping
+to life over macOS vibrancy — welcomes you at launch, gone in under a second.
+
+**Measured, not estimated. Guarded, not hoped for.** That is the whole philosophy — and it's why
+this skin feels less like a theme and more like the interface DeepSeek Harness was meant to have.
+
+---
+
 > [!NOTE]
 > **Stable since 2.0.0.** Every visual value in this skin is traceable to a live measurement of ZCode (CDP computed styles or extracted source), guarded by 45 contract assertions, 57 unit/integration test files and 22 real-browser layout checks — `npm run gate` runs them all, and the `pre-push` hook runs the same gate before anything lands on GitHub. Known limitations are still listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
 > Corrections and improvement suggestions are genuinely welcome — please open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues). The most useful report is short: what you expected, what happened, and a screenshot if the problem is visual.
@@ -44,6 +67,9 @@ startup splash, title-bar dedup) — each closed with a before/after measurement
 
 ## What you get
 
+Not a theme file. A full design system, inherited at the token layer — every official surface
+recolors as one piece, in both light and dark:
+
 | Area | What the skin does |
 | --- | --- |
 | **Layout** | ZCode sidebar geometry — 8px radii, 32px rows, `px-2 / py-3 / gap-1` spacing, 150–200ms `ease-out` motion, seven-step type scale |
@@ -51,6 +77,10 @@ startup splash, title-bar dedup) — each closed with a before/after measurement
 | **Icons** | Lucide (the same icon library ZCode uses) for sidebar navigation and row actions |
 | **Theme** | Follows the host's own light/dark preference via `body[data-ds-dark-theme]`; light canvas `#f8f8f8`, dark canvas `#161616` |
 | **Sidebar behaviour** | Pin / group / drag-reorder projects and conversations, unread and running indicators, header search over sessions + settings + quick actions, rename / archive / fork / copy / delete, turn navigation in long conversations, Up/Down recall of previous input |
+| **Conversation craft** | 784px text column, 20px turn rhythm, 0.35px tracking, right-aligned user bubbles with collapse, ZCode-grade tables and blockquotes, fenced code cards, no horizontal scroll |
+| **Motion** | Intent-tiered tokens (enter / feedback / move / press), sidebar collapse in one 300ms glide with **zero long tasks**, shared entrance animations so nothing appears out of sync |
+| **Startup** | A cinematic splash — your app icon popping to life over macOS vibrancy, gone in under a second, with a 3-second failsafe so it can never trap you |
+| **Dialog grammar** | One family as the single default, scored 8/9 in an independent design review; the heavyweight family reserved for blocking confirmations — and the two never mix |
 
 ## Screenshots
 
