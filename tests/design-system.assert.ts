@@ -1556,3 +1556,7 @@ assert.ok(
   '回到底部槽的 195px 右内边距必须清零，否则只是“内容盒居中”仍偏左',
 )
 console.log('✓ 输入区视觉：加号圆底 hover-only、回到底部居中')
+
+// 2026-10-29：enter/exit 时长也对齐 ZCode 的 --animate-in/--animate-out 默认 .15s。
+assert.equal(durationOf('enter'), '150ms', 'enter 档必须 150ms —— ZCode --animate-in 默认 .15s')
+assert.equal(durationOf('exit'), '150ms', 'exit 档必须 150ms —— ZCode --animate-out 默认 .15s')

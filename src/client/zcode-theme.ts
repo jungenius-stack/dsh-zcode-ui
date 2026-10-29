@@ -136,8 +136,11 @@ body[data-ds-dark-theme],.theme-zai-dark{
      两件事在 ZCode 里本来就是两个值，此前被我们并成 300ms 一档。 */
   --dcu-motion-move-duration:200ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
   --dcu-motion-collapse-duration:300ms;--dcu-motion-collapse-ease:cubic-bezier(.4,0,.2,1);
-  --dcu-motion-enter-duration:160ms;--dcu-motion-enter-ease:cubic-bezier(.2,0,0,1);
-  --dcu-motion-exit-duration:120ms;--dcu-motion-exit-ease:cubic-bezier(.4,0,1,1);
+  /* 2026-10-29 ZCode asar：--animate-in / --animate-out 的默认时长都是 .15s
+     （enter 与 exit 同档），此前我们写 160/120 是估的。曲线保留意图分档
+     （enter 减速收尾 / exit 加速离场），时长对齐 ZCode 的 150ms。 */
+  --dcu-motion-enter-duration:150ms;--dcu-motion-enter-ease:cubic-bezier(.2,0,0,1);
+  --dcu-motion-exit-duration:150ms;--dcu-motion-exit-ease:cubic-bezier(.4,0,1,1);
   --dcu-motion-press-duration:90ms;--dcu-motion-press-ease:cubic-bezier(.2,0,0,1);
 }
 /* ── 间距标度（2026-10-16 补，对齐 ZCode DESIGN.md §Spacing）────────────────────

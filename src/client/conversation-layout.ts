@@ -78,12 +78,46 @@ export const CONVERSATION_LAYOUT_STYLE = `
   line-height:21px;
 }
 
-/* 复制钮颜色对齐 ZCode 的「30% 系」。
-   宿主现在是 rgba(212,212,212,.5)（50% 前景）；ZCode 工具/代码的次要元素用 30% 边框色。
-   用 --dsw-alias-label-dimmed（= 前景 30%）而不是写死 rgba：
-   它随主题翻转，符合「中性色不用死值」的设计逻辑。 */
-[data-conversation-scroll] .icaHSq_column .ppByMG_action{
-  color:var(--dsw-alias-label-dimmed,rgba(212,212,212,.3));
+/* ── 正文操作行 = ZCode 规格（2026-10-29 CDP 9224 活体实测，推翻上一条「30% 系」结论）──
+   ZCode 真值：
+     行容器  flex / gap 4 / margin-top 4 / **默认 opacity 0**，
+             hover 消息行 或 focus-within 时 opacity 1，
+             过渡只动 opacity：0.15s cubic-bezier(.4,0,.2,1)（feedback 档）
+     按钮    24×24 / radius 6 / padding 0 / 背景透明（hover 也不上底）
+     图标    14×14 / stroke-width 1.5
+     颜色    **全文前景 oklch(.87)** —— 不是淡色；上一条「30% 系」把
+             「行整体隐藏」误读成了「图标用淡色」，这次按实测改正。
+   DSH 现状（实测）：行常驻 opacity 1、gap 8；按钮 28×28 且**三种圆角混用**
+   （4px / 28px 胶囊 / 4px）；图标 15~16px / stroke 1；颜色 40~50% 两种。 */
+[data-conversation-scroll] .icaHSq_column .ppByMG_actions,
+[data-conversation-scroll] .icaHSq_column .d1vkyW_actions{
+  gap:4px;
+  margin-top:4px;
+  opacity:0;
+  transition:opacity var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);
+}
+[data-conversation-scroll] .icaHSq_column .icaHSq_flowItem:hover .ppByMG_actions,
+[data-conversation-scroll] .icaHSq_column .icaHSq_flowItem:hover .d1vkyW_actions,
+[data-conversation-scroll] .icaHSq_column .icaHSq_flowItem:focus-within .ppByMG_actions,
+[data-conversation-scroll] .icaHSq_column .icaHSq_flowItem:focus-within .d1vkyW_actions{
+  opacity:1;
+}
+[data-conversation-scroll] .icaHSq_column .ppByMG_action,
+[data-conversation-scroll] .icaHSq_column .dsh-session-kit-turn-action,
+[data-conversation-scroll] .icaHSq_column .oB5zFG_action{
+  width:24px;
+  height:24px;
+  border-radius:var(--dsw-radius-md);
+  padding:0;
+  background:transparent;
+  color:var(--dsw-alias-label-primary);
+}
+[data-conversation-scroll] .icaHSq_column .ppByMG_action svg,
+[data-conversation-scroll] .icaHSq_column .dsh-session-kit-turn-action svg,
+[data-conversation-scroll] .icaHSq_column .oB5zFG_action svg{
+  width:14px;
+  height:14px;
+  stroke-width:1.5;
 }
 
 /* ── G17 用户轮 = 右侧气泡（2026-10-28 二次实测，推翻上一轮的「扁平化」）──
