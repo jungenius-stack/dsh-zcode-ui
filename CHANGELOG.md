@@ -4,6 +4,40 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.0.2 - 2026-10-29
+
+**The conversation column is finally responsive.** It was pinned at 784px — which turned out to be
+a snapshot of ZCode at one particular window size, not a rule.
+
+Measured by driving ZCode's viewport through a dozen widths over CDP:
+
+| Available width | Column max-width | Text width |
+|---|---|---|
+| under 1280px | 896px | **848px** |
+| 1280px and up | 1152px | **1104px** (capped) |
+
+The composer follows: card = text width + 16.
+
+### What changed
+
+- Column: `min(848px, 100%)`, switching to `min(1104px, 100%)` once the content area is wide
+  enough. Both tiers keep a `100%` guard so narrow windows never overflow.
+- Composer card: the host had it pinned at 887px regardless of window size; it now tracks the
+  column (`min(column + 16px, 100%)`) in both tiers.
+- The switch uses a **container query**, not a media query — collapsing the sidebar frees up width
+  without changing the viewport, and a media query would miss that.
+- The threshold is calibrated to a container width of **1188px** (ZCode's own breakpoint at a
+  1554px window, minus the 366px that DSH's sidebar and scroll padding consume), so both UIs change
+  tiers at the same window size.
+
+### Verified
+
+Same-window comparison, DSH vs ZCode: 1280 → 848/864 vs 848/864; 2000 → 1104/1120 vs 1104/1120.
+Intermediate widths (800 / 1000 / 1440 / 1554 / 2400) all match tier for tier.
+
+Known: at the wide tier an invisible sticky table strip inside the host reports an 84px overflow;
+the existing `overflow-x: hidden` clips it, so it is neither visible nor able to shift content.
+
 ## 2.0.1 - 2026-10-29
 
 **Motion retimed to ZCode's own numbers, and the conversation action row rebuilt from live
