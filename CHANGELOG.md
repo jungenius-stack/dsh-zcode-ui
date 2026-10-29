@@ -4,6 +4,37 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.0.1 - 2026-10-29
+
+**Motion retimed to ZCode's own numbers, and the conversation action row rebuilt from live
+measurement.** Every value below comes from the ZCode bundle (extracted CSS) or a CDP session
+against the running app.
+
+### Motion
+
+- **Sidebar open/close: 300ms → 200ms.** ZCode's workspace sidebar animates with
+  `duration-200 ease-out`; ours was 50% slower, which is what "sluggish collapse" felt like.
+- **Collapsible bodies keep 300ms** — in ZCode they are `animation: .3s ease-in-out`, a different
+  value from the sidebar. The two had been merged into one 300ms tier; they are separate again
+  (`--dcu-motion-collapse-*`).
+- **Overlay enter/exit: 160/120ms → 150/150ms** — ZCode's `--animate-in` / `--animate-out`
+  defaults are both `.15s`.
+- Durations are now asserted, not just curves: a tier could previously be twice as slow and still
+  pass the gate.
+
+### Conversation action row
+
+- Row is **hidden by default and fades in on message hover / focus-within** (opacity only,
+  150ms `.4,0,.2,1`), matching ZCode's `opacity-0 group-hover:opacity-100`.
+- Buttons: **24×24, radius 6, 14px icon, 1.5 stroke, full-foreground colour** — DSH shipped
+  28×28 with three different radii in one row (4 / pill / 4) and two colours (40% / 50%).
+- Icon colour unified across the row: three buttons carry an inline 50% colour from another
+  plugin, so one narrowly scoped override pins the whole row to the foreground colour.
+- Fixed a self-inflicted regression from that same pass: forcing a fixed width on every button in
+  the row squashed the icon+label button ("记忆", 43px of content) and spilled its text onto the
+  delete button. Sizing now uses `min-width` + padding, so icon-only buttons land on 24px and
+  text buttons size to their content.
+
 ## 2.0.0 - 2026-10-29
 
 **First stable release. The design-inheritance effort that started at 1.15 is complete: every
