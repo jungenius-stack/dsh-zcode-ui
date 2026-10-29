@@ -51,7 +51,13 @@ const BUDGET = {
      conversation-layout.ts 0 → 1，净增 11）只把预算推到 58，实测 59，漏记 1 处。
      逐处核过用途：全部属于已登记三类（压宿主 JS 内联的 top/left/right 定位、
      接管态必须赢过隐藏态的 display、切宿主底色规则），无新增类别，本条补记差额。 */
-  importantOccurrences: 59,
+
+    /* 2026-10-29 +1（59 → 60）：正文操作行的图标色统一。
+    这一排里 dsh-session-kit 的三个钮（重新生成 / 蒸馏 / 删除）带内联 color
+    var(--dsw-alias-label-tertiary)（50%），宿主自己的钮是 100% —— 浅色下前者发灰、
+    后者纯黑，肉眼读成「图标粗细不一致」。内联优先级只能用重要级覆盖压过，
+    且只此一条、只作用于操作行按钮颜色。无更轻的合法手段（这些按钮不归插件所有）。 */
+  importantOccurrences: 60,
   todoMarkers: 0,
 }
 

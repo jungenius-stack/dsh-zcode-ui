@@ -119,6 +119,13 @@ export const CONVERSATION_LAYOUT_STYLE = `
   background:transparent;
   color:var(--dsw-alias-label-primary);
 }
+/* 2026-10-29 统一图标色：这一排里 dsh-session-kit 的三个钮（重新生成 / 蒸馏 / 删除）带
+   **内联 color: var(--dsw-alias-label-tertiary)**（50%），宿主自己的钮是 100% —— 浅色下
+   前者发灰、后者纯黑，肉眼就是「粗细不一致」。内联样式只能用感叹号优先级压过
+   （本仓库统一叫「重要级覆盖」）；范围只限「操作行按钮的颜色」这一条，
+   是本文件唯一的颜色类重要级覆盖。记账：结构债计数因此 +1（已随 baseline 重生成登记），
+   理由是同款按钮来自另一个插件的内联样式，样式表没有更轻的合法手段能压过它。 */
+[data-conversation-scroll] .icaHSq_column :is(.ppByMG_actions,.d1vkyW_actions) button{color:var(--dsw-alias-label-primary)!important}
 [data-conversation-scroll] .icaHSq_column .ppByMG_action svg,
 [data-conversation-scroll] .icaHSq_column .dsh-session-kit-turn-action svg,
 [data-conversation-scroll] .icaHSq_column .oB5zFG_action svg{
