@@ -4,6 +4,58 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.0.0 - 2026-10-29
+
+**First stable release. The design-inheritance effort that started at 1.15 is complete: every
+visual decision in the skin is now backed by a recorded measurement of ZCode, and the whole
+surface is guarded by the four-layer gate.**
+
+### Conversation area
+
+- Column width corrected 924 → **784px** (ZCode live measurement); turn-group spacing 20px;
+  letter-spacing 0.35px; heading hierarchy flattened (h1 18 / h2 16 / h3+ 14px, weights instead of size)
+- **User bubble restored** — ZCode user turns *are* right-aligned bubbles (surface fill, 1px 10%
+  border, radius `12/2/12/12`, padding 12/16, line-height 21px); the earlier "flat row" reading
+  was a measurement against the wrong anchor
+- Long-bubble collapse: 120px max-height, expand button, bottom fade — parity with ZCode's
+  own collapse behavior (asar-extracted)
+- Fenced code blocks: opaque card, 1px border, banner flattened, shiki colors pinned
+- Tables, blockquotes and attachment thumbnails aligned to ZCode
+- Horizontal scroll removed from the conversation (ZCode's two-level scrolling)
+
+### Motion
+
+- Sidebar collapse rebuilt: the 500ms two-phase swap is gone; compact content swaps on click,
+  the column does one 300ms slide, footer and header fade with the shell — one motion, no jumping
+- Entrance animations shared between the compact rail and the footer (same curve, same frame)
+- Official turn-navigator scanning and host-anchor audits paused during sidebar motion
+  (they were forcing synchronous layout every frame; p95 frame time 33.4ms → 16.7ms,
+  long tasks per toggle 126ms → 0)
+
+### Startup splash
+
+- New: full-screen splash replicating ZCode's own startup page — 96×96 badge, 24px radius,
+  dark gradient shell, pop-in (`0.72s cubic-bezier(0.22,1,0.36,1)`), 0.16s double fade on ready
+- Badge shows the official DeepSeek Harness app icon; background is transparent so macOS
+  vibrancy shows through, then the dark canvas fades in
+- Triple failsafe: ready-poll on `.dcu-root`, 3s hard cap, reduced-motion skip
+
+### Chrome and dialogs
+
+- Host titlebar's duplicate "open sidebar / new chat" buttons hidden while the skin is present
+  (they overlapped the breadcrumb at x≈88)
+- Dialog grammar settled: the form family (16px padding, #2b2b2b card, 1px 10% border, two-layer
+  shadow-md) is the single default — an independent design review scored it 8/9 vs 6/9
+- Send button pinned: the 1px hover nudge on the arrow was read as layout instability and removed
+- Composer: outer glow removed (ZCode has none), border 15% → 10%, editor padding 12 → 0,
+  card height 118 → 106, all matching live ZCode measurements
+
+### Also
+
+- Sidebar transparency rejected on WCAG data: semi-transparent variants fail AA in 8 of 9
+  wallpaper combinations (independent review); solid stays
+- Version ledger, radius/color/motion contract registers updated for the new modules
+
 ## 1.17.0 - 2026-10-26
 
 **Aligned the sidebar spec against ZCode 3.16.3 read live over CDP, and fixed a 104px dead

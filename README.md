@@ -23,15 +23,24 @@
 > It is a fork of the open-source project [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui) (Apache-2.0), and its design values are taken from [zai-org/ZCode](https://github.com/zai-org/ZCode) (Apache-2.0).
 > "DeepSeek", "DeepSeek Harness" and "ZCode" are the property of their respective owners; the names are used here only to describe compatibility and design provenance.
 
-> [!WARNING]
-> **Beta — this is an early test build.** The interface and behaviour still change quickly, and the rough edges are listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
-> **Corrections and improvement suggestions are genuinely welcome** — please open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues). The most useful report is short: what you expected, what happened, and a screenshot if the problem is visual.
+> [!NOTE]
+> **Stable since 2.0.0.** Every visual value in this skin is traceable to a live measurement of ZCode (CDP computed styles or extracted source), guarded by 45 contract assertions, 57 unit/integration test files and 22 real-browser layout checks — `npm run gate` runs them all, and the `pre-push` hook runs the same gate before anything lands on GitHub. Known limitations are still listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
+> Corrections and improvement suggestions are genuinely welcome — please open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues). The most useful report is short: what you expected, what happened, and a screenshot if the problem is visual.
 
 DSH ZCode UI repaints the DSH Web interface in ZCode's (Zhipu / Zai) visual language: the sidebar, the workspace session tree, the header search, and the composer all adopt ZCode geometry, palette, and iconography — in both light and dark themes.
 
 **The skin itself changes nothing else.** Everything it draws flows through DSH's own `SlotRegistry` slots and `ctx` public services, and it never writes conversation records.
 
 One thing worth stating plainly, because the paragraph above used to overstate it: this package is a fork of [`dsh-codex-ui`](https://github.com/MichengAI/dsh-codex-ui) and **also carries upstream's non-visual features** — a dependency panel that can run `pnpm` and rewrite `node_modules`, session moves between workspaces, and "open in file manager". They are inherited rather than written here, and they are what the About page exposes. You can simply not use them, but they do ship in this package. See [Scope and permissions](#scope-and-permissions).
+
+## Maturity
+
+Version 2.0.0 is the culmination of a six-week design-inheritance effort. Every visual decision —
+784px column width, 32px rows, the two-tier dialog grammar, motion tokens, the startup splash —
+is backed by a recorded measurement of ZCode itself, not by eye. The full ledger lives in
+[`docs/ZCODE-DESIGN.md`](docs/ZCODE-DESIGN.md); the gaps that were found and closed read like a
+changelog of 30+ audit rounds (conversation typography, dialog families, turn-rail motion,
+startup splash, title-bar dedup) — each closed with a before/after measurement.
 
 ## What you get
 

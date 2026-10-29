@@ -23,8 +23,8 @@
 > 它派生自开源项目 [MichengAI/dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)（Apache-2.0），设计值取自 [zai-org/ZCode](https://github.com/zai-org/ZCode)（Apache-2.0）。
 > 「DeepSeek」「DeepSeek Harness」「ZCode」等名称归各自所有者，此处仅用于说明兼容性与设计来源。
 
-> [!WARNING]
-> **测试版（beta）—— 这还是一个早期测试版本。** 界面与行为仍在快速变化，已知的粗糙之处都如实写在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
+> [!NOTE]
+> **自 2.0.0 起为稳定版。** 皮肤里的每一个视觉值都能追溯到对 ZCode 的实机测量（CDP 计算样式或源码提取），由 45 个契约断言、57 个单元/集成测试文件与 22 个真机布局脚本守护——`npm run gate` 一条命令全跑，`pre-push` 钩子在任何东西进入 GitHub 之前执行同一道门禁。已知限制依旧如实列在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
 > **非常欢迎纠错和改进建议**——请直接开一个 [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues)。最有用的反馈很简短：你期望看到什么、实际发生了什么，如果是视觉问题就附一张截图。
 
 DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉语言：侧栏、工作区会话树、头部搜索、输入框全部采用 ZCode 的几何、配色与图标，明暗两套主题都是。
@@ -32,6 +32,14 @@ DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉
 **皮肤本身不改动别的东西。** 它绘制的一切仍然走 DSH 自己的 `SlotRegistry` 插槽与 `ctx` 公共服务，也从不写会话记录。
 
 但有一点必须说清楚，因为上面这段话此前说宽了：本包是 [`dsh-codex-ui`](https://github.com/MichengAI/dsh-codex-ui) 的 fork，**同时继承了上游的非视觉功能**——一个能运行 `pnpm`、可重写 `node_modules` 的依赖面板，工作区之间的会话移动，以及「在文件管理器中打开」。它们继承自上游（不是本仓库写的），也是「关于」页里暴露的那部分。**只用皮肤、不用这些功能完全可以**，但它们确实随本包一起发布。详见[能力范围与权限](#能力范围与权限)。
+
+## 成熟度
+
+2.0.0 是六周设计继承工作的收官版本。每一个视觉决策——784px 正文列、32px 行高、两套弹窗语法、
+动效令牌、启动画面——背后都是一条对 ZCode 本身的实测记录，而不是目测。完整台账在
+[`docs/ZCODE-DESIGN.md`](docs/ZCODE-DESIGN.md)；被发现并关闭的缺口读起来就是 30+ 轮审计的
+变更史（会话区排版、弹窗家族、轮次轨动效、启动画面、标题栏去重）——每一项都以
+前后对照测量收口。
 
 ## 你会得到什么
 
