@@ -129,7 +129,13 @@ body[data-ds-dark-theme],.theme-zai-dark{
      保留五档结构不动：enter/exit/press 在 ZCode 侧栏范围内没采到对应值，
      不臆造，维持原值。 */
   --dcu-motion-feedback-duration:150ms;--dcu-motion-feedback-ease:cubic-bezier(.4,0,.2,1);
-  --dcu-motion-move-duration:300ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
+  /* 2026-10-29 ZCode asar 实测校正（两处时长分开，不再共用一档）：
+     · 侧栏开合 = 宿主 workspace 侧栏类名 duration-200 ease-out transition-[width,opacity]
+       → 200ms + cubic-bezier(0,0,.2,1)（旧值 300ms 比 ZCode 慢 50%，是「收起拖沓」的根源）
+     · 折叠体（分组展开/收起）= ZCode animation .3s ease-in-out → 300ms
+     两件事在 ZCode 里本来就是两个值，此前被我们并成 300ms 一档。 */
+  --dcu-motion-move-duration:200ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
+  --dcu-motion-collapse-duration:300ms;--dcu-motion-collapse-ease:cubic-bezier(.4,0,.2,1);
   --dcu-motion-enter-duration:160ms;--dcu-motion-enter-ease:cubic-bezier(.2,0,0,1);
   --dcu-motion-exit-duration:120ms;--dcu-motion-exit-ease:cubic-bezier(.4,0,1,1);
   --dcu-motion-press-duration:90ms;--dcu-motion-press-ease:cubic-bezier(.2,0,0,1);
@@ -209,7 +215,7 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
 /* 令牌化的副产品：减少动态效果不再需要逐个元素写 transition:none —— 把五档时长一起归零，
    所有消费方自动跟随。各处残留的 transition:none 块保留（它们同时覆盖未令牌化的宿主元素）。 */
 @media (prefers-reduced-motion:reduce){
-  :root{--dcu-motion-feedback-duration:0ms;--dcu-motion-move-duration:0ms;--dcu-motion-enter-duration:0ms;--dcu-motion-exit-duration:0ms;--dcu-motion-press-duration:0ms}
+  :root{--dcu-motion-feedback-duration:0ms;--dcu-motion-move-duration:0ms;--dcu-motion-collapse-duration:0ms;--dcu-motion-enter-duration:0ms;--dcu-motion-exit-duration:0ms;--dcu-motion-press-duration:0ms}
   /* 时长归零管不到 infinite 动画——波浪与旋转会继续动。按 ZCode 的「停静止帧」处理：
      动作归零，但保留「进行中」的可读性（进度停在当前进度，而不是变回 0；转圈停在原角度，图标不消失）。 */
   :root:root .dcu-about-progress-fill[data-wave=true]{animation:none;width:28%}

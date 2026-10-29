@@ -254,7 +254,9 @@ for (const [index, tiers] of sidebarTiers.entries()) {
 // 因此不再断言"导航必须更淡"，改为断言主菜单的字重与取色（意图：常规字重、不用主标题色）。
 assert.match(sidebar, /\.dcu-menu button[^}]*color:var\(--dcu-sidebar-primary\)[^}]*font-weight:400/, '主导航必须使用 ZCode 的常规字重与语义文字色')
 assert.match(sidebar, /\.dcu-extension-items button\{[^}]*font-size:var\(--dsw-font-size-caption\);font-weight:400/, '扩展二级导航必须比父级更淡更小，形成缩进层级')
-assert.match(sidebar, /\.dcu-extension-panel\{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\),opacity var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/, '扩展面板可开可合，属位置变化，必须使用移动档曲线')
+// 2026-10-29：ZCode 折叠体是 `animation:.3s ease-in-out`（asar 原文），与侧栏开合（200ms）不是一档，
+// 这里改用独立的 collapse 档，避免再次把两个时长并成一个。
+assert.match(sidebar, /\.dcu-extension-panel\{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows var\(--dcu-motion-collapse-duration\) var\(--dcu-motion-collapse-ease\),opacity var\(--dcu-motion-collapse-duration\) var\(--dcu-motion-collapse-ease\)/, '扩展面板属折叠体，必须使用 collapse 档（ZCode .3s ease-in-out）')
 assert.match(sidebar, /\.dcu-extension-panel\[data-open=false\]\{grid-template-rows:0fr;opacity:0;pointer-events:none\}/, '收缩的扩展面板必须禁止鼠标命中')
 assert.match(sidebar, /\.dcu-extensions-group:hover \.dcu-extension-default-icon,[^{]*\{opacity:0/, '扩展分组悬停时必须隐藏左侧扩展图标')
 assert.match(sidebar, /\.dcu-extensions-group:hover \.dcu-extension-state-arrow/, '扩展分组悬停时必须在左侧图标位显示状态箭头')

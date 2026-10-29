@@ -1071,6 +1071,18 @@ assert.equal(easeOf('enter'), 'cubic-bezier(.2,0,0,1)',
 assert.equal(easeOf('exit'), 'cubic-bezier(.4,0,1,1)',
   'exit 必须是加速离场曲线 (.4,0,1,1)')
 
+// 2026-10-29 ZCode asar 实测：时长也分档，不再共用 300ms。
+//   · 侧栏开合 = workspace 侧栏类 `duration-200 ease-out` → 200ms
+//   · 折叠体   = `animation:.3s ease-in-out` → 300ms
+const durationOf = (name: string): string => {
+  const m = theme.match(new RegExp(`--dcu-motion-${name}-duration:([^;]+);`))
+  assert.ok(m, `必须定义 --dcu-motion-${name}-duration`)
+  return m[1].trim()
+}
+assert.equal(durationOf('move'), '200ms', 'move 档（侧栏开合）必须 200ms —— ZCode duration-200')
+assert.equal(durationOf('collapse'), '300ms', 'collapse 档（分组折叠体）必须 300ms —— ZCode .3s')
+assert.equal(easeOf('collapse'), 'cubic-bezier(.4,0,.2,1)', 'collapse 档曲线必须 ease-in-out(.4,0,.2,1)')
+
 // 反向守护：move 档（侧栏开合等单向位移）仍不得用回缓入缓出。
 // 2026-10-26：feedback 档已排除在本守护之外——CDP 实测 ZCode 的会话行悬停
 // （color/background-color，单向）用的正是 (.4,0,.2,1) + 150ms。
