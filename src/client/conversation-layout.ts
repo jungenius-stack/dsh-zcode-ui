@@ -8,20 +8,30 @@
  * 2026-10-28 追加 D1 围栏代码块（ZCode asar 静态提取定案）。
  *
  * 所有值来自 ZCode 活页面实测（03c-conversation-zcode-spec.json）：
- *   正文文字列 784（spec 的 924 是滚动容器口径，见常量注释）/ 轮组 margin-top 20 / 正文 14px 行高 24.5
+ *   正文文字列 848/1104（容器查询两档；spec 的 924 是滚动容器口径）/ 轮组 margin-top 20 / 正文 14px 行高 24.5
  *
  * 纪律：只写属性、不加节点、不用 !important（全部靠特异性达标）。
  */
 
 /**
- * ZCode 实测**文字列**宽 = 784px。
+ * ZCode 实测**文字列**宽：窄窗 848 / 宽窗 1104（容器查询，阈值 1280）。
+ * 旧值 784 是「1202px 视口」这一种尺寸下的快照，被当成了固定值 —— 于是窗口拉大时
+ * 正文列不再变宽，和 ZCode 行为不符。
  *
  * 2026-10-28 更正（原值 924 是错的口径）：活页实测 ZCode 会话列容器
  * max-width:896px + 左右 padding:24px → 正文实际 784px（1202px 视口下）。
  * 原先 03c 规格里的 924 量的是滚动容器而不是文字列，导致 DSH 每行 64 个汉字，
  * 比 ZCode（55 个）宽 15%——长行是「像文档、不像对话」的主因。
  */
-const ZCODE_CONTENT_WIDTH = 784
+const ZCODE_CONTENT_WIDTH = 848
+/** 宽屏档：ZCode 在可用宽度 ≥1280 时把列上限从 896 提到 1152（含 24px 侧内衬 → 文字 1104）。 */
+const ZCODE_CONTENT_WIDTH_WIDE = 1104
+/** 切宽阈值：按「与 ZCode 同视口切换」校准。
+    ZCode 的容器查询在**它自己的**容器内容宽 1280 处切换（实测 1278→896 / 1280→1152），
+    而它的容器宽 = 视口 − 274，即视口 1554px 处切宽。
+    DSH 的会话滚动区内容宽 = 视口 − 366（侧栏 264 + 滚动区左右内衬 100），
+    要让它同样在视口 1554 切宽 → 阈值取 1554 − 366 ≈ 1188。 */
+const ZCODE_CONTENT_WIDE_MIN = 1188
 /** ZCode 轮组间距（轮组制，不是逐条）。 */
 const ZCODE_TURN_GAP = 20
 /** ZCode 正文行高（14px 字号下 1.75 倍）。 */
@@ -39,7 +49,15 @@ export const CONVERSATION_LAYOUT_STYLE = `
    宿主用 .icaHSq_column{max-width:640px} 限宽，宽度由 max-width 决定、
    两侧留白是 margin auto 的结果。所以这里改 max-width，不动 margin。
    特异性 0,2,0（[data-conversation-scroll] + 类）已高于宿主的单类 0,1,0。 */
-[data-conversation-scroll] .icaHSq_column{max-width:${ZCODE_CONTENT_WIDTH}px}
+[data-conversation-scroll] .icaHSq_column{max-width:min(${ZCODE_CONTENT_WIDTH}px,100%)}
+/* 宽屏档（2026-10-29，ZCode 容器查询实测）：可用宽度 ≥1280 时列上限提到 1104。
+   用容器查询而不是媒体查询 —— 侧栏收起时可用宽度会变，视口宽度不变，媒体查询会漏掉那种情况。 */
+[data-conversation-scroll]{container-type:inline-size}
+@container (min-width:${ZCODE_CONTENT_WIDE_MIN}px){[data-conversation-scroll] .icaHSq_column{max-width:min(${ZCODE_CONTENT_WIDTH_WIDE}px,100%)}}
+/* 输入卡跟随正文列（ZCode 实测：卡宽 = 文字列 + 16，1280→864 / 2000→1120）。
+   宿主默认把卡钉在 887 不随窗口变，窗口一拉大就和正文列脱节。 */
+[data-conversation-scroll] [data-composer-card]{max-width:min(calc(${ZCODE_CONTENT_WIDTH}px + 16px),100%)}
+@container (min-width:${ZCODE_CONTENT_WIDE_MIN}px){[data-conversation-scroll] [data-composer-card]{max-width:min(calc(${ZCODE_CONTENT_WIDTH_WIDE}px + 16px),100%)}}
 
 /* ── C2 轮组间距 6px → 20px ───────────────────────────────────────
    ⚠ 三次尝试的血泪史（2026-10-27）：
