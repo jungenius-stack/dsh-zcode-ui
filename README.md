@@ -47,7 +47,7 @@ this skin feels less like a theme and more like the interface DeepSeek Harness w
 ---
 
 > [!NOTE]
-> **Stable since 2.0.0 — currently 2.0.2.** Every visual value in this skin is traceable to a live measurement of ZCode (CDP computed styles or extracted source), guarded by 45 contract assertions, 57 unit/integration test files and 22 real-browser layout checks — `npm run gate` runs them all, and the `pre-push` hook runs the same gate before anything lands on GitHub. Known limitations are still listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
+> **Stable since 2.0.0 — currently 2.0.2.** Every visual value in this skin is traceable to a live measurement of ZCode (CDP computed styles or extracted source), guarded by 65 contract assertions, 57 unit/integration test files and 22 real-browser layout checks — `npm run gate` runs them all, and the `pre-push` hook runs the same gate before anything lands on GitHub. Known limitations are still listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
 > Corrections and improvement suggestions are genuinely welcome — please open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues). The most useful report is short: what you expected, what happened, and a screenshot if the problem is visual.
 
 DSH ZCode UI repaints the DSH Web interface in ZCode's (Zhipu / Zai) visual language: the sidebar, the workspace session tree, the header search, and the composer all adopt ZCode geometry, palette, and iconography — in both light and dark themes.
@@ -229,7 +229,7 @@ Four layers, all runnable locally. `npm run gate` chains them and the `pre-push`
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
 | Unit / integration | `npm run test:unit` | 58 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
-| Contract assertions | `node tests/run-assertions.mjs` | 45 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Contract assertions | `node tests/run-assertions.mjs` | 65 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Real-browser layout | `npm run test:layout` | 22 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
 `npm run gate:host` is the heavy tier: it packs the plugin, installs it into an isolated `DSH_HOME`, starts a real `dsh web`, and runs three live-host scripts (about 1–2 minutes). Use it when you touch slots, injection, or the install flow.

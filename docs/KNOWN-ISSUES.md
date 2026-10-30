@@ -14,7 +14,7 @@
 运行 `node tests/run-assertions.mjs` 的基线结果：
 
 ```
-45 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
+65 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
   采集方式：node --import tsx scripts/baseline.mjs --run（结果写进 docs/BASELINE.md）
   固定清单：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
 ```

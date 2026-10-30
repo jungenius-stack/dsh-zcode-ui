@@ -46,7 +46,7 @@
 ---
 
 > [!NOTE]
-> **自 2.0.0 起为稳定版（当前 2.0.2）。** 皮肤里的每一个视觉值都能追溯到对 ZCode 的实机测量（CDP 计算样式或源码提取），由 45 个契约断言、57 个单元/集成测试文件与 22 个真机布局脚本守护——`npm run gate` 一条命令全跑，`pre-push` 钩子在任何东西进入 GitHub 之前执行同一道门禁。已知限制依旧如实列在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
+> **自 2.0.0 起为稳定版（当前 2.0.2）。** 皮肤里的每一个视觉值都能追溯到对 ZCode 的实机测量（CDP 计算样式或源码提取），由 65 个契约断言、57 个单元/集成测试文件与 22 个真机布局脚本守护——`npm run gate` 一条命令全跑，`pre-push` 钩子在任何东西进入 GitHub 之前执行同一道门禁。已知限制依旧如实列在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
 > **非常欢迎纠错和改进建议**——请直接开一个 [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues)。最有用的反馈很简短：你期望看到什么、实际发生了什么，如果是视觉问题就附一张截图。
 
 DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉语言：侧栏、工作区会话树、头部搜索、输入框全部采用 ZCode 的几何、配色与图标，明暗两套主题都是。
@@ -227,7 +227,7 @@ dsh --profile web --dump-config
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元 / 集成 | `npm run test:unit` | 58 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
-| 契约断言 | `node tests/run-assertions.mjs` | 45 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 契约断言 | `node tests/run-assertions.mjs` | 65 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 真机布局 | `npm run test:layout` | 22 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。
