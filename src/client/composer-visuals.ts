@@ -19,7 +19,7 @@ export const COMPOSER_VISUALS_STYLE_ID = 'dcu-composer-visuals-style'
 export const COMPOSER_VISUALS_CSS = `
 /* 加号：静止态不画圆；悬停/键盘聚焦时才出现圆形底。 */
 [data-conversation-scroll] [data-composer-card] button[class*="_add"]{
-  transition:background-color var(--dcu-motion-feedback-duration,120ms) var(--dcu-motion-feedback-ease,ease-out);
+  transition:background-color var(--dcu-motion-feedback-duration,150ms) var(--dcu-motion-feedback-ease,cubic-bezier(.4,0,.2,1));
 }
 [data-conversation-scroll] [data-composer-card] button[class*="_add"]:not(:hover):not(:focus-visible){
   background:transparent;

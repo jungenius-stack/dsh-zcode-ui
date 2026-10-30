@@ -206,9 +206,11 @@ assert.deepEqual(
 // `999px`（胶囊开关轨道——半高全圆是开关的形状语义，见 settings-page-styles.ts）。
 // 现在这条棘轮的含义从「不许劣化」升级为「标度内不得再出现字面量」。
 const RADIUS_LITERAL_BASELINE: Record<string, number> = {
-  'CodexSidebar.tsx:0': 1,
+  // 3 = 页脚 cm-footer-stack（宿主槽位扁平化）+ 2026-10-30 夜审批次 2 的两个分段页签
+  // （`.dcu-im-tab` 与 `.dcu-schedule-views button`）：03i §B B1–B4 双端 CDP 实测 ZCode
+  // 分段页签是**零圆角、透明底**，圆角标度里没有「无圆角」档，故按 0 字面量登记。
+  'CodexSidebar.tsx:0': 3,
   'CodexWorkspaceBrowser.tsx:50%': 3,
-  'DesktopNavigationControls.tsx:50%': 1,
   'settings-page-styles.ts:0': 1,
   // 999px 是胶囊开关轨道（半高全圆是开关的形状语义，不是圆角标度上的档位）；
   // 50% 是圆形拇指。两者均随 --dsw-alias-* 令牌走配色，几何形状本身保持字面量。

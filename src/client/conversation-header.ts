@@ -54,10 +54,10 @@ header [data-dcu-inline-tabs] [role=tab][aria-selected=true],header [data-dcu-in
 header [data-dcu-inline-tabs] [role=tab]+[role=tab]{border-left:1px solid var(--dsw-alias-border-subtle)}
 header [data-dcu-inline-tabs] [role=tab]:after,header [data-dcu-inline-tabs] [role=tab]:before{display:none!important;content:none!important;background:transparent!important;height:0!important}
 header [data-dcu-inline-tabs] [role=tab]:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:-2px}
-header [data-dcu-title-folder],header [data-dcu-title-more]{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,currentColor);display:inline-grid;place-items:center;padding:0;cursor:pointer;border-radius:var(--dsw-radius-sm)}
-header [data-dcu-title-folder]{width:16px;height:20px}
-header [data-dcu-title-more]{width:20px;height:20px}
-header [data-dcu-title-folder]:hover,header [data-dcu-title-more]:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.08));color:var(--dsw-alias-label-primary,currentColor)}
+header [data-dcu-title-folder],header [data-dcu-title-more]{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-tertiary,currentColor);display:inline-grid;place-items:center;padding:0;cursor:pointer;border-radius:var(--dsw-radius-lg)}
+header [data-dcu-title-folder]{width:28px;height:28px}
+header [data-dcu-title-more]{width:28px;height:28px}
+header [data-dcu-title-folder]:hover,header [data-dcu-title-more]:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(255,255,255,.1));color:var(--dsw-alias-label-primary,currentColor)}
 header [data-dcu-title-folder] svg,header [data-dcu-title-more] svg{display:block}
 /* HD3（2026-10-27 顶栏对齐 03e）：页签字号/字重对齐 ZCode 标题口径。
    ZCode 顶栏标题实测 14px / font-weight 600；DSH 页签原为 13px / 500。

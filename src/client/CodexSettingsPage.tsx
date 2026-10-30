@@ -232,7 +232,7 @@ export function CodexSettingsPage({ wide, sections, onboarding, connectionState,
             const entries = visible.filter(row => settingsGroup(row.id) === group)
             return entries.length > 0 && <section className="dcu-settings-group" key={group}>
               <h2 className="dcu-settings-group-label">{t(groupLabels[group])}</h2>
-              {entries.map(row => { const Icon = sectionIcon(row.id); return <button key={row.id} type="button" className="dcu-settings-link" aria-current={row.id === active?.id ? 'page' : undefined} onClick={() => { setActiveId(row.id) }}><Icon size={16} strokeWidth={1.6} aria-hidden="true"/><span>{row.id === 'general' ? t('settings.general') : row.label}</span></button> })}
+              {entries.map(row => { const Icon = sectionIcon(row.id); return <button key={row.id} type="button" className="dcu-settings-link" aria-current={row.id === active?.id ? 'page' : undefined} onClick={() => { setActiveId(row.id) }}><Icon size={16} strokeWidth={1.5} aria-hidden="true"/><span>{row.id === 'general' ? t('settings.general') : row.label}</span></button> })}
             </section>
           })}
         </div>

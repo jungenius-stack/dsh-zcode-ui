@@ -270,7 +270,8 @@ assert.match(sidebar, /\.dcu-extension-panel,.dcu-extension-leading svg\{animati
 //（`--dcu-surface` 底 + 1px 边框 + 8px 圆角 + 2px 内衬），不再用 border-bottom 分隔。
 // 2026-10-14：圆角允许写成 var(--dsw-radius-lg)（值同为 8px），锁意图不锁写法。
 assert.match(sidebar, /\.dcu-im-tabs\{[^}]*background:var\(--dcu-surface\);border:1px solid var\(--dcu-sidebar-border\);border-radius:(?:8px|var\(--dsw-radius-lg\))/, '任务频道定时页签必须是 ZCode 分段控件（surface 底 + 边框 + 8px 圆角）')
-assert.match(sidebar, /\.dcu-im-tab\{[^}]*font:500 12px\/18px/, '任务频道定时页签使用刻度 sm(12px)，不再与主导航同级字号')
+// 2026-10-30（夜审批次 2）：03i §B B1–B4 双端 CDP 实测，ZCode 分段页签是 28 高 / 14px / 500，不是 sm(12px)。
+assert.match(sidebar, /\.dcu-im-tab\{[^}]*font:500 14px\/21px/, '任务频道定时页签对齐 ZCode 分段控件档位（h28 / 14px / 500）')
 assert.match(sidebar, /\.dcu-im-tab\[data-on=true\]\{[^}]*background:var\(--dcu-sidebar-selected\)/, '选中页签必须用底色区分（ZCode 分段控件不再用字重加粗）')
 assert.match(sidebar, /\.dcu-extension-items::before\{content:"";position:absolute;left:-12px/, '扩展树线必须与父级图标中心对齐')
 assert.doesNotMatch(sidebar, /\.dcu-extension-items \.dcu-menu-icon\{display:none\}/, '扩展子项必须显示各自的图标')
@@ -280,7 +281,9 @@ assert.match(sidebar, /\.dcu-extension-items button\{[^}]*grid-template-columns:
 assert.doesNotMatch(sidebar, /\.dcu-workspaces\{[^}]*border-top/, '工作区区块不得用分隔线')
 assert.doesNotMatch(sidebar, /\.dcu-foot\{[^}]*border-top/, '底栏不得用分隔线')
 assert.match(sidebar, /dcu-workspaces-tabs\{padding-top:0\}/, '有页签时不得再叠加顶部内衬')
-assert.match(sidebar, /\.dcu-root\{[^}]*font:14px\/20px var\(--dsw-font-family\)/, '侧栏必须跟随宿主 --dsw-font-family')
+// 2026-10-30（夜审批次 2）：03i §A A3 实测 ZCode 行高基准是 14×1.5 = 21px（全视图统一），
+// 侧栏行高由 20px 对齐至 21px；字体族仍必须跟随宿主令牌。
+assert.match(sidebar, /\.dcu-root\{[^}]*font:14px\/21px var\(--dsw-font-family\)/, '侧栏必须跟随宿主 --dsw-font-family，且行高基准为 21px（ZCode 14×1.5）')
 assert.doesNotMatch(sidebar, /--dcu-font/, '侧栏不得再定义 --dcu-font')
 assert.doesNotMatch(sidebar, /Inter,ui-sans-serif/, '侧栏不得再写死 Inter 栈')
 // 2026-10-12 更新：设置入口现由宿主插槽渲染（`[data-slot="settings.trigger"]`），取侧栏语义主色；
@@ -302,7 +305,10 @@ assert.ok(tickMarkSize(3, 2, false).width > tickMarkSize(5, 2, false).width, '�
 assert.ok(tickMarkSize(2, 5, true).width <= 12, '悬停其他条时，原来的选中刻度必须收回到静息值')
 assert.match(navigator, /data-hovering/, '轨道悬停时必须进入仅高亮悬停条的状态')
 assert.match(navigator, /\[data-hovering=true\] \.dcu-turn-link\[aria-current=true\]/, '悬停时不得继续强调原来的选中刻度')
-assert.match(navigator, /transition:width var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/, '刻度长短切换属尺寸变化，必须使用移动档曲线')
+// 2026-10-30（夜审批次 14）：asar 原文 `transition-[height,opacity] duration-150 ease-out`
+// 与 `transition-[height,opacity,transform,background-color] duration-150 ease-out` 实锤——
+// ZCode 刻度把尺寸与颜色放在同一条 150ms 过渡里，不走 200ms 位移档。
+assert.match(navigator, /transition:width var\(--dcu-motion-feedback-duration\) var\(--dcu-motion-feedback-ease\)/, '刻度长短切换必须走 feedback 档 150ms（ZCode duration-150 ease-out 原文）')
 
 // ── 2026-10-17 模板串截断守卫补强（第四次踩同一个坑）──────────────────────────
 // 已踩历史：§13 / §19 / §26.6 / §27.7，本轮是第五次。

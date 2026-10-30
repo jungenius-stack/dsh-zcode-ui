@@ -143,7 +143,7 @@ export const ZCODE_LIGHT: TokenMap = {
   // ZCode: --color-hover / --color-selected / --color-accent
   '--dsw-alias-interactive-bg-hover': 'rgba(13, 13, 13, 0.05)',
   '--dsw-alias-interactive-bg-hover-solid': '#f0f0f0',
-  '--dsw-alias-interactive-bg-active': 'rgba(13, 13, 13, 0.08)',
+  '--dsw-alias-interactive-bg-active': 'rgba(13, 13, 13, 0.05)',
   '--dsw-alias-interactive-bg-hover-accent': 'rgba(11, 127, 255, 0.12)',
   '--dsw-alias-interactive-bg-hover-danger': 'rgba(224, 49, 49, 0.05)',
   '--dsw-alias-fill-l1': 'rgba(13, 13, 13, 0.03)',
@@ -242,8 +242,8 @@ export const ZCODE_LIGHT: TokenMap = {
 
   // ── 浮层 / 提示 ───────────────────────────────────────────────────
   // ZCode: --color-toast / --color-tooltip / --color-tag
-  '--dsw-alias-toast-bg': '#2b2b2b',
-  '--dsw-alias-toast-label': '#ffffff',
+  '--dsw-alias-toast-bg': '#fff',
+  '--dsw-alias-toast-label': '#0d0d0d',
   '--dsw-alias-tooltip-bg': '#f0f0f0',
   '--dsw-alias-tooltip-label': '#0d0d0d',
   '--dsw-alias-tooltip-key-bg': '#e6e6e6',

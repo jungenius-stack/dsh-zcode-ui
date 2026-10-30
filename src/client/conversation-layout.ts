@@ -193,7 +193,7 @@ export const CONVERSATION_LAYOUT_STYLE = `
 [data-conversation-scroll] .icaHSq_column .IzP3Va_bubble > :first-child{display:block}
 [data-conversation-scroll] .icaHSq_column .IzP3Va_bubble[data-dcu-bubble-overflow] > :first-child{
   overflow:hidden;
-  transition:max-height var(--dcu-motion-move-duration) var(--dcu-motion-move-ease);
+  transition:max-height var(--dcu-motion-collapse-duration) var(--dcu-motion-collapse-ease);
 }
 [data-conversation-scroll] .icaHSq_column .IzP3Va_bubble[data-dcu-bubble-overflow][data-dcu-bubble-state="collapsed"] > :first-child{
   -webkit-mask-image:linear-gradient(to bottom,black 0%,black 70%,transparent 100%);

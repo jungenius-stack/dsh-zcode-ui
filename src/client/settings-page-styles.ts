@@ -46,7 +46,7 @@ export const settingsPageStyles = `
    宿主 --dsw-alias-settings-card-fill 是 #2b2b2b（深）。
    在设置页作用域内覆盖宿主令牌本身，--sp-card 仍直接引用它（满足断言），
    但本页内取值改由 --dcu-settings-card-fill 决定（主题层定义深色 #161616）。 */
---dsw-alias-settings-card-fill:var(--dcu-settings-card-fill,#fbfbfb);
+--dsw-alias-settings-card-fill:var(--dcu-settings-card-fill,#fafafa);
 --sp-card:var(--dsw-alias-settings-card-fill);--sp-border:var(--dsw-alias-border-l2);--sp-text:var(--dsw-alias-label-primary);--sp-muted:#6b6b6b;--sp-muted-on-card:#6b6b6b;--sp-hover:var(--dsw-alias-interactive-bg-hover);--sp-active:var(--dcu-sidebar-selected);position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:clamp(240px,var(--dcu-sidebar-expanded-width,240px),min(520px,calc(100vw - 320px))) minmax(0,1fr);background:var(--sp-bg);color:var(--sp-text);font:14px/1.5 var(--dsw-font-family);text-align:left;isolation:isolate}
 /* TA1：深色设置页底必须显式回落，否则会继承浅色定义里的 #fafafa → 亮底深色页。
    ⚠ 不能写 var(--dsw-alias-bg-base)：上面已把 --dsw-alias-bg-base 定义成
@@ -125,7 +125,7 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-switch:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
 .dcu-settings-switch[aria-checked=true]{background:var(--dsw-alias-brand-primary,#000)}
 .dcu-settings-switch:disabled{cursor:default;opacity:.5}
-.dcu-settings-switch-thumb{display:block;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform var(--dcu-motion-feedback-duration) ease;pointer-events:none}
+.dcu-settings-switch-thumb{display:block;width:14px;height:14px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);pointer-events:none}
 .dcu-settings-switch[aria-checked=true] .dcu-settings-switch-thumb{background:var(--dsw-alias-label-primary-foreground,#fff);transform:translateX(16px)}
 .dcu-settings-document-copy{min-width:0}
 .dcu-settings-document p{margin:4px 0 0;font-size:var(--dsw-font-size-sm);color:var(--sp-muted);overflow-wrap:anywhere}

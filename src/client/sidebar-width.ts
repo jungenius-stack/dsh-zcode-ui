@@ -280,7 +280,7 @@ function clearShift(element: HTMLElement, varName: string): void {
 function applyRailShifts(rails: readonly RailShift[]): void {
   for (const rail of rails) {
     // 兜底：自绘索引栏的 left 走 React state，比轨道切换晚一拍，那一拍里它可能压在侧栏上。
-    // 侧栏面不透明（--dcu-sidebar-background 为 #f0f0f0 / #161616），落到它下面即可藏掉。
+    // 侧栏面不透明（--dcu-sidebar-background 为 #f5f5f5 / #161616），落到它下面即可藏掉。
     if (rail.element.classList.contains('dcu-turn-navigator')) rail.element.style.zIndex = '0'
     primeShift(rail.element, rail.varName, rail.compensation)
   }
@@ -344,7 +344,7 @@ export function restoreHostSidebar(frame: HTMLElement): void {
     else frame.style.setProperty('--dsh-windows-sidebar-width', snapshot.windowsWidth)
     return
   }
-  // 本会话已经把宿主列宽覆盖成 240，且没有快照时退回官方默认 280。
+  // 本会话已经把宿主列宽覆盖成 264，且没有快照时退回官方默认 280。
   if (tracks?.sidebar === CODEX_SIDEBAR_DEFAULT_PX) {
     frame.style.gridTemplateColumns = `280px ${tracks.middle} ${tracks.details}`
     if (handle !== null) handle.style.left = '280px'
@@ -442,7 +442,7 @@ function pauseInitialSidebarTransition(frame: HTMLElement): () => void {
   }
 }
 
-/** 展开态要恢复到的宽度（拖拽改过的宽度优先，否则默认 240）。 */
+/** 展开态要恢复到的宽度（拖拽改过的宽度优先，否则默认 264）。 */
 function targetExpandedWidth(frame: HTMLElement): number {
   return visibleSidebarWidths.get(frame) ?? CODEX_SIDEBAR_DEFAULT_PX
 }
@@ -451,11 +451,11 @@ function prefersReducedMotion(win: Window): boolean {
   return win.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 }
 
-/** 读取「移动」档时长（令牌缺失时退回 180ms，与 ZCode 动效分档一致）。 */
+/** 读取「移动」档时长（令牌缺失时退回 200ms，与 ZCode 动效分档一致）。 */
 function readMoveDuration(frame: HTMLElement): number {
   const raw = getComputedStyle(frame).getPropertyValue('--dcu-motion-move-duration').trim()
   const match = /^(\d+(?:\.\d+)?)ms$/.exec(raw)
-  return match === null ? 180 : Number(match[1])
+  return match === null ? 200 : Number(match[1])
 }
 
 /** 帧上是否挂着会动画化 grid-template-columns 的过渡（宿主或伴随插件）。 */
@@ -659,11 +659,11 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
   // 实测 8000 条消息（4 万节点）分步计时：
   //   写轨道 = 0ms（只改样式）｜同帧强读 offsetWidth = 24ms（仅同步样式计算）
   //   ｜**等到下一帧 = 432ms**（真正的重排 + 绘制在这里）
-  // 若 motion 标记与轨道写在同一帧，180ms 的位移动画会在 432ms 的重排期间"走完"，
+  // 若 motion 标记与轨道写在同一帧，200ms 的位移动画会在 432ms 的重排期间"走完"，
   // `animationend` 随即触发 → 用户看到「点了没反应，直接跳过去」。
   //
   // 因此：本帧只负责切轨道（把重排交给这一帧），**下一帧才挂 motion 标记起跑动画**。
-  // 这样动画时间轴从一个已经排好版的干净环境开始，能完整跑满 180ms。
+  // 这样动画时间轴从一个已经排好版的干净环境开始，能完整跑满 200ms。
   void frame.offsetWidth
   let done = false
   const finish = (): void => {
@@ -749,14 +749,14 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
   // 也就是说阈值附近完全由机器抖动决定播不播，同一份代码跑两次结论可能不同。
   //
   // 新判据只拦**真正失控**的情形：重排本身已经长到用户明确感到「卡住了」
-  // （> 2×duration，默认 360ms），此时再叠 180ms 动画确实只会让人更烦。
+  // （> 2×duration，默认 400ms），此时再叠 200ms 动画确实只会让人更烦。
   // 这个界仍然锚定在 duration 上、随动效档位缩放，不依赖节点数常量。
   const SKIP_ANIMATION_BLOCK_MS = duration * 2
   win.requestAnimationFrame(() => {
     const blocked = win.performance.now() - reflowStarted
     if (blocked > SKIP_ANIMATION_BLOCK_MS) {
       // 失控：重排本身已经远超一个动画时长，用户早已感到「点下去没反应」。
-      // 此时再补 180ms 滑动只会让总时长更长，直接到位更诚实。
+      // 此时再补 200ms 滑动只会让总时长更长，直接到位更诚实。
       finish()
       return
     }

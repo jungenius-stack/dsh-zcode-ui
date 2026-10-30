@@ -181,7 +181,9 @@ assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-session-move-drop>\.dcu
 assert.match(workspaceBrowser, /dcu-wb-workspace-move-drop/, '项目跨分组拖放必须使用整分组高亮状态')
 assert.match(workspaceBrowser, /\.dcu-wb-collection\.dcu-wb-workspace-move-drop,\.dcu-wb-ungrouped\.dcu-wb-workspace-move-drop\{[^}]*border-radius:(?:8px|var\(--dsw-radius-lg\))[^}]*background:color-mix\(in srgb,var\(--dsw-alias-state-business-primary\) 9%,transparent\)[^}]*outline:2px solid/, '跨分组拖放必须复用会话跨项目的描边、圆角和淡色背景')
 assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-drop::before,\.dcu-wb-session\.dcu-wb-drop::before[^}]*left:7px;right:8px;top:-8px;height:8px/, '项目与会话排序线必须位于相邻行间距正中，并与 Codex 保持相同横向起点')
-assert.match(workspaceBrowser, /radial-gradient\(circle at 4px 50%,transparent 1\.75px,var\(--dsw-alias-state-business-primary\) 2px 3\.75px,transparent 4px\)/, '排序线起点必须使用 Codex 风格的 8px 空心圆环')
+// 2026-10-30（夜审批次 10）：ZCode 落点线用 bg-icon-blue（sky-500 系蓝），不是黑白前景色；
+// 本仓取同源终端蓝 --dsw-alias-link（#0b7fff）。圆环几何（4px 处 1.75px 空心 / 2-3.75px 实环）不变。
+assert.match(workspaceBrowser, /radial-gradient\(circle at 4px 50%,transparent 1\.75px,var\(--dsw-alias-link\) 2px 3\.75px,transparent 4px\)/, '排序线起点必须使用 Codex 风格的 8px 空心圆环（环色 = ZCode icon-blue 系蓝）')
 assert.doesNotMatch(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-drop::before,\.dcu-wb-session\.dcu-wb-drop::before\{top:0\}/, '项目与会话排序线不得下沉到目标行内部')
 assert.match(workspaceBrowser, /\.dcu-wb-project\.dcu-wb-drop-after::before,\.dcu-wb-session\.dcu-wb-drop-after::before\{top:auto;bottom:-8px\}/, '末尾排序线必须位于最后一行后的间距正中')
 assert.doesNotMatch(workspaceBrowser, /exportSession|sessionExportFilename|sessions\.export/, '会话 ZIP 导出入口及实现必须移除')
@@ -203,7 +205,8 @@ assert.match(workspaceBrowser, /color:var\(--dcu-sidebar-primary\)/, '工作区�
 assert.match(sidebar, /font:14px\//, '桌面侧栏基础字号必须达到 14px')
 assert.match(sidebar, /place-items:center start/, '导航图标必须左对齐到设置图标列')
 // 2026-10-12 更新：ZCode 间距刻度用 px-2（8px），导航与页脚共用同一条内衬规则，图标列仍与设置入口对齐。
-assert.match(sidebar, /\.dcu-menu button,\.dcu-footer-link\{[^}]*padding:0 8px/, '导航图标必须左移至设置图标列')
+// 2026-10-30（夜审批次 2）：内边距按 03b-sidebar §1 #14 双端 CDP 实测由 8px 改为 10px。
+assert.match(sidebar, /\.dcu-menu button,\.dcu-footer-link\{[^}]*padding:0 10px/, '导航图标必须左移至设置图标列（内距 10px，对齐 ZCode 菜单项）')
 assert.match(sidebar, /dcu-search-dialog/, '顶栏搜索必须打开全局搜索面板')
 assert.doesNotMatch(workspaceBrowser, /dcu-wb-search/, '工作区区域不得保留重复搜索框')
 assert.doesNotMatch(workspaceBrowser, /IconChevronRightOutlineMedium/, '项目树不得保留展开箭头')
@@ -224,7 +227,9 @@ assert.match(workspaceBrowser, /function NewSessionIcon\(\)[^]*<ZIconListPen ari
 assert.match(workspaceBrowser, /aria-label=\{t\('workspace\.newSession'\)\}[^]*<NewSessionIcon \/>/, '项目行的新建会话按钮必须使用独立方框铅笔图标')
 assert.match(workspaceBrowser, /const projectMenu[^]*id: 'pin'[^]*id: 'rename'[^]*project-main-separator[^]*id: 'moveToGroup'[^]*submenu:[^]*id: 'openPath'[^]*project-archive-separator[^]*id: 'archiveWorkspace'[^]*project-delete-separator[^]*id: 'delete'/, '项目菜单必须按置顶、重命名、移动分组、资源管理器、归档全部会话、移除排列')
 assert.match(workspaceBrowser, /archiveWorkspaceTarget[^]*archiveSession[^]*workspace\.archiveConfirm/, '归档所有会话必须复用会话归档能力并经过确认')
-assert.match(locales, /'workspace\.rename': '重命名项目'/, '项目重命名操作必须使用准确文案')
+// 2026-10-30（夜审批次 4/6）：ZCode 项目行更名入口叫「编辑」而非「重命名」——
+// asar 原文 `"project.edit":`编辑项目`` / `"project.edit":`Edit project``。
+assert.match(locales, /'workspace\.rename': '编辑项目'/, '项目更名入口必须用 ZCode 的「编辑项目」文案')
 assert.match(locales, /'workspace\.archive': '归档所有会话'/, '项目批量归档操作必须说明实际作用对象')
 assert.match(workspaceBrowser, /onContextMenu=\{\(event\) => \{ event\.preventDefault\(\); event\.stopPropagation\(\); dismissTip\(\); setMenu\(\{ id: workspace\.workspaceId, type: 'workspace', x: event\.clientX, y: event\.clientY \}\) \}\}/, '右键项目必须按鼠标位置打开菜单')
 assert.match(workspaceBrowser, /aria-label=\{t\('workspace\.actions', \{ name: workspace\.title \}\)\} onClick=\{\(event\) => \{ event\.stopPropagation\(\); dismissTip\(\); setMenu\(/, '点击项目三点菜单时必须先关闭悬停信息卡')

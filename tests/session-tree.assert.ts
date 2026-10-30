@@ -60,7 +60,9 @@ assert.match(sidebar, /<ScheduleBrowser [^>]*panelActive=\{panelActive\}/, '侧�
 assert.match(sidebar, /const owner = \{ wide: true, expandSidebar, panelActive \}/, '侧栏必须向任务树透传全局面板占用态')
 assert.match(pending, /visiblePendingKind\(summaryKind\) \?\? visiblePendingKind\(pendingInteractions\.get\(sessionId\)\?\.kind\)/, '有效 SessionSummary 必须优先，缺失时回退待处理交互 Store')
 assert.match(locales, /'sessions\.waitingAnswer': 'Waiting for answer'/, '等待回答英文文案必须与官方一致')
-assert.match(locales, /'sessions\.waitingApproval': 'Waiting for approval'/, '等待审批英文文案必须与官方一致')
+// 2026-10-30（夜审批次 4）：asar 原文 `"taskList.permissionTag":` 中文「等待确认」/ 英文「Awaiting approval」，
+// 此前这里锁的 'Waiting for approval' 并非官方文案（旧断言写着「与官方一致」但与 asar 不符）。
+assert.match(locales, /'sessions\.waitingApproval': 'Awaiting approval'/, '等待确认英文文案必须与 asar 官方一致（Awaiting approval）')
 assert.match(locales, /'sessions\.planReview': 'Plan awaiting review'/, '计划待审英文文案必须与归档插件一致')
 assert.match(channel, /<GroupHead /, '频道分组行必须走共用头部')
 assert.match(channel, /<div className="dcu-wb-project-body">[\s\S]*?<SessionRow /, '频道会话必须放入任务树同款项目内容容器，保留首行胶囊间距')
@@ -142,8 +144,10 @@ assert.match(workspace, /\.dcu-wb-tree\{[^}]*padding-bottom:24px;scrollbar-gutte
 // 断言意图「分组标题必须比正文克制」仍成立：改为锁 tertiary(30%) + 500 字重 + base 刻度。
 assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-tertiary\);font-size:var\(--dsw-font-size-base\);line-height:21px;font-weight:500/, '置顶、项目和最近必须比正文克制：ZCode 用 30% 透明度 + 500 字重分层，字号与正文同为 base 刻度')
 assert.doesNotMatch(workspace, /\.dcu-wb-section-label\{[^}]*font-size:1[0-9]px/, '二级标题不得使用字面量字号（ZCode 宪章：字号必须走系统刻度）')
-// 2026-10-26：位移档缓动改为 ZCode 实测的 cubic-bezier(0,0,0.2,1)（同 ZCode move 档）。
-assert.match(workspace, /body\.animate\(\[from, to\], \{ duration: DISCLOSURE_EXIT_MS, easing: 'cubic-bezier\(0,0,0\.2,1\)', fill: 'none' \}\)/, '展开收起必须使用宿主兼容的逐像素高度动画，缓动跟 ZCode move 档 cubic-bezier(0,0,.2,1)')
+// 2026-10-30（夜间审计批次 1 更正）：原先这里锁的是 move 档曲线 (0,0,.2,1)，与 ZCode 实测不符。
+// asar 原文折叠体是 0.3s + ease-in-out，而 ZCode 主题把 --ease-in-out 重定义为 cubic-bezier(.4,0,.2,1)，
+// 即折叠体走的是独立 collapse 档，不是 move 档（02-motion.md 2026-10-29 二次校正表）。
+assert.match(workspace, /body\.animate\(\[from, to\], \{ duration: DISCLOSURE_EXIT_MS, easing: 'cubic-bezier\(\.4,0,\.2,1\)', fill: 'none' \}\)/, '展开收起必须使用宿主兼容的逐像素高度动画，缓动跟 ZCode collapse 档 cubic-bezier(.4,0,.2,1)')
 assert.match(workspace, /\.dcu-wb-section-label\{color:var\(--dcu-sidebar-tertiary\);[^}]*padding-left:0\}/, '置顶、项目和最近必须与上方按钮的内容起点左对齐')
 assert.match(workspace, /deleteWorkspaceGroup\(current, deleteGroupId\)[\s\S]*t\('workspace\.deleteGroupAction'\)/, '删除分组弹窗的确认按钮必须使用独立文案')
 assert.match(locales, /'workspace\.deleteGroupAction': '删除分组'/, '中文删除分组确认文案必须准确')

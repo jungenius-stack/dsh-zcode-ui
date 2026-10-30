@@ -105,7 +105,10 @@ assert.match(sidebarWidth, /window\.requestAnimationFrame\(\(\) => window\.reque
 const hoverShell = readFileSync(new URL('../src/client/hover-shell.tsx', import.meta.url), 'utf8')
 assert.match(hoverShell, /clearTimeout\(hideTipTimer\.current\)/, '悬停层卸载必须清掉延迟关闭定时器')
 assert.match(hoverShell, /HoverValueContext/, '悬停值必须与树的 dispatch 分上下文，避免整树重绘')
-assert.equal(HOVER_TIP_SHOW_DELAY_MS, 1000, '划过行必须停满 1 秒才出卡片，避免闪现')
+// 2026-10-30（夜审批次 16）：asar 主 bundle 的 tooltip Provider 为
+// `delayDuration:300, skipDelayDuration:0, alwaysDelay:true`，全局档 300ms；
+// 原 1000ms 是本仓自定的防闪现值，与参考产品不一致，已对齐。
+assert.equal(HOVER_TIP_SHOW_DELAY_MS, 300, '悬停卡显示延迟必须 300ms（ZCode tooltip Provider delayDuration:300）')
 assert.equal(WORKSPACE_HOVER_CARD_WIDTH, 316, '项目悬浮卡片宽度必须与 Codex 一致')
 assert.match(hoverShell, /showTipTimer/, '首次悬停必须用独立定时器，离开时取消')
 assert.match(hoverShell, /immediate/, '点击文件夹必须能立刻出卡片')

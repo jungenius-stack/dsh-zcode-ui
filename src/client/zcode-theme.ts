@@ -55,12 +55,12 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
      var() 会解析失败并静默走字面量回退（与 --dcu-primary、--dcu-state-* 同因）。 */
   /* 2026-10-18（红队复核）：--dcu-tip-hover 原先只被消费、从未定义——靠 var() 的 fallback
      勉强生效（CodexWorkspaceBrowser 的 .dcu-wb-tip-pin:hover）。补齐定义，语义同侧栏 hover。 */
-  --dcu-tip-bg:#f0f0f0;--dcu-tip-border:rgba(13,13,13,.1);--dcu-tip-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--dcu-tip-hover:rgba(13,13,13,.05);
+  --dcu-tip-bg:#f0f0f0;--dcu-tip-border:rgba(13,13,13,.1);--dcu-tip-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--dcu-tip-hover:rgba(13,13,13,.05);--dcu-dialog-bg:#fff;
   /* 浮层专用文字色板：与 --dcu-tip-bg **成对**定义（ZCode 的 tooltip / tooltip-foreground 做法）。
      为什么不能复用侧栏色板：侧栏底是 #f0f0f0，浮层底是 #ffffff，同一个 tertiary
-     搬过去对比度会变。此前实测暗色下 secondary 3.99:1 / tertiary 3.68:1 均掉线。
+     搬过去对比度会变。此前实测暗色下 secondary 3.99:1 / tertiary 3.68:1 均掉线。2026-10-30（夜审批次 2）：ZCode 浮层分两组——tooltip 浅 #f0f0f0、toast/card 浅 #fff，故对话框底另立 --dcu-dialog-bg（浅 #fff / 深 #2b2b2b）。
      亮底实测：#262626 15.13:1 ／ #5c5c5c 6.69:1 ／ #686868 5.57:1，全部 ≥AA。 */
-  --dcu-tip-primary:#262626;--dcu-tip-secondary:#5c5c5c;--dcu-tip-tertiary:#686868;
+  --dcu-tip-primary:#0a0a0a;--dcu-tip-secondary:#5c5c5c;--dcu-tip-tertiary:#686868;
   /* 键帽文字：ZCode Kbd 组件用 text-muted-foreground，本仓按侧栏底重取。
      实测（底 = #f0f0f0 叠 3% 中性 = #e9e9e9）：#5c5c5c = 5.51:1 ✅ AA。
      tertiary #686868 只有 4.59:1，看似达标但余量太小，暗色档直接掉到 4.14:1 —— 故不分档都不用它。 */
@@ -78,10 +78,10 @@ body[data-ds-dark-theme],.theme-zai-dark{
   --dcu-state-error-fill:#ff5c5c;--dcu-state-error-fill-hover:#ff7070;
   /* 浮层三件套（底色/描边/投影）也在暗色下重取：它们挂在 :root 而不是侧栏作用域，
      是为了让 portal 到 body 的浮层（工具菜单、Git 弹窗）也拿得到——见上面亮色那段的说明。 */
-  --dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);--dcu-tip-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--dcu-tip-hover:rgba(255,255,255,.06);
+  --dcu-tip-bg:#2b2b2b;--dcu-tip-border:rgba(255,255,255,.1);--dcu-tip-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);--dcu-tip-hover:rgba(255,255,255,.05);--dcu-dialog-bg:#2b2b2b;
   /* 暗底 #2b2b2b 实测：#d4d4d4 9.55:1 ／ #9a9a9a 5.03:1 ／ #a3a3a3 5.61:1，全部 ≥AA。
      注意 secondary 取 #9a9a9a 而非侧栏的 #888888——后者在 #2b2b2b 上只有 3.99:1。 */
-  --dcu-tip-primary:#d4d4d4;--dcu-tip-secondary:#9a9a9a;--dcu-tip-tertiary:#a3a3a3;
+  --dcu-tip-primary:#f8f8f8;--dcu-tip-secondary:#9a9a9a;--dcu-tip-tertiary:#a3a3a3;
   /* 暗色档实测（底 = #161616 叠 5% 白 = #222222）：
      secondary #888888 = 4.49:1（差 0.01 掉线，不能用）、#9a9a9a = 5.65:1 ✅ AA。 */
   --dcu-kbd-foreground:#9a9a9a;

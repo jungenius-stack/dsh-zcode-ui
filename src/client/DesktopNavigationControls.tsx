@@ -3,10 +3,10 @@ import type { NavigationHistory } from './navigation-history.ts'
 
 export const DESKTOP_NAVIGATION_CONTROLS_STYLE = `
 .dcu-desktop-navigation{display:none}
-html[data-windows-titlebar] .dcu-desktop-navigation{display:flex;position:fixed;left:12px;top:calc((var(--dsh-windows-titlebar-height,40px) - 28px)/2);gap:8px;z-index:30;-webkit-app-region:no-drag}
-.dcu-desktop-navigation button{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;-webkit-app-region:no-drag}
+html[data-windows-titlebar] .dcu-desktop-navigation{display:flex;position:fixed;left:12px;top:calc((var(--dsh-windows-titlebar-height,40px) - 28px)/2);gap:4px;z-index:30;-webkit-app-region:no-drag}
+.dcu-desktop-navigation button{appearance:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border:0;border-radius:var(--dsw-radius-lg);background:transparent;color:var(--dsw-alias-label-primary);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);-webkit-app-region:no-drag}
 .dcu-desktop-navigation button:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}
-.dcu-desktop-navigation button:disabled{opacity:.35;cursor:default}
+.dcu-desktop-navigation button:disabled{opacity:.5;cursor:not-allowed}
 .dcu-desktop-navigation button:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:-2px}
 html[data-windows-titlebar]:not([data-fullscreen]):has(.dcu-desktop-navigation){--dsh-windows-menu-start:84px}
 html[data-windows-titlebar][data-fullscreen] .dcu-desktop-navigation{display:none}

@@ -16,7 +16,7 @@ export type HoverCardTip = {
   pinned?: boolean
 }
 
-export const HOVER_TIP_SHOW_DELAY_MS = 1000
+export const HOVER_TIP_SHOW_DELAY_MS = 300
 export const HOVER_TIP_HIDE_DELAY_MS = 120
 export const WORKSPACE_HOVER_CARD_WIDTH = 316
 const WORKSPACE_HOVER_CARD_ESTIMATED_HEIGHT = 152
