@@ -3,7 +3,7 @@
  *
  * ZCode 真实参数（MessageResponse 的 O4t 组件）：
  *   折叠高度 120px；溢出判定 scrollHeight > 120 + 1；
- *   展开高度 max(scrollHeight, 120)px；过渡走 move 档令牌（300ms / 0,0,.2,1）；
+ *   展开高度 max(scrollHeight, 120)px；过渡走 collapse 档令牌（300ms / .4,0,.2,1）；
  *   溢出且未展开时内容底部渐隐（mask 70% → 100%）；prefers-reduced-motion 关闭过渡；
  *   展开钮仅在溢出时出现，aria-expanded / aria-label=展开|收起，图标 16px；
  *   正文变化后回到折叠态。

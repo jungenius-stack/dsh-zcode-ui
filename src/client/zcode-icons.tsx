@@ -49,7 +49,8 @@ export const ZIconMore = MoreHorizontal
  * （TaskListLoadingHint / TaskListRemoteSyncHint）都直接用这一枚图标在转。
  * LoaderIcon 在本仓 lucide-react 版本下与 ZCode 锁定的 1.17.0 渲染完全一致
  * （同一份 8 芒路径，键值 3427ic/r700ao/wj9ykh/1bxg5t/jadmvz/bwix9q/j09sii/giyufr）。
- * 颜色不写死在图标上：currentColor 由使用处给（ZCode 侧栏用法是 text-foreground-subtlest）。
+ * 颜色不写死在图标上：currentColor 由使用处给（ZCode 会话行 loader 用 text-foreground-subtle=前景 60%；
+ * subtlest 30/40% 只出现在 size-3 的 tab/导航分组 loading 等小组件，别套到这里）。
  * 旋转动画用主题层的共享基元 `.dcu-spin`（1s linear infinite，reduced-motion 停静止帧）。
  */
 export const ZIconLoading = LoaderIcon
