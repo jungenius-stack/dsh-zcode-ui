@@ -4,6 +4,18 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 未发布
+
+**归档确认改成了 ZCode 的弹窗。** 点击行上的归档按钮，弹出确认对话框——标题「归档这个任务？」、
+正文写明任务名并告知「之后仍可恢复」——而不是原来"按钮变红再点一次"。证据是 asar 调用现场
+（`L({title: confirmDialog.taskArchiveTitle, …}) && archiveTask(…)`）；此前"两步确认"的说法引的
+是我们自己代码里的注释，不是 ZCode。
+
+- Escape 与点击遮罩取消；确认后执行归档；打开时焦点落在确认钮，关闭后还给触发元素。
+- 删掉了行内确认的死 CSS 与不再使用的 `sessions.confirm` 键；弹窗样式块登记进样式块预算，
+  destructive 白字红底登记进颜色字面量白名单。
+- 旧两步流程的 vitest 用例按弹窗行为重写（打开/确认/Escape/遮罩），频道归档集成测试同步改走弹窗。
+
 ## 2.1.1 - 2026-10-30
 
 **补上审计发现的一道性能守卫，外加三处"说谎的注释"。**

@@ -9,6 +9,7 @@ const scheduleBrowser = readFileSync(new URL('../src/client/ScheduleBrowser.tsx'
 const scheduleSessions = readFileSync(new URL('../src/client/schedule-sessions.ts', import.meta.url), 'utf8')
 const sessionRowActions = readFileSync(new URL('../src/client/session-row-actions.tsx', import.meta.url), 'utf8')
 const sessionMove = readFileSync(new URL('../src/client/session-move.ts', import.meta.url), 'utf8')
+const archiveConfirmSrc = readFileSync(new URL('../src/client/archive-confirm.ts', import.meta.url), 'utf8')
 const hoverCard = readFileSync(new URL('../src/client/workspace-hover-card.tsx', import.meta.url), 'utf8')
 const sessionTree = readFileSync(new URL('../src/client/session-tree.tsx', import.meta.url), 'utf8')
 const settingsNavigation = readFileSync(new URL('../src/client/settings-navigation.ts', import.meta.url), 'utf8')
@@ -292,17 +293,23 @@ assert.match(workspaceBrowser, /\.dcu-wb-project-head\{height:32px/, '项目文�
 assert.match(workspaceBrowser, /\.dcu-wb-session\{[^}]*min-height:32px/, '会话胶囊必须与项目文件夹保持相同高度')
 assert.match(workspaceBrowser, /\.dcu-wb-project-body>\.dcu-wb-session:first-child,\.dcu-wb-project-body>\.dcu-wb-nochat:first-child\{margin-top:4px\}/, '项目与首个会话或空态之间必须保留层级间距')
 assert.match(workspaceBrowser, /\.dcu-wb-nochat\{padding:1px 8px 5px 40px\}/, '空聊天必须完整声明四边间距并与会话文字同列（40px），避免依赖旧样式补齐')
-assert.match(workspaceBrowser, /dcu-wb-quick-actions">\{archiveConfirm[^]*<QuickArchiveIcon \/>/, '会话悬停快捷操作必须保留 ZCode 风格的归档图标（确认态切换为确认按钮）')
-assert.match(workspaceBrowser, /className="dcu-wb-confirm"[^]*sessions\.confirm/, '两步确认必须渲染带确认文案的确认按钮')
+// 2026-10-30（夜审批次 11/18 定案）：归档确认改为模态对话框，行内只保留 ZCode 风格的归档图标；
+// 点击经 archiveConfirm.request(id, title, run) 走弹窗，确认后由弹窗执行归档。
+assert.match(workspaceBrowser, /dcu-wb-quick-actions">[^]*<QuickArchiveIcon \/>/, '会话悬停快捷操作必须保留 ZCode 风格的归档图标')
+assert.match(workspaceBrowser, /archiveConfirm\.request\(id, session\.displayTitle, \(\) => \{ void run\('archive'/, '行内归档点击必须经确认弹窗（模态，非行内两步）')
 // 2026-10-13 ZCode 对齐：键盘聚焦与悬停同权——均露出快捷操作并让元信息让位。
 assert.match(workspaceBrowser, /\.dcu-wb-session:focus-within \.dcu-wb-quick-actions/, '键盘聚焦会话行必须像悬停一样露出快捷操作')
-assert.match(workspaceBrowser, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-quick-actions\{display:flex[^}]*\}/, '确认态必须常驻显示确认按钮（与 hover 无关）')
+// 2026-10-30：确认态从行内类名换成模态弹窗，`dcu-wb-archive-confirming` 选择器族已删除。
+assert.match(workspaceBrowser, /dcu-archive-scrim|archiveConfirm\.dialog/, '归档确认必须渲染模态弹窗（不再依赖行内确认态类名）')
 // 2026-10-18：仅靠 opacity:0 隐藏不够。实测反馈里出现过「归档图标的横条残影常显」——
 // quick-actions 是 absolute 定位、里面有 13×3.3 的 rect（归档图标顶条），一旦透明层在
 // 某些合成/辅助模式下未被真正剔除，就会在标题右侧留下一条短横线。
 // visibility 是硬剔除，且不改变布局与动画节奏，因此基础态必须同时给 hidden。
 assert.match(workspaceBrowser, /\.dcu-wb-quick-actions\{position:absolute;right:8px;top:50%;display:none/, '快捷操作基础态必须 display:none：visibility:hidden 仍参与布局与绘制，在合成层里会漏出归档图标的顶条（用户看到的「漂移横线」）')
-assert.match(workspaceBrowser, /\.dcu-wb-confirm\{[^}]*background:var\(--dcu-state-error-fill\);color:var\(--dsw-alias-bg-layer-3\)/, '确认按钮必须使用错误色**填充档**配反色前景（前景沿用宿主 bg-layer-3）；底色不得直接用 --dsw-alias-state-error-primary——该值只按填充推导，作按钮底时悬停会掉到 3.91:1，见 zcode-theme.ts 状态色分档')
+// 2026-10-30：确认钮移入弹窗（.dcu-archive-confirm），仍用错误色**填充档**；
+// 前景从 bg-layer-3 换成 #fff（白，已登记 destructive 填充档前景）。
+// 底色依旧不得用 --dsw-alias-state-error-primary——该值按填充推导，作按钮底悬停会掉到 3.91:1，见 zcode-theme.ts 状态色分档。
+assert.match(archiveConfirmSrc, /\.dcu-archive-confirm\{[^}]*background:var\(--dcu-state-error-fill\)/, '弹窗确认按钮必须使用错误色填充档（悬停走 fill-hover，不掉对比度）')
 assert.doesNotMatch(workspaceBrowser, /setPinnedSessionIds|SESSION_PINS_STORAGE_KEY|QuickPinIcon|dcu-wb-quick-pin/, '任务树不得本地维护会话置顶（宿主 pinnedSessionIds 是唯一状态源）')
 assert.match(workspaceBrowser, /pinnedFirstSessionIds\(/, '置顶会话必须排在未置顶之前（宿主置顶语义）')
 assert.match(workspaceBrowser, /pinCapable && <SessionPinButton pinned=\{pinnedSet\.has\(id\)\}/, '任务树必须在宿主提供 pin 能力时渲染行首置顶按钮')

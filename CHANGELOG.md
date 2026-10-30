@@ -4,6 +4,22 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## Unreleased
+
+**Archive confirmation now matches ZCode's dialog.** Clicking a row's archive action opens a
+confirm dialog — title 「归档这个任务？」, body naming the task and stating it can be restored —
+instead of the inline two-step button swap. Evidence: the asar call site
+(`L({title: confirmDialog.taskArchiveTitle, …}) && archiveTask(…)`); the earlier "two-step"
+reading quoted our own code comment, not ZCode.
+
+- Escape and scrim click cancel; confirm runs the archive; focus starts on the confirm button and
+  returns to the trigger on close.
+- The dead inline-confirm CSS and the now-unused `sessions.confirm` key were removed; the dialog's
+  style block is registered in the style-block budget and its destructive white-on-red is
+  registered in the colour-literal allow list.
+- Vitest specs for the old two-step flow were rewritten against the dialog (open/confirm/Escape/
+  scrim), and the channel-archive integration spec follows the same flow.
+
 ## 2.1.1 - 2026-10-30
 
 **A performance guard the audit found, plus three comments that were lying.**

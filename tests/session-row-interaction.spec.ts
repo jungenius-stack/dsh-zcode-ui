@@ -99,48 +99,47 @@ afterEach(() => {
   window.localStorage.clear()
 })
 
-test('会话行归档为两步确认：首击进确认态、Escape 取消、二次点击才执行一次', async () => {
+test('会话行归档为模态确认：点击出弹窗、确认后执行一次、Escape 取消不执行', async () => {
   const archiveSession = vi.fn(async () => {})
   const openSession = vi.fn()
   const view = await renderTree('row-confirm', '确认会话', archiveSession, openSession)
   try {
     const { row } = view
     const archiveButton = () => row.querySelector<HTMLButtonElement>('.dcu-wb-quick-actions button')!
-    // 首击：只进入确认态，不执行、不触发行打开。
+    const dialog = () => document.querySelector('.dcu-archive-dialog')
+    // 首击：弹出确认框，不执行、不触发行打开。
     await act(async () => { archiveButton().click() })
     expect(archiveSession).not.toHaveBeenCalled()
     expect(openSession).not.toHaveBeenCalled()
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(true)
-    expect(row.querySelector('.dcu-wb-confirm')?.textContent).toBe('sessions.confirm')
-    // Escape 取消后回到普通归档按钮。
+    expect(dialog()).not.toBeNull()
+    expect(dialog()!.querySelector('.dcu-archive-title')?.textContent).toBe('sessions.archiveConfirmTitle')
+    expect(dialog()!.querySelector('.dcu-archive-desc')).not.toBeNull()  // 测试环境的 t 是回显桩，不插值；参数插值由 locales 断言覆盖
+    // Escape 取消后弹窗消失，不执行。
     await act(async () => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })) })
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(false)
-    expect(row.querySelector('.dcu-wb-confirm')).toBeNull()
-    // 再进确认态后点确认按钮：恰好执行一次。
+    expect(dialog()).toBeNull()
+    expect(archiveSession).not.toHaveBeenCalled()
+    // 再开一次，点确认按钮：恰好执行一次，弹窗关闭。
     await act(async () => { archiveButton().click() })
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(true)
-    await act(async () => { row.querySelector<HTMLButtonElement>('.dcu-wb-confirm')!.click() })
+    await act(async () => { dialog()!.querySelector<HTMLButtonElement>('.dcu-archive-confirm')!.click() })
     expect(archiveSession).toHaveBeenCalledTimes(1)
     expect(archiveSession).toHaveBeenCalledWith('row-confirm')
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(false)
+    expect(dialog()).toBeNull()
   } finally {
     await view.dispose()
   }
 })
 
-test('归档确认态按条目边界取消：条目内 pointerdown 不取消，条目外取消', async () => {
+test('归档弹窗点击遮罩取消，不执行归档', async () => {
   const archiveSession = vi.fn(async () => {})
   const view = await renderTree('row-outside', '边界会话', archiveSession, vi.fn())
   try {
     const { row } = view
     await act(async () => { row.querySelector<HTMLButtonElement>('.dcu-wb-quick-actions button')!.click() })
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(true)
-    // 条目内的 pointerdown（如点在标题上）不取消——ZCode 同款边界语义。
-    await act(async () => { row.dispatchEvent(new Event('pointerdown', { bubbles: true })) })
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(true)
-    // 条目外的 pointerdown 取消。
-    await act(async () => { document.body.dispatchEvent(new Event('pointerdown', { bubbles: true })) })
-    expect(row.classList.contains('dcu-wb-archive-confirming')).toBe(false)
+    const scrim = document.querySelector('.dcu-archive-scrim')!
+    expect(scrim).not.toBeNull()
+    // 遮罩自身被点击（target === currentTarget）→ 取消。
+    await act(async () => { scrim.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })) })
+    expect(document.querySelector('.dcu-archive-dialog')).toBeNull()
     expect(archiveSession).not.toHaveBeenCalled()
   } finally {
     await view.dispose()

@@ -193,15 +193,23 @@ assert.match(sessionManager, /previous\[id\] === true && running !== true && id 
 
 // ── 2026-10-13：会话行交互对齐 ZCode TaskListItem（第一批）────────────────────
 const archiveConfirm = readFileSync(new URL('../src/client/archive-confirm.ts', import.meta.url), 'utf8')
-assert.match(tree, /useArchiveConfirm\(\)/, '共用会话行必须复用两步确认 hook（ZCode 同款交互）')
+// 2026-10-30（夜审批次 11/18 定案）：归档确认从「行内两步换钮」改为 ZCode 的模态对话框——
+// asar 调用现场 `L({title:confirmDialog.taskArchiveTitle, description:…, confirmLabel:taskList.archive}) && archiveTask(…)`。
+// 此前这里锁的 `useArchiveConfirm()` 无参签名属于旧形态，已随 hook 改造（t + request(id,title,run)）。
+assert.match(tree, /useArchiveConfirm\(t\)/, '共用会话行必须复用归档确认 hook（ZCode 同款交互）')
+assert.match(tree, /archiveConfirm\.request\(id, title, onArchive\)/, '行内归档点击必须经确认弹窗，确认后才执行 onArchive')
 // 2026-10-14：行内不再写死 tabIndex={0}——那会让全树每一行都进 Tab 序列
 // （100 个会话 = 100 次 Tab）。tabindex 改由 tree-keyboard 的 roving 统一管理。
 assert.match(tree, /role="treeitem" aria-selected=\{selected\} draggable=\{draggable\}/, '共用会话行必须是 treeitem 且可聚焦（键盘可达）')
 assert.doesNotMatch(tree, /role="treeitem"[^>]*tabIndex=\{0\}/, '会话行不得写死 tabIndex={0}（roving tabindex 由 tree-keyboard 管理，否则全树逐行进 Tab 序列）')
 assert.match(tree, /onKeyDown=\{\(event\) => \{ if \(event\.target !== event\.currentTarget\) return; if \(event\.key === 'Enter' \|\| event\.key === ' '\)/, '共用会话行必须支持 Enter/空格打开，且不吞行内按钮事件')
-assert.match(workspace, /archiveConfirm\.confirmingId === id/, '任务树会话行必须接入确认态样式与按钮切换')
+// 2026-10-30：确认态从行内类名换成模态弹窗，`confirmingId` 不复存在（见 archive-confirm.ts 头注）。
+assert.match(workspace, /archiveConfirm\.dialog/, '任务树会话行必须渲染归档确认弹窗')
 assert.match(workspace, /tabIndex=\{0\} onKeyDown=\{\(event\) => \{ if \(event\.target !== event\.currentTarget\) return; if \(event\.key === 'Enter' \|\| event\.key === ' '\)/, '任务树会话行必须可聚焦并支持 Enter/空格打开')
-assert.match(workspace, /\.dcu-wb-session\.dcu-wb-archive-confirming \.dcu-wb-session-time/, '确认态必须让右侧时间让位给确认按钮')
+// 2026-10-30：确认态类名已随弹窗化删除；弹窗是 fixed 定位遮罩，不再需要行内「时间让位」。
+assert.match(workspace, /archiveConfirm\.dialog/, '确认态改为弹窗后，行内仍须渲染归档确认弹窗节点')
 assert.match(archiveConfirm, /event\.key === 'Escape'/, '归档确认必须支持 Escape 取消')
-assert.match(archiveConfirm, /addEventListener\('pointerdown', cancelOnPointerDown, true\)/, '归档确认必须监听条目外 pointerdown 取消')
-assert.match(archiveConfirm, /closest\('\[data-dcu-session\]'\)/, '确认态取消必须按条目边界判断，而不是按 DOM 深度')
+assert.match(archiveConfirm, /event\.key === 'Escape'/, '归档确认必须支持 Escape 取消')
+// 2026-10-30：弹窗形态下「条目外 pointerdown」换成「遮罩点击」+ 遮罩必须铺满视口（fixed）。
+assert.match(archiveConfirm, /onMouseDown: \(event: \{ target: EventTarget; currentTarget: EventTarget \}\) => \{\s*\n\s*if \(event\.target === event\.currentTarget\) close\(\)/, '点击遮罩必须取消（模态形态的「条目外」等价物）')
+assert.match(archiveConfirm, /\.dcu-archive-scrim\{position:fixed;inset:0/, '遮罩必须 fixed 铺满视口')

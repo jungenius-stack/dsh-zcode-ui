@@ -94,8 +94,11 @@ assert.match(browser, /\.dcu-wb-rename-input\{[^}]*height:36px;[^}]*border-radiu
 assert.match(browser, /\.dcu-wb-rename-input\{[^}]*font:14px\/20px/, '模态输入字号必须 14px/20px（03j A5 活体）')
 assert.match(browser, /\.dcu-wb-rename-actions\{[^}]*justify-content:flex-end/, '模态底部按钮必须右对齐（03j A5 活体）')
 
-// ── 10. 归档两步确认 + 红底 ────────────────────────────────────────────────
-assert.match(confirm, /二次|two|second|press/i, '归档必须两步确认（archive-confirm 引 ZCode TaskListItem 二次点击才执行）')
-assert.match(browser, /\.dcu-wb-confirm\{[^}]*background:var\(--dcu-state-error-fill\)/, '归档确认钮必须是 destructive 红底')
+// ── 10. 归档确认（2026-10-30 定案：模态对话框，非行内两步）────────────────────
+// asar 调用现场：L({title:confirmDialog.taskArchiveTitle, description:…, confirmLabel:taskList.archive})
+// && archiveTask(…)。此前这里锁「两步确认」与 `.dcu-wb-confirm` 红底，均属旧形态（循环论证）。
+assert.match(confirm, /confirmDialog|taskArchive|归档这个任务|modal/i, '归档确认必须走模态对话框（ZCode 调用现场原文）')
+assert.match(confirm, /dcu-archive-confirm\{[^}]*background:var\(--dcu-state-error-fill\)/, '归档确认钮必须是 destructive 红底（弹窗内）')
+assert.match(browser, /archiveConfirm\.request\(id, session\.displayTitle/, '行内归档点击必须经确认弹窗')
 
 console.log('night-audit-batch-18: 20 条断言通过')

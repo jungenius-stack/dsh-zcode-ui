@@ -194,21 +194,19 @@ export function SessionRow({
   subtitle, flat, draggable, dropActive, onDragStart, onDragEnd, onDragOver, onDrop, time,
   pinned, onTogglePin,
 }: SessionRowProps) {
-  // 行内归档两步确认 + 行键盘语义（对齐 ZCode TaskListItem：行可聚焦、Enter/空格打开、
-  // 首次点击归档进确认态、Escape / 条目外 pointerdown 取消、二次点击才执行）。
-  const archiveConfirm = useArchiveConfirm()
-  const confirmingArchive = archiveConfirm.confirmingId === id
-  const requestArchive = (): void => { if (archiveConfirm.press(id)) onArchive() }
-  return <div data-dcu-session={id} data-pinned={pinned === true ? 'true' : undefined} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}${confirmingArchive ? ' dcu-wb-archive-confirming' : ''}`} role="treeitem" aria-selected={selected} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
+  // 归档确认：ZCode 用模态对话框（asar 调用现场 L({title:确认框}) && archiveTask）。
+  // 行键盘语义（行可聚焦、Enter/空格打开）保持不变。
+  const archiveConfirm = useArchiveConfirm(t)
+  const requestArchive = (): void => { archiveConfirm.request(id, title, onArchive) }
+  return <div data-dcu-session={id} data-pinned={pinned === true ? 'true' : undefined} className={`dcu-wb-session${selected ? ' dcu-wb-selected' : ''}${menuOpen ? ' dcu-wb-menu-open' : ''}${dropActive === true ? ' dcu-wb-drop' : ''}${flat === true ? ' dcu-wb-session-flat' : ''}`} role="treeitem" aria-selected={selected} draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop} onClick={onOpen} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen() } }} onContextMenu={onContextMenu} onMouseEnter={onHover} onMouseLeave={onLeave}>
     {subtitle !== undefined && subtitle !== '' ? <span className="dcu-wb-session-copy"><SessionRowTitle title={title} /><span className="dcu-wb-session-sub">{subtitle}</span></span> : <SessionRowTitle title={title} />}
     <SessionState pendingInteraction={pendingInteraction} unread={unread} running={running} t={t} />
     {onTogglePin !== undefined && <SessionPinButton pinned={pinned === true} label={t(pinned === true ? 'sessions.unpin' : 'sessions.pin')} onToggle={onTogglePin} />}
     <SessionTime time={time} />
     <span className="dcu-wb-quick-actions">
-      {confirmingArchive
-        ? <button type="button" className="dcu-wb-confirm" onMouseDown={(event) => { event.preventDefault(); event.stopPropagation() }} onClick={(event) => { event.stopPropagation(); requestArchive() }}>{t('sessions.confirm')}</button>
-        : <button type="button" className="dcu-wb-more" aria-label={t('sessions.archive')} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation() }} onClick={(event) => { event.stopPropagation(); requestArchive() }}><QuickArchiveIcon /></button>}
+      <button type="button" className="dcu-wb-more" aria-label={t('sessions.archive')} onMouseDown={(event) => { event.preventDefault(); event.stopPropagation() }} onClick={(event) => { event.stopPropagation(); requestArchive() }}><QuickArchiveIcon /></button>
     </span>
+    {archiveConfirm.dialog}
     <span className="dcu-wb-actions">
       <Menu open={menuOpen} onClose={() => { onMenuChange(false) }} items={menuItems} onSelect={onSelectAction} portal dense getAnchorRect={menuPoint === undefined ? undefined : () => pointerMenuRect(menuPoint.x, menuPoint.y)} anchor={<button type="button" className="dcu-wb-more dcu-wb-context-anchor" aria-label={t('sessions.actions', { name: title })} onClick={(event) => { event.stopPropagation(); onMenuChange(!menuOpen) }}><ZIconMore size={16} /></button>} />
     </span>

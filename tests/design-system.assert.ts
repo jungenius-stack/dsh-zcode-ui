@@ -1202,6 +1202,7 @@ const unregisteredStyleTemplates: string[] = []
  */
 const STYLE_BLOCK_BUDGET: Record<string, number> = {
   'AboutSection.tsx': 1,
+  'archive-confirm.ts': 1,
   'startup-splash.ts': 1,
   'CodexSidebar.tsx': 1,
   'CodexWorkspaceBrowser.tsx': 4,
@@ -1378,6 +1379,11 @@ const COLOR_LITERAL_ALLOW: Record<string, Record<string, string>> = {
   },
   'conversation-layout.ts': {
     black: 'G18 折叠渐隐 mask：mask 只取 alpha，颜色本身不可见（ZCode 原文 black 70% → transparent）',
+  },
+  // 2026-10-30 归档确认弹窗：确认钮是 destructive 红底上的白字——红底色走令牌
+  // --dcu-state-error-fill，白字是「填充色上的前景」语义（同旧 .dcu-wb-confirm 用 bg-layer-3 的先例）。
+  'archive-confirm.ts': {
+    '#fff': 'destructive 红底上的白字（填充档前景，同 bg-layer-3 先例）',
   },
 }
 
