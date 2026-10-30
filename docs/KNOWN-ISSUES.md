@@ -5282,3 +5282,20 @@ reduced-motion 点击瞬跳、TCP-02 等待窗口让位。
 **遗留的可观测手段**：`tools/boot-probe.mjs` 常驻探针（由 `restart-with-debug.sh` 第 4 步自动拉起），
 日志 `/tmp/dsh-boot-errors.log`，每行一条 JSON。以后再遇同类崩溃直接从该日志取证，
 不必再从官方 crash log 那句无信息量的话反推。
+
+---
+
+## 66. 宿主侧发现：过程面板的 commands 展开钮无可访问名称（2026-10-31，v2.2.0 之后）
+
+**口径**：第 28 轮 DS4 的「可见无标签按钮」复测（有面积 + visibility/opacity 正常 + 在视口内）。
+复测结果：**插件侧 0 个**（`[data-dcu-title-folder]` / `[data-dcu-title-more]` 的 aria-label 修复成立）；
+**宿主侧 1 个**：
+
+- 元素：`button[data-process-activity="commands"]`（会话「过程」面板的 commands 展开钮，93×20）
+- 现状：`aria-expanded` / `aria-controls` 齐备（折叠语义完整），但**无 aria-label / aria-labelledby / title / 文本**，纯 svg 图标
+- 归属：宿主 CSS-module 类（`TXqvFW_*`），非插件渲染 —— **插件不代改宿主元素语义**（外来内容契约），
+  交由上游反馈；若宿主长期不修且读屏用户实际受阻，再评估由插件补 label（需登记为例外）
+
+注意：若把「在视口内」这条去掉，会多出 29 个虚拟列表预渲染的行标题按钮（`TXqvFW_title`，
+y 坐标 -5917 / -3467 等）——它们在视口外数屏，属虚拟化的正常产物，不计入。口径必须写死，
+否则这条清单每次测都不一样。
