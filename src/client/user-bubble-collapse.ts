@@ -21,6 +21,8 @@
 
 const BUBBLE_SELECTOR = '[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble'
 const USER_STACK_SELECTOR = '.IzP3Va_userStack'
+/** 侧栏开合动画期间的标记（与 official-turn-navigator / sidebar-width 共用同一属性名）。 */
+const SIDEBAR_MOTION_ATTRIBUTE = 'data-dcu-sidebar-motion'
 const TOGGLE_CLASS = 'dcu-bubble-toggle'
 const OVERFLOW_ATTR = 'data-dcu-bubble-overflow'
 const STATE_ATTR = 'data-dcu-bubble-state'
@@ -146,9 +148,28 @@ export function installUserBubbleCollapse(): () => void {
 
   let frame = 0
   let pending = new Set<HTMLElement>()
+  let waitingForMotion = false
+
+  const motionActive = (): boolean => document.querySelector(`[${SIDEBAR_MOTION_ATTRIBUTE}]`) !== null
+
+  const schedule = (): void => {
+    if (frame === 0) frame = window.requestAnimationFrame(flush)
+  }
 
   const flush = (): void => {
     frame = 0
+    // 2026-10-30（夜审批次 20）：侧栏开合动画期间布局每帧被改写，而 syncUserBubble 会读
+    // scrollHeight（强制同步布局）。动画期间气泡的尺寸不会变，整批延后到动画结束即可。
+    // 与 official-turn-navigator 同一套写法：跳过 → 属性移除时补跑 → 400ms 兜底
+    // （宿主要是连属性一起重建、移除事件没触达观察器，这条兜底负责收尾）。
+    if (motionActive()) {
+      waitingForMotion = true
+      window.setTimeout(() => {
+        if (waitingForMotion && !motionActive()) schedule()
+      }, 400)
+      return
+    }
+    waitingForMotion = false
     const batch = pending
     pending = new Set()
     for (const bubble of batch) syncUserBubble(bubble)
@@ -156,7 +177,7 @@ export function installUserBubbleCollapse(): () => void {
 
   const queue = (bubble: HTMLElement): void => {
     pending.add(bubble)
-    if (frame === 0) frame = window.requestAnimationFrame(flush)
+    schedule()
   }
 
   const queueFrom = (node: Node): void => {
@@ -169,6 +190,11 @@ export function installUserBubbleCollapse(): () => void {
 
   const observer = new MutationObserver((records) => {
     for (const record of records) {
+      if (record.type === 'attributes') {
+        // 动画结束（属性被移除）时把跳过的那批补跑一次。
+        if (waitingForMotion && motionActive() === false) schedule()
+        continue
+      }
       if (record.type === 'characterData') {
         const bubble = record.target.parentElement?.closest<HTMLElement>(BUBBLE_SELECTOR)
         if (bubble) queue(bubble)
@@ -177,14 +203,26 @@ export function installUserBubbleCollapse(): () => void {
       for (const node of record.addedNodes) queueFrom(node)
     }
   })
-  observer.observe(document.body, { childList: true, characterData: true, subtree: true })
+  observer.observe(document.body, {
+    childList: true,
+    characterData: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: [SIDEBAR_MOTION_ATTRIBUTE],
+  })
 
   const onResize = (): void => {
     for (const bubble of document.querySelectorAll<HTMLElement>(BUBBLE_SELECTOR)) queue(bubble)
   }
   window.addEventListener('resize', onResize)
 
-  for (const bubble of document.querySelectorAll<HTMLElement>(BUBBLE_SELECTOR)) syncUserBubble(bubble)
+  // 首次扫描同样受守卫约束：安装时若正好在开合动画中，走队列而不是立刻读布局。
+  if (motionActive()) {
+    waitingForMotion = true
+    for (const bubble of document.querySelectorAll<HTMLElement>(BUBBLE_SELECTOR)) pending.add(bubble)
+  } else {
+    for (const bubble of document.querySelectorAll<HTMLElement>(BUBBLE_SELECTOR)) syncUserBubble(bubble)
+  }
 
   return () => {
     observer.disconnect()

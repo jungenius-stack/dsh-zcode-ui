@@ -234,4 +234,28 @@ assert.match(
   'STRUCTURE_CSS（含两条 color-scheme 规则）必须进入最终样式表；漏拼则 color-scheme 静默失效',
 )
 
-console.log('night-audit-batch-20: 33 条断言通过')
+// ── 9. 观察器必须带「侧栏动画期跳过」守卫（2026-10-30 补做）─────────────────────
+// 08 性能审计的根因修法：侧栏开合动画期间布局每帧被改写，观察器回调里读 scrollHeight
+// 会强制同步布局（官方轮次导航实测 Layout 33 次 / 232ms）。气泡折叠是同一类代码，须同款守卫。
+assert.match(
+  bubble,
+  /const SIDEBAR_MOTION_ATTRIBUTE = 'data-dcu-sidebar-motion'/,
+  '气泡折叠必须认侧栏动画标记（与 official-turn-navigator 共用一个属性名）',
+)
+assert.match(
+  bubble,
+  /if \(motionActive\(\)\) \{\s*\n\s*waitingForMotion = true/,
+  'flush 进入时必须先查动画标记：动画期间整批延后，不得读 scrollHeight',
+)
+assert.match(
+  bubble,
+  /attributeFilter: \[SIDEBAR_MOTION_ATTRIBUTE\]/,
+  '观察器必须监听该属性，动画结束时把跳过的那批补跑（否则永远不折叠）',
+)
+assert.match(
+  bubble,
+  /\}, 400\)/,
+  '必须有 400ms 兜底：宿主连属性一起重建时移除事件不触达观察器',
+)
+
+console.log('night-audit-batch-20: 37 条断言通过')
