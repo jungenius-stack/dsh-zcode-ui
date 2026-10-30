@@ -4,6 +4,26 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.1.1 - 2026-10-30
+
+**A performance guard the audit found, plus three comments that were lying.**
+
+### What changed
+
+- **Bubble-collapse observer now skips the sidebar animation window.** Every frame of a sidebar
+  open/close rewrites layout; the observer answered by re-reading `scrollHeight` per bubble,
+  which forces synchronous layout. The work is now queued until the animation ends, with the
+  same 400ms fallback and attribute watcher the turn-navigator already uses (the 08 performance
+  audit measured that path at 33 layouts / 232ms per 900ms animation).
+- Three comments corrected against the extracted source: the running-loader colour tier
+  (`foreground-subtle`, 60% — not `subtlest`), the bubble transition tier (`collapse`,
+  `(.4,0,.2,1)` — not `move`), and the focus-ring provenance (ZCode ships **no** ring token; the
+  colour is a DSH-side choice, not an inherited value).
+
+### Tests
+
+- Four assertions added to the batch-20 file so the guard cannot be deleted unnoticed.
+
 ## 2.1.0 - 2026-10-30
 
 **The skin now speaks ZCode's language — literally, and everywhere else too.** A whole-night audit

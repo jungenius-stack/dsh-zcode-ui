@@ -47,7 +47,7 @@ this skin feels less like a theme and more like the interface DeepSeek Harness w
 ---
 
 > [!NOTE]
-> **Stable since 2.0.0 — currently 2.1.0.** Every visual value in this skin is traceable to a live measurement of ZCode (CDP computed styles or extracted source), guarded by 65 contract assertions, 57 unit/integration test files and 22 real-browser layout checks — `npm run gate` runs them all, and the `pre-push` hook runs the same gate before anything lands on GitHub. Known limitations are still listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
+> **Stable since 2.0.0 — currently 2.1.1.** Every visual value in this skin is traceable to a live measurement of ZCode (CDP computed styles or extracted source), guarded by 65 contract assertions, 57 unit/integration test files and 22 real-browser layout checks — `npm run gate` runs them all, and the `pre-push` hook runs the same gate before anything lands on GitHub. Known limitations are still listed openly in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md).
 > Corrections and improvement suggestions are genuinely welcome — please open an [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues). The most useful report is short: what you expected, what happened, and a screenshot if the problem is visual.
 
 DSH ZCode UI repaints the DSH Web interface in ZCode's (Zhipu / Zai) visual language: the sidebar, the workspace session tree, the header search, and the composer all adopt ZCode geometry, palette, and iconography — in both light and dark themes.

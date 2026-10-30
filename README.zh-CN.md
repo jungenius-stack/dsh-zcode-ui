@@ -46,7 +46,7 @@
 ---
 
 > [!NOTE]
-> **自 2.0.0 起为稳定版（当前 2.1.0）。** 皮肤里的每一个视觉值都能追溯到对 ZCode 的实机测量（CDP 计算样式或源码提取），由 65 个契约断言、57 个单元/集成测试文件与 22 个真机布局脚本守护——`npm run gate` 一条命令全跑，`pre-push` 钩子在任何东西进入 GitHub 之前执行同一道门禁。已知限制依旧如实列在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
+> **自 2.0.0 起为稳定版（当前 2.1.1）。** 皮肤里的每一个视觉值都能追溯到对 ZCode 的实机测量（CDP 计算样式或源码提取），由 65 个契约断言、57 个单元/集成测试文件与 22 个真机布局脚本守护——`npm run gate` 一条命令全跑，`pre-push` 钩子在任何东西进入 GitHub 之前执行同一道门禁。已知限制依旧如实列在 [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 里。
 > **非常欢迎纠错和改进建议**——请直接开一个 [issue](https://github.com/jungenius-stack/dsh-zcode-ui/issues)。最有用的反馈很简短：你期望看到什么、实际发生了什么，如果是视觉问题就附一张截图。
 
 DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉语言：侧栏、工作区会话树、头部搜索、输入框全部采用 ZCode 的几何、配色与图标，明暗两套主题都是。
