@@ -343,3 +343,23 @@ assert.match(navigator, /transition:width var\(--dcu-motion-feedback-duration\) 
     '侧栏 CSS 中不得出现 JSX 标记——出现即说明模板串边界错位、CSS 与 JS 混流')
 }
 console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX 泄漏')
+
+// ── G1 工具调用摘要行（2026-10-31，ZCode v3.17.1 ToolSummaryRow 源码）──
+// 宿主把整行压在 30% 前景上，导致「类别词」与「干了什么」同灰。ZCode 的规则是：
+// 主文本继承默认前景、只有图标与 kindLabel 走 subtlest；字号 text-ui-base = 14px。
+{
+  const layout = readFileSync(new URL('../src/client/conversation-layout.ts', import.meta.url), 'utf8')
+  const layoutStyle = layout.match(/CONVERSATION_LAYOUT_STYLE = `([\s\S]*?)`/)?.[1]
+  assert.ok(layoutStyle, '必须能读取会话区样式表（G1 工具卡规则所在），避免防回归被跳过')
+  const g1 = layoutStyle.match(/\[data-chat-flow-kind="tool-call"\][^{]*\{[^}]*\}/)?.[0]
+  assert.ok(g1, 'G1 规则缺失：工具调用摘要行必须把主文本提回默认前景（当前锚点 [data-chat-flow-kind="tool-call"]）')
+  assert.match(g1, /-gRAhq_summary/, 'G1 必须只作用于摘要文本容器（-gRAhq_summary），不得波及类别词')
+  assert.match(g1, /_text_1rdzk_17/, 'G1 必须命中宿主摘要文本的文本类，否则规则静默失效（宿主换哈希即触发本断言）')
+  assert.match(g1, /color:var\(--dsw-alias-label-primary\)/, '主文本必须回默认前景（ZCode：主文本继承前景，仅 kindLabel 用 subtlest）')
+  assert.match(g1, /font-size:var\(--dsw-font-size-base\)/, '主文本字号必须走基础档（ZCode text-ui-base = 14px）')
+  assert.doesNotMatch(g1, /font-size:\d+px/, '字号不得写字面量（ZCode 宪章：字号必须走系统刻度）')
+  // 反向守卫：类别词不得被一并提亮——两边同亮度正是本轮要修的问题。
+  assert.doesNotMatch(layoutStyle, /-gRAhq_title[^{]*\{[^}]*label-primary/,
+    '类别词（-gRAhq_title）必须留在最弱档；若与主文本同亮，本轮修复等于没做')
+  console.log('✓ G1 工具卡：主文本回默认前景 + 14px 基础档，类别词保持最弱档')
+}

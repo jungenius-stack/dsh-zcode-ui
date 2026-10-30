@@ -4,9 +4,13 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
-## 未发布
+## 2.2.0 - 2026-10-31
 
-**归档确认改成了 ZCode 的弹窗。** 点击行上的归档按钮，弹出确认对话框——标题「归档这个任务？」、
+**看得见的两处，外加一张决定后面还该改什么的表。**
+
+### 改了什么
+
+- **归档确认改成了 ZCode 的弹窗。** 点击行上的归档按钮，弹出确认对话框——标题「归档这个任务？」、
 正文写明任务名并告知「之后仍可恢复」——而不是原来"按钮变红再点一次"。证据是 asar 调用现场
 （`L({title: confirmDialog.taskArchiveTitle, …}) && archiveTask(…)`）；此前"两步确认"的说法引的
 是我们自己代码里的注释，不是 ZCode。
@@ -15,6 +19,25 @@
 - 删掉了行内确认的死 CSS 与不再使用的 `sessions.confirm` 键；弹窗样式块登记进样式块预算，
   destructive 白字红底登记进颜色字面量白名单。
 - 旧两步流程的 vitest 用例按弹窗行为重写（打开/确认/Escape/遮罩），频道归档集成测试同步改走弹窗。
+
+- **工具调用摘要行不再是一整片同灰。** 宿主把整行压在一个 30% 前景上（实测 `.-gRAhq_root`
+  为 `rgba(212,212,212,.5)`），于是「运行命令」（工具名）和「给出 preview 完整证据」（这次干了什么）
+  同一个亮度。ZCode 的 `ToolSummaryRow` 是：主文本保持默认前景，只把图标与类别词压到最弱档；
+  主文本走 `text-ui-base`（14px，`--ui-font-size` 取 14 号）。两条都落地，作用域用行级稳定属性
+  `data-chat-flow-kind="tool-call"` 锚定。活体实测：主文本 13px→14px、`rgba(212,212,212,.5)`→
+  `#d4d4d4`；类别词未动；行高仍是 24px（无布局位移）。规格见 `design-language/03l-toolcall.md`。
+
+### 测试
+
+- `conversation-visuals.assert.ts` 新增 6 条守卫：规则存在 / 只作用摘要 / 仍命中宿主文本类
+  （哈希一改就报红，不会静默失效）/ 颜色与字号走令牌 / 无字面量字号 / **反向守卫：类别词不得被提亮**
+  ——那正是本次要修的病。
+
+### 文档
+
+- 新增 [`docs/COVERAGE-MATRIX.md`](docs/COVERAGE-MATRIX.md)：69 个设计面，分
+  已对齐 / 部分 / 不适用 / 主动偏离 / 未知；附录 A 是拿 ZCode **v3.17.1 源码树**做的反证，
+  能抓出旧文档从未列过的面（它把工具调用卡片整域抓出来了）。
 
 ## 2.1.1 - 2026-10-30
 

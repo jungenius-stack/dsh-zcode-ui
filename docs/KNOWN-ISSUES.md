@@ -16,7 +16,8 @@
 ```
 65 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
   采集方式：node --import tsx scripts/baseline.mjs --run（结果写进 docs/BASELINE.md）
-  固定清单：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
+  固定清单（有意跳过）：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
+  2026-10-31 实跑（v2.2.0）：62 通过 / 3 跳过 / 0 失败；本轮新增工具卡守卫 6 条（见 CHANGELOG 2.2.0）
 ```
 
 套件已改为**跑完全部再汇总**（原实现遇到第一个失败即退出），一次即可看清全部问题。

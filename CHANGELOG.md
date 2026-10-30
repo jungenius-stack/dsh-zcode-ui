@@ -4,9 +4,13 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
-## Unreleased
+## 2.2.0 - 2026-10-31
 
-**Archive confirmation now matches ZCode's dialog.** Clicking a row's archive action opens a
+**Two things you can see, plus the table that decides what comes next.**
+
+### What changed
+
+- **Archive confirmation now matches ZCode's dialog.** Clicking a row's archive action opens a
 confirm dialog — title 「归档这个任务？」, body naming the task and stating it can be restored —
 instead of the inline two-step button swap. Evidence: the asar call site
 (`L({title: confirmDialog.taskArchiveTitle, …}) && archiveTask(…)`); the earlier "two-step"
@@ -19,6 +23,29 @@ reading quoted our own code comment, not ZCode.
   registered in the colour-literal allow list.
 - Vitest specs for the old two-step flow were rewritten against the dialog (open/confirm/Escape/
   scrim), and the channel-archive integration spec follows the same flow.
+
+- **Tool-call summary rows no longer read as one flat grey.** The host painted the whole row with a
+  30% foreground (`.-gRAhq_root` measured `rgba(212,212,212,.5)`), so「运行命令」(the tool name) and
+  「给出 preview 完整证据」(what it actually did) had identical weight. ZCode's `ToolSummaryRow`
+  keeps the primary text at the default foreground and dims only the icon and the kind label; its
+  size is `text-ui-base` (=14px, `--ui-font-size:14px`). Both applied, scoped by the row's stable
+  `data-chat-flow-kind="tool-call"` attribute. Measured on the live host: primary text 13px→14px,
+  `rgba(212,212,212,.5)`→`#d4d4d4`; kind label unchanged; row height unchanged at 24px (no layout
+  shift). Source of truth: `design-language/03l-toolcall.md`.
+
+### Tests
+
+- Six assertions in `conversation-visuals.assert.ts` guard the tool-row rule: the rule exists, it is
+  scoped to the summary, it still hits the host's text class (so a hash change fails loudly), colour
+  and size go through tokens, no literal font size appears, and — reverse guard — the kind label
+  must not be brightened, which is the exact bug this release fixes.
+
+### Docs
+
+- New [`docs/COVERAGE-MATRIX.md`](docs/COVERAGE-MATRIX.md): 69 design surfaces scored
+  aligned / partial / not-applicable / intentional deviation / unknown, plus Appendix A — a
+  reverse check against the ZCode v3.17.1 source tree that catches surfaces the older docs never
+  listed (it found the tool-call block as a whole-domain gap).
 
 ## 2.1.1 - 2026-10-30
 

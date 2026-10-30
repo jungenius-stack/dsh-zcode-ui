@@ -379,6 +379,18 @@ export const CONVERSATION_LAYOUT_STYLE = `
   border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));
   border-radius:var(--dsw-radius-xl);
 }
+
+/* ── G1 工具调用摘要行（2026-10-31，ZCode v3.17.1 ToolSummaryRow 源码）──────
+   宿主把整行颜色压在一个 30% 前景上（9223 活体实测 .-gRAhq_root = rgba(212,212,212,.5)），
+   于是「类别词」与「这次干了什么」同灰，扫读时分不出主次。ZCode 的 ToolSummaryRow 规则是：
+   主文本继承默认前景，只有图标与 kindLabel 用 text-foreground-subtlest；
+   主文本走 ZCode 的 text-ui-base 档（其 --ui-font-size 取 14 号）。
+   行高不动（宿主在 ._text_1rdzk_17 上是 24px 行高，字号换档后仍是 24px，行高不变＝无布局位移）。
+   作用域用行级稳定属性 data-chat-flow-kind 锚定，避免同名哈希类在会话区别处被误伤。 */
+[data-chat-flow-kind="tool-call"] .-gRAhq_summary ._text_1rdzk_17{
+  color:var(--dsw-alias-label-primary);
+  font-size:var(--dsw-font-size-base);
+}
 `
 
 const STYLE_ID = 'dcu-conversation-layout'
