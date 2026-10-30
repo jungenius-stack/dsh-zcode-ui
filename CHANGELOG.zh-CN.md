@@ -4,6 +4,40 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.1.0 - 2026-10-30
+
+**这套皮肤现在说的是 ZCode 的话——字面上是，其它地方也是。** 一整夜的审计把 96 个模块逐个
+跟 ZCode 对齐（asar 提取 + CDP 实测，20 份批次报告在 `design-language/night-audit/`），然后
+把有证据的差异全部落地。
+
+### 改了什么
+
+- **术语**：19 个文案键换成 ZCode 的「任务」说法——置顶任务 / 归档任务 / 暂无任务 / 等待确认 /
+  编辑项目 / 删除项目 / 移出分组，加上搜索面板的分组标签与占位符
+  （搜索操作、任务或文件）。每个值都是从 ZCode 自己的文案表里读出来的，不是翻译的。
+- **动效**：折叠动画改用独立的 collapse 档（300ms / `cubic-bezier(.4,0,.2,1)`），此前误挂位移档；
+  轮次刻度从 200ms 改为 150ms，对齐 ZCode 的 `transition-[height,opacity] duration-150 ease-out`。
+- **浮层**：新增 `--dcu-dialog-bg`（浅 `#fff` / 深 `#2b2b2b`），对话框底不再借用 tooltip 底——
+  ZCode 把这两者分得很清楚（`#fff` 卡片 vs `#f0f0f0` 提示）。浮层主文字对齐
+  `tooltip-foreground`（`#0a0a0a` / `#f8f8f8`）。
+- **侧栏**：菜单内距 8→10px、行高 20→21px、分区页签 28px/14px 零圆角、标题旁按钮 28×28 圆角 8、
+  扩展子项内距 10px。
+- **输入区**：工具菜单行 32px/14px/0-10px、加号按钮过渡回退 150ms、悬停卡延迟 1s → 300ms
+  （ZCode 全局 tooltip provider 的值）。
+- **细节**：拖放落点线改用 ZCode 的蓝；设置卡兜底色 `#fbfbfb`→`#fafafa`；开关滑块 16→14px；
+  重命名输入框补上「任务名称」占位符。
+- 真机验收时修掉（审计报告未覆盖）：搜索框此前有**两圈嵌套边框**（宿主 `Input` 外壳 + 我们自己
+  描的药丸），以及术语只改了一半界面。
+
+### 测试
+
+- **新增 20 份回归断言**（`tests/night-audit-batch-*.assert.mjs`，62 条），把「已经正确的点」钉住，
+  防止以后无声漂移回去。
+- 七处既有测试与布局检查把**错值当成契约**写死了（例如 ZCode 官方英文是 `Awaiting approval`
+  而我们锁的是 `Waiting for approval`；折叠动画锁了位移档曲线），已逐条按证据更正并在测试里
+  写明理由。
+- 契约断言脚本数：45 → 65。
+
 ## 2.0.2 - 2026-10-29
 
 **正文列宽终于会随窗口变化了。** 它此前被钉死在 784px —— 那个值其实是 ZCode 在某个特定窗口

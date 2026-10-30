@@ -4,6 +4,44 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.1.0 - 2026-10-30
+
+**The skin now speaks ZCode's language — literally, and everywhere else too.** A whole-night audit
+compared 96 modules against ZCode one by one (asar extraction + CDP measurements, 20 batch reports
+under `design-language/night-audit/`), and the verified differences were applied.
+
+### What changed
+
+- **Terminology**: 19 message keys switched to ZCode's "task" vocabulary — `Pin task`,
+  `Archive task`, `No tasks yet`, `Awaiting approval`, `Edit project`, `Delete project`,
+  `Remove from group`, plus the search panel's group labels and placeholder
+  (`Search actions, tasks, or files`). Every value was read out of ZCode's own string table,
+  not translated.
+- **Motion**: the disclosure animation uses its own collapse tier (`300ms` /
+  `cubic-bezier(.4,0,.2,1)`) instead of the move tier; rail ticks moved from 200ms to 150ms,
+  matching ZCode's `transition-[height,opacity] duration-150 ease-out`.
+- **Overlays**: new `--dcu-dialog-bg` (`#fff` light / `#2b2b2b` dark) so dialog surfaces stop
+  borrowing the tooltip background — ZCode keeps those apart (`#fff` card vs `#f0f0f0` tooltip).
+  Overlay primary text now matches `tooltip-foreground` (`#0a0a0a` / `#f8f8f8`).
+- **Sidebar**: menu item padding 8→10px, line height 20→21px, section tabs at 28px/14px with zero
+  radius, title-adjacent buttons 28×28 at radius 8, extension sub-items at 10px padding.
+- **Composer**: tool menu rows at 32px/14px/0-10px, add-button transition fallback 150ms,
+  hover-card delay 1s → 300ms (ZCode's global tooltip provider).
+- **Details**: drop indicator now uses ZCode's blue; settings card fallback `#fbfbfb`→`#fafafa`;
+  switch thumb 16→14px; rename input gained the `Task name` placeholder.
+- Fixed during live acceptance (not covered by the audit): the search field had **two nested
+  borders** (host `Input` wrapper plus our own pill), and the terminology change had only landed on
+  half the surfaces.
+
+### Tests
+
+- **20 new regression files** (`tests/night-audit-batch-*.assert.mjs`, 62 assertions) lock the
+  points that were already correct, so they cannot silently drift back.
+- Seven existing tests and layout checks had a wrong value baked in as a contract (e.g.
+  `Waiting for approval` where ZCode says `Awaiting approval`, and a move-tier easing on the
+  collapse animation); each was corrected with its evidence recorded inline.
+- Contract assertion scripts: 45 → 65.
+
 ## 2.0.2 - 2026-10-29
 
 **The conversation column is finally responsive.** It was pinned at 784px — which turned out to be
