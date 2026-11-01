@@ -121,12 +121,15 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
    （AA 需 4.5），且是全仓唯一没走令牌的错误文字色。改为语义令牌后亮 6.15:1 / 暗 5.98:1。
    令牌挂在 :root（不是侧栏作用域），设置页 portal 到 body 也能取到 —— 同 zcode-theme.ts 的说明。 */
 .dcu-settings-developer-tools-error{margin-top:4px;font-size:var(--dsw-font-size-caption);line-height:18px;color:var(--dcu-state-error-text)}
-.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:36px;height:20px;padding:2px;border:0;border-radius:999px;background:color-mix(in srgb,var(--dcu-primary,#000) 30%,transparent);cursor:pointer;outline:none}
+/* 2026-11-01 几何对齐 ZCode v3.17.1 switch.tsx（双源：GitHub 源码 + 装机 asar 编译 CSS 一致）：
+   default 轨道 h-[18px] w-[32px]、p-px、thumb size-4(16)、checked 位移 calc(100%-2px)、
+   thumb 无阴影（ring-0）。旧值 36×20/2px/14/16px 是 DSH 内部值，矩阵曾误记为 ZCode 规格。 */
+.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:32px;height:18px;padding:1px;border:0;border-radius:999px;background:color-mix(in srgb,var(--dcu-primary,#000) 30%,transparent);cursor:pointer;outline:none}
 .dcu-settings-switch:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
 .dcu-settings-switch[aria-checked=true]{background:var(--dsw-alias-brand-primary,#000)}
 .dcu-settings-switch:disabled{cursor:default;opacity:.5}
-.dcu-settings-switch-thumb{display:block;width:14px;height:14px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);pointer-events:none}
-.dcu-settings-switch[aria-checked=true] .dcu-settings-switch-thumb{background:var(--dsw-alias-label-primary-foreground,#fff);transform:translateX(16px)}
+.dcu-settings-switch-thumb{display:block;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);transition:transform var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);pointer-events:none}
+.dcu-settings-switch[aria-checked=true] .dcu-settings-switch-thumb{background:var(--dsw-alias-label-primary-foreground,#fff);transform:translateX(calc(100% - 2px))}
 .dcu-settings-document-copy{min-width:0}
 .dcu-settings-document p{margin:4px 0 0;font-size:var(--dsw-font-size-sm);color:var(--sp-muted);overflow-wrap:anywhere}
 .dcu-settings-document button{flex:none;min-height:32px;padding:6px var(--dcu-space-3);border:0;border-radius:var(--dsw-radius-lg);background:var(--sp-hover);color:var(--sp-text);font:inherit;font-size:var(--dsw-font-size-caption);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}

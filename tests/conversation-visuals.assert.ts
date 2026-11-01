@@ -363,3 +363,35 @@ console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX �
     '类别词（-gRAhq_title）必须留在最弱档；若与主文本同亮，本轮修复等于没做')
   console.log('✓ G1 工具卡：主文本回默认前景 + 14px 基础档，类别词保持最弱档')
 }
+
+// ── ⑧ 正文区排版元素（2026-11-01 活体落码 + 当晚深审修正）──
+// 03n（e4a8bce）已落标题全套/列表基础/li 内 p/marker；本段锁四项增量 + 两条深审反向守卫。
+// 深审证伪记录：①「ZCode 链接=白+下划线」是误引（prose 变量对正文永不生效，正文无裸 a；
+// 真相=icon-blue+静态无下划线+hover dotted）→ 本套件禁止给链接加常驻下划线；
+// ② p 段距必须收窄在 markdown 宿主内（全列作用会误伤 cm-note 等 DSH 自有面）。
+{
+  const layout = readFileSync(new URL('../src/client/conversation-layout.ts', import.meta.url), 'utf8')
+  const layoutStyle = layout.match(/CONVERSATION_LAYOUT_STYLE = `([\s\S]*?)`/)?.[1]
+  assert.ok(layoutStyle, '必须能读取会话区样式表（正文排版规则所在），避免防回归被跳过')
+  const rules = (sel: string) => layoutStyle.split('}').filter(r => r.includes(sel)).pop()
+  // 03n 轮既有规则防删失（用户点名的「毛坯房」修复，不许回归）
+  assert.match(rules('.icaHSq_column h1') ?? '', /margin:24px 0 16px|margin-top:24px/, 'h1 顶距必须 mt-6(24)（03n 轮既定）')
+  assert.match(rules('.icaHSq_column h3') ?? '', /font-weight:600/, 'h3/h4 必须 600（03n 轮既定）')
+  assert.match(rules('.icaHSq_column h5') ?? '', /font-weight:500/, 'h5 必须 500（ZCode h5=medium）')
+  assert.match(rules('.icaHSq_column li + li') ?? '', /margin-top:6px/, '列表相邻项必须 6px（ZCode space-y-1.5）')
+  assert.match(rules('li > p') ?? '', /margin:0/, 'li 内段落必须归零行内化（ZCode [&>p]:my-0）')
+  assert.match(rules('li::marker') ?? '', /--dsw-alias-label-dimmed/, '列表 marker 必须走最弱档（ZCode marker:text-foreground-subtlest，规则在 03n 块）')
+  // 2026-11-01 增量（深审修正版）
+  assert.match(layoutStyle, /\.icaHSq_column \[class\*="_markdown_"\] p\{margin-bottom:16px\}/,
+    'p 段后 16px 必须收窄在 markdown 宿主内（全列作用会误伤 cm-note 等 DSH 自有面——深审实测 18 个 p 泄漏）')
+  assert.match(rules('.icaHSq_column ol') ?? '', /list-style-position:inside/, 'ol 必须 list-inside + pl-0（ZCode 源码：防两位编号左截断；03n 误写 20px/outside，本段纠偏）')
+  assert.match(rules('.icaHSq_column strong') ?? '', /font-weight:500/, 'strong 必须 500——ZCode 强调是 font-medium（message.tsx），DSH 宿主 600 偏重')
+  assert.match(rules('.icaHSq_column hr') ?? '', /border-top:1px solid var\(--dsw-alias-border-l2/, 'hr 必须可见（1px border-l2；2026-11-01 活体推翻 ⑤ 旧结论「0 个可见 hr」）')
+  // 深审反向守卫一：链接不得加常驻下划线（ZCode 静态无下划线；曾据 prose 变量误落，已撤）
+  assert.doesNotMatch(layoutStyle, /\.icaHSq_column a\{[^}]*text-decoration/,
+    '不得给 .icaHSq_column a 加静态下划线——ZCode 链接静态无下划线（正文无裸 a，外链 hover 才 dotted），常驻下划线是 ZCode 没有的样式且会误伤附件链接（深审实测 Q2dzhW_fileLink 被误伤）')
+  // 深审反向守卫二：⑧ 段不得给链接改色——颜色挂 F6 决策下（保留 DSH 品牌蓝）
+  assert.doesNotMatch(layoutStyle.match(/── ⑧ [\s\S]*?(?=── G1|── ⑦|$)/)?.[0] ?? '', /\.icaHSq_column a\{[^}]*color/,
+    '⑧ 段不得给链接改色（颜色挂 F6 决策下：保留 DSH 品牌蓝）')
+  console.log('✓ 正文排版：03n 既定在位 + p 段距(收窄域)/marker/ol 纠偏/strong 500/hr 可见 + 链接双反向守卫')
+}

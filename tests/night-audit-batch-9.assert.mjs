@@ -295,7 +295,7 @@ assert.match(
 assert.match(
   layout,
   /\.icaHSq_column ol\{margin:12px 0;padding-left:20px\}/,
-  'ul/ol 必须上下 12（my-3）左缩进 20（pl-5）',
+  'ul 上下 12（my-3）+ 左缩进 20（pl-5）；ol 已由 ⑧ 纠偏为 inside+pl-0，本条防 ul 规则删失',
 )
 assert.match(
   layout,
@@ -324,12 +324,13 @@ assert.match(
 )
 
 // ── 6. 尾行系 ──────────────────────────────────────────────────────────────
-// ZCode 全文档 0 个可见 hr（章节只靠留白分层）；时间戳 = 12px / 30%；
-// 工具行（已运行命令 / 思考…）= 30% / 500。
+// 2026-11-01 更正：「ZCode 0 个可见 hr」是会话无 hr 样本的假阴性，9224 活体实锤
+// hr = my-6(24/24) + 1px border-border。本断言改锁 ⑧ 的可见规格（原「抹线保距」已废）。
+// 时间戳 = 12px / 30%；工具行（已运行命令 / 思考…）= 30% / 500。
 assert.match(
   layout,
-  /\.icaHSq_column hr\{\n  border:0;\n  height:0;\n  background:transparent;\n  margin:24px 0;\n\}/,
-  'hr 必须抹线保距：高度 0 + 透明底 + 上下 24（DSH 的 1px 格子线是「毛坯感」主因）',
+  /\.icaHSq_column hr\{[^}]*border-top:1px solid var\(--dsw-alias-border-l2[^}]*margin-top:24px/,
+  'hr 必须可见：1px border-l2 + 上下 24（2026-11-01 活体定案，取代旧「抹线保距」）',
 )
 assert.match(
   layout,

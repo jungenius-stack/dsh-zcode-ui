@@ -85,7 +85,11 @@ assert.match(scroll, /export const SLIDE_TAIL_RATIO = 0\.6/, '瞬移后尾段必
 assert.match(scroll, /export const INSTANT_JUMP_MIN = 1200/, '瞬移判定阈值必须 1200px')
 
 // ── 8. 开关几何 + 语义 ─────────────────────────────────────────────────────
-assert.match(styles, /\.dcu-settings-switch\{[^}]*width:36px;height:20px;[^}]*border-radius:999px/, '开关轨必须 36×20 全圆胶囊（asar h-5 w-9 + rounded-full）')
+// 2026-11-01 更正：原断言「36×20（asar h-5 w-9）」是把编译 CSS 里其他组件用的 h-5/w-9
+// 工具类误归给开关。ZCode v3.17.1 switch.tsx（GitHub 源码 + 装机 asar 编译 CSS 双源一致）
+// default 轨道 = h-[18px] w-[32px]（编译规则 `.data-\[size\=default\]\:h-\[18px\][data-size=default]{height:18px}`），
+// thumb size-4 = 16px。全圆胶囊不变。
+assert.match(styles, /\.dcu-settings-switch\{[^}]*width:32px;height:18px;[^}]*border-radius:999px/, '开关轨必须 32×18 全圆胶囊（ZCode v3.17.1 switch.tsx default 变体）')
 assert.match(devRow, /role="switch"/, '开发者工具开关必须 role="switch"')
 assert.match(devRow, /aria-checked=\{enabled\}/, '开关必须暴露 aria-checked')
 

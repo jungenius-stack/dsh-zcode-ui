@@ -301,18 +301,12 @@ export const CONVERSATION_LAYOUT_STYLE = `
 /* ④ 列表内段落归零 */
 [data-conversation-scroll] .icaHSq_column li > p{margin:0;display:inline}
 
-/* ⑤ 分隔线与尾行（2026-10-28 实测对照）：
-   ZCode 全文档 0 个可见 hr——章节之间只靠留白与标题分层（实测 hrs=0）；
-   DSH 的 markdown 分隔线渲染成 1px 10% 白线 + 上下 32px，等于给文档画格子，是「毛坯感」主因之一。
-   这里保留 32px 间距、抹掉线条本身。
-   尾行口径：ZCode 时间戳 = 12px / 前景 30%（text-ui-sm text-foreground-subtlest）；
+/* ⑤ 分隔线与尾行（2026-10-28 实测对照；hr 部分已于 2026-11-01 被 ⑧ 推翻——
+   当时「ZCode 全文档 0 个可见 hr」的采样是会话无 hr 样本所致的假阴性，
+   9224 活体实锤 hr = my-6(24/24) + 1px border-border（[data-streamdown=horizontal-rule]）。
+   本块原 hr 抹线规则已删除，hr 规格见 ⑧；batch-9 断言已同步改锁 ⑧。
+   尾行口径（仍有效）：ZCode 时间戳 = 12px / 前景 30%（text-ui-sm text-foreground-subtlest）；
    DSH 现为 13px/12px、50%——统一到 12px/30%。 */
-[data-conversation-scroll] .icaHSq_column hr{
-  border:0;
-  height:0;
-  background:transparent;
-  margin:24px 0;
-}
 [data-conversation-scroll] .icaHSq_column .ppByMG_timeStart,
 [data-conversation-scroll] .icaHSq_column .ppByMG_timeEnd{
   font-size:var(--dsw-font-size-sm,12px);
@@ -342,12 +336,22 @@ export const CONVERSATION_LAYOUT_STYLE = `
    ZCode 引用块取自其自带 prose CSS 原文：
      border-inline-start-width:.25rem（4px）、padding-inline-start:1em（14px）、
      margin-block 1.6em（22px）、font-style:italic、font-weight:500，边框色 = 10% 前景。
-   ZCode 内容图 = rounded-xl + border border-border + bg-background + object-contain + shadow-2xl
-   （asar 类名原文）；这里先落到用户附件的缩略图（会话区唯一会出现的 img 路径），
-   阴影暂不加——原证据来自正文插图，缩略图未单独采过，避免把重阴影套到小图上。 */
+   ZCode 正文插图（2026-11-01 编译 JS 更正：触发器 my-4 w-fit max-w-1/2 rounded-xl；
+   img = h-auto max-h-90(360px) max-w-full rounded-xl border border-border bg-background
+   object-cover，无阴影。旧记录「object-contain + shadow-2xl」是把 ImagePreviewDialog
+   灯箱里 video/img 的类串误记成了正文插图——灯箱原文 rounded-xl border bg-background
+   shadow-2xl 属预览弹层。附件缩略图沿用 rounded-xl + 1px 边，阴影永远不加。 */
 [data-conversation-scroll] .icaHSq_column table{
   border-collapse:separate;
   border-spacing:0;
+  /* 2026-11-01 B7 暗色活体（9224 GLM 会话，暗色）：ZCode 表格外层有卡片框
+     relative w-full overflow-hidden rounded-xl border border-border（radius 12px、
+     1px --color-border、透明底、th 非 sticky 变体）。DSH 无包装层，框直接画在
+     table 元素上；已知偏差：DSH 框随内容横滚（ZCode 框固定、内容在内滚动）——
+     CSS 无法新增包装层，如需完全一致要 JS 包裹，先登记不强攻。 */
+  border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));
+  border-radius:var(--dsw-radius-xl);
+  overflow:hidden;
   font-size:var(--dsh-content-font-size,14px);
   line-height:calc(24.5px + var(--dsh-content-font-delta,0px));
 }
@@ -379,6 +383,24 @@ export const CONVERSATION_LAYOUT_STYLE = `
   border:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));
   border-radius:var(--dsw-radius-xl);
 }
+
+/* ── ⑧ 正文区排版元素（2026-11-01，9224 活体 + message.tsx/markdown-list.tsx 源码；当晚深审修正）──
+   与 03n 轮（e4a8bce，标题全套/列表基础/li 内 p/marker 已落）互补，本段只补四项：
+   p 段后 16px（ZCode mb-4 活体）——作用域收窄到 markdown 宿主 [class*="_markdown_"]：
+   深审实测 ⑧ 全列生效时 cm-note（DSH 自有面，无 ZCode 对应物）内 18 个 p 被误伤，收窄后 245/245 正文全覆盖；
+   ol 纠偏为 list-inside + pl-0（03n 误写 20px/outside；ZCode 源码注释「两位编号防左截断」）；
+   strong 500（ZCode 强调=medium 非 bold，message.tsx font-medium；DSH 宿主 600 偏重）；
+   hr my-6(24/24) + 1px border-border（活体实锤，推翻 ⑤ 旧结论，⑤ 规则已删）。
+   链接【不落任何规则】：深审证伪了「ZCode 链接=白+下划线」——prose 变量对正文永不生效（正文无裸 a，
+   外链是 button/span，message.tsx messageLinkClassName = icon-blue + no-underline + hover 才 dotted）。
+   DSH 链接蓝色 rgb(64,153,255) 与 ZCode icon-blue 同为蓝（F6 保留品牌色的延伸），静态无下划线两边一致；
+   hover 态两边均未活体采样，登记待采。marker 规则 03n 已有同值，不重复落。
+   另：宿主有首元素顶距归零的最高优先级规则（_markdown_ 容器 > :first-child → margin-top:0），
+   与 Tailwind prose first-child 语义一致，不是对 03n 标题规则的压制，不要「修」它。 */
+[data-conversation-scroll] .icaHSq_column [class*="_markdown_"] p{margin-bottom:16px}
+[data-conversation-scroll] .icaHSq_column ol{padding-left:0;list-style-position:inside}
+[data-conversation-scroll] .icaHSq_column strong{font-weight:500}
+[data-conversation-scroll] .icaHSq_column hr{border:0;border-top:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));margin-top:24px;margin-bottom:24px}
 
 /* ── G1 工具调用摘要行（2026-10-31，ZCode v3.17.1 ToolSummaryRow 源码）──────
    宿主把整行颜色压在一个 30% 前景上（9223 活体实测 .-gRAhq_root = rgba(212,212,212,.5)），

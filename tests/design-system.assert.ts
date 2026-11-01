@@ -857,6 +857,9 @@ const OFFSET_BASELINE: Record<string, number> = {
   // 结果是 verify-settings-geometry.mjs 立刻报「macOS 全屏时不得额外留标题栏空白 0 !== 18」——
   // 门禁抓住了这次误迁移。教训：**与安全区/绝对定位耦合的值不能按节奏标度收归**。
   'settings-page-styles.ts:padding:18px 8px': 1,
+  // 对齐型：设置开关轨道内距 1px = ZCode v3.17.1 switch.tsx 的 p-px 原值（对齐优先于标度；
+  // 几何耦合：1 + thumb 16 + 1 = 轨道高 18，内距改标度值会同时破坏 checked 位移终点的 1px 余量）。
+  'settings-page-styles.ts:padding:1px': 1,
 }
 const spacingLiterals = new Map<string, number>()
 for (const { name, text } of clientFiles) {
@@ -1019,6 +1022,20 @@ assert.match(switchRule, /color-mix\(in srgb,var\(--dcu-primary,#000\) 30%,trans
   '开关未选中轨道必须用 primary 的 30%（ZCode data-unchecked:bg-primary/30），不得用 border 档')
 assert.doesNotMatch(switchRule, /--dsw-alias-border-l3/,
   '开关轨道不得再用 border-l3：亮色下滑块与轨道只有 1.30:1，视觉上几乎融为一体')
+
+// ── 2026-11-01 开关几何（ZCode v3.17.1 switch.tsx + 装机 asar 编译 CSS 双源）────
+// default 轨道 h-[18px] w-[32px]（radix data-size=default，设置页调用无 size prop）、
+// p-px、thumb size-4 = 16px、checked 位移 translate-x-[calc(100%-2px)]、thumb 无阴影。
+// 旧值 36×20/2px/14/16px + shadow 是 DSH 内部值，2026-10-30 曾被误记进矩阵 ZCode 要素列。
+const switchThumbRule = settingsCss.match(/\.dcu-settings-switch-thumb\{([^}]*)\}/)?.[1]
+assert.match(switchRule, /width:32px;height:18px;padding:1px;/,
+  '开关轨道必须为 ZCode default 变体 32×18 + 1px 内距（switch.tsx h-[18px] w-[32px] p-px）')
+assert.match(switchThumbRule ?? '', /width:16px;height:16px;/,
+  '开关滑块必须为 16px（ZCode thumb size-4）')
+assert.doesNotMatch(switchThumbRule ?? '', /box-shadow/,
+  '开关滑块不得带阴影（ZCode thumb 无阴影，ring-0）')
+assert.match(settingsCss, /\.dcu-settings-switch\[aria-checked=true\] \.dcu-settings-switch-thumb\{[^}]*translateX\(calc\(100% - 2px\)\)/,
+  '选中位移必须是 calc(100% - 2px)（ZCode translate-x 原式），不得写死像素')
 
 // ── 2026-10-19 自适应跳过：只拦「真正失控」，不再锁 duration/2 ─────────────────
 // 历史：这里曾断言源码里必须出现 `if (blocked > duration / 2)`，理由是「阻塞吃掉半个
