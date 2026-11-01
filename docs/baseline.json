@@ -18,6 +18,16 @@
     "largestClientFile": "src/client/CodexWorkspaceBrowser.tsx",
     "largestClientFileLines": 1136,
     "importantOccurrences": 60,
-    "todoMarkers": 0
+    "todoMarkers": 0,
+    "zcodeAsarStyles": {
+      "files": [
+        {
+          "path": "/out/renderer/assets/styles-NK68EN_n.css",
+          "size": 480065,
+          "sha256": "06eedaead11f16f01b56917460c173820851b7fd738f3e832df0e22626b3cfc0"
+        }
+      ],
+      "asarMtime": "2026-10-29T12:49:04.000Z"
+    }
   }
 }

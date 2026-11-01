@@ -21,6 +21,9 @@ import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { ZCODE_DARK, ZCODE_LIGHT, ZCODE_STRUCTURAL } from '../src/client/zcode-tokens.ts'
+// ZCode 上游哈希哨兵的基线也走本文件生成（structure.zcodeAsarStyles），
+// 避免第二处手写真值；采集逻辑见 scripts/verify-asar-freshness.mjs。
+import { collectZcodeAsarStyles } from './verify-asar-freshness.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -160,6 +163,8 @@ export function computeBaseline() {
       largestClientFileLines: wcLines(read(largestClientFile)),
       importantOccurrences: countMatches(srcFiles, /!important/g),
       todoMarkers: countMatches(debtFiles, /\b(?:TODO|FIXME|HACK)\b/g),
+      // ZCode 上游哨兵基线：本机没装 ZCode（CI）时为 null，verify-asar-freshness.mjs 会 SKIP。
+      zcodeAsarStyles: collectZcodeAsarStyles(),
     },
   }
 }

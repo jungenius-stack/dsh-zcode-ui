@@ -143,6 +143,15 @@ for (const [script, extra] of LAYOUT) {
 for (const name of assertedGreen) console.log(`      ↑ 已转绿：请从 scripts/gate.mjs 的 KNOWN_RED_ASSERT 移除 ${name}`)
 for (const file of vitestGreen) console.log(`      ↑ 已转绿：请从 scripts/gate.mjs 的 KNOWN_RED_VITEST_FILES 移除 ${file}`)
 
+console.log('\n== 上游哨兵 ==')
+// 2026-11-02 夜跑批次 8：ZCode 上游哈希哨兵（CODE-030 防线）——装机 asar 的 styles-*.css
+// 与 docs/baseline.json 登记的哈希比对，上游静默更新立刻红，逼一次全量真值重对照。
+// 刻意**不进**上面的 LAYOUT 数组：baseline.mjs 会校验 LAYOUT 与 package.json 的 test:layout
+// 清单一致，而 package.json 在禁触清单里（版本三方）——所以哨兵在这里独立跑。
+// 本机没装 ZCode（CI）时脚本自跳过（exit 0），不挡 CI。哨兵红没有 KNOWN_RED 豁免：
+// 它是行动信号（需要全量重对照），不是可以挂着等修的存量债。
+const asarSentinel = run(['scripts/verify-asar-freshness.mjs'], 'verify-asar-freshness')
+
 console.log('\n== 汇总 ==')
 console.log(`类型检查：${typecheck.ok ? '通过' : '失败'}`)
 console.log(assertUndecided
@@ -158,14 +167,16 @@ console.log(vitestEnvBroken
         ? 'vitest：全部通过'
         : `vitest：${vitestFailedFiles.length} 个文件失败（已登记 ${vitestFailedFiles.filter(file => KNOWN_RED_VITEST_FILES.includes(file)).length} 个）/ 新增 ${newVitestFailures.length} 个`)
 console.log(`布局检查：${layoutPassed} 通过 / ${KNOWN_RED_LAYOUT.length} 已登记红项 / ${newLayoutFailures.length} 新增失败（共 ${LAYOUT.length} 项）`)
+console.log(`上游哨兵：${asarSentinel.ok ? '通过' : '失败'}（装机 asar styles 哈希 vs 基线）`)
 console.log('未纳入本档：三个需要活宿主的脚本（verify-compat-host / verify-settings-exit / verify-session-features-host）—— 它们由重型档 npm run gate:host 覆盖，见 docs/KNOWN-ISSUES.md §10.3')
 
 const blocked = !typecheck.ok || vitestEnvBroken || vitestEnvUnwritable || assertUndecided || vitestUndecided || newAssertFailures.length > 0
-  || newVitestFailures.length > 0 || newLayoutFailures.length > 0
+  || newVitestFailures.length > 0 || newLayoutFailures.length > 0 || !asarSentinel.ok
 if (blocked) {
   if (newAssertFailures.length > 0) console.log(`\n新增断言失败（门禁拦截）：${newAssertFailures.join('、')}`)
   if (newVitestFailures.length > 0) console.log(`\n新增 vitest 失败文件（门禁拦截）：${newVitestFailures.join('、')}`)
   if (newLayoutFailures.length > 0) console.log(`\n新增布局失败（门禁拦截）：${newLayoutFailures.join('、')}`)
+  if (!asarSentinel.ok) console.log('\n上游哨兵失败（门禁拦截）：ZCode asar 已更新，需全量重对照后跑 node --import tsx scripts/baseline.mjs 重登基线。')
   if (!typecheck.ok) console.log('\n类型检查失败（门禁拦截）。')
   if (vitestEnvBroken) console.log('\nvitest 未能运行（环境错误，门禁拦截）：请按 docs/KNOWN-ISSUES.md §5 换用 22.22.2-6 或 PATH 上的 Node 22。')
   if (vitestEnvUnwritable) console.log('\nvitest 未能运行（环境错误，门禁拦截）：当前检出不可写 node_modules，vitest 起不来——这不是负载问题。')
