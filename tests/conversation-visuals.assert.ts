@@ -415,3 +415,54 @@ console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX �
     'TC4 展开体不得落底色——bg-muted/15 在 ZCode 是死类（渲染透明），DSH 实底保留（批次7 判定，底色争议待上游补色后重裁）')
   console.log('✓ TC4/G4：展开体圆角/边/内距 + 推理竖线 ml8/border-l/pl14 + 死类底色反向守卫')
 }
+
+// ── B5/B6/B7/B8/B9 防删失（2026-11-02 夜跑断言加固扫荡）──
+// D1 码卡（B5/B6）、⑦ 表格/引用/附件图（B7/B8/B9）三段规则各自只有一次性实测记录
+// （03f/B7 暗色活体/04 §③），此前 0 断言守着——删除即静默回归。值全部取自
+// conversation-layout.ts 既有规则文本（不新造真值），选择器带花括号精确锚定防子串碰撞。
+{
+  const layout = readFileSync(new URL('../src/client/conversation-layout.ts', import.meta.url), 'utf8')
+  const layoutStyle = layout.match(/CONVERSATION_LAYOUT_STYLE = `([\s\S]*?)`/)?.[1]
+  assert.ok(layoutStyle, '必须能读取会话区样式表（B5-B9 规则所在），避免防回归被跳过')
+  const blockOf = (sel: string) => layoutStyle.split('}').find(r => r.includes(sel)) ?? ''
+  // B5 围栏码卡（D1 + 批次 1/1R）：外卡 1px 边 + xl 圆角 + 码块底；banner 透明 + 8/8/8/12
+  const card = blockOf('[data-conversation-scroll] .md-code-block{')
+  assert.match(card, /border:1px solid var\(--dsw-alias-border-l2/, 'B5 码卡外框必须 1px border-l2（D1 定案）')
+  assert.match(card, /border-radius:var\(--dsw-radius-xl\)/, 'B5 码卡圆角必须 xl(12)——上游加头部条后 rounded-xl（批次 1）')
+  assert.match(card, /background:var\(--dsw-alias-markdown-code-block\)/, 'B5 码卡底必须走码块令牌（值已在 zcode-tokens 对齐）')
+  const banner = blockOf('[class*="_bannerWrap"]{')
+  assert.match(banner, /background:transparent/, 'B5 banner 必须透明（DSH 深条是宿主默认，批次 1 前的旧观感）')
+  assert.match(banner, /padding:8px 8px 8px 12px/, 'B5 banner 内距必须 8/8/8/12（ZCode px-3 py-2 活体）')
+  const preBlock = layoutStyle.split('}').find(r => r.includes('.md-code-block pre{')) ?? ''
+  assert.match(preBlock, /--shiki-background:var\(--dsw-alias-markdown-code-editor-bg\)/, 'B5 pre 必须重定义 shiki 背景变量（内联 style 优先级兜底）')
+  assert.match(preBlock, /border:1px solid var\(--dsw-alias-border-l2/, 'B5 pre 边必须 1px border-l2')
+  assert.match(preBlock, /padding:6px 8px 12px/, 'B5 pre 内距必须 6/8/12（D1 活体）')
+  // B6 行内码
+  const inline = blockOf('[data-conversation-scroll] .icaHSq_column :not(pre) > code{')
+  assert.match(inline, /background:var\(--dsw-alias-markdown-inline-code\)/, 'B6 行内码底必须走 inline-code 令牌（color-mix tag 50% 值链）')
+  assert.match(inline, /padding:2px 6px/, 'B6 行内码内距必须 2/6（ZCode px-1.5 py-0.5）')
+  assert.match(inline, /border:0/, 'B6 行内码必须无边（DSH 宿主自带 0.5px 边要去掉）')
+  // B7 表格（⑦ + 2026-11-01 外框裁决）
+  const table = blockOf('[data-conversation-scroll] .icaHSq_column table{')
+  assert.match(table, /border:1px solid var\(--dsw-alias-border-l2/, 'B7 表格外框必须 1px border-l2（2026-11-01 外框裁决=有）')
+  assert.match(table, /border-radius:var\(--dsw-radius-xl\)/, 'B7 表格外框圆角必须 xl(12)（ZCode rounded-xl）')
+  const cells = blockOf('.icaHSq_column th,\n[data-conversation-scroll] .icaHSq_column td{') || blockOf('.icaHSq_column td{')
+  assert.match(cells, /padding:8px 12px/, 'B7 单元格内距必须 8/12（ZCode px-3 py-2）')
+  assert.match(cells, /border-bottom:1px solid var\(--dsw-alias-border-l2/, 'B7 单元格必须 1px 行线')
+  assert.match(blockOf('.icaHSq_column th{'), /font-weight:400/, 'B7 表头必须 400（ZCode font-normal）')
+  assert.match(blockOf('.icaHSq_column th{'), /--dsw-alias-label-dimmed/, 'B7 表头必须最弱档 dimmed（th foreground-subtlest）')
+  // td{ 是联合块「th,\n…td{」的尾子串，find 会撞联合块——取最后一个含它的块（td 单独块）
+  const tdBlock = layoutStyle.split('}').filter(r => r.includes('.icaHSq_column td{')).pop() ?? ''
+  assert.match(tdBlock, /--dsw-alias-label-primary/, 'B7 表体必须全前景（td text-foreground）')
+  // B8 引用块（04 §③ 活体：4px 竖线/斜体/500/1.6em）
+  const quote = blockOf('.icaHSq_column blockquote{')
+  assert.match(quote, /border-left:4px solid var\(--dsw-alias-border-l2/, 'B8 引用竖线必须 4px border-l2（ZCode prose .25rem）')
+  assert.match(quote, /font-style:italic/, 'B8 引用必须斜体（ZCode prose 原文）')
+  assert.match(quote, /font-weight:500/, 'B8 引用必须 500（ZCode prose font-medium）')
+  assert.match(quote, /padding:0 0 0 14px/, 'B8 引用左内距必须 14px（1em）')
+  // B9 附件缩略图（正文插图真值已更正：阴影永远不加——反向守卫）
+  const img = blockOf('.IzP3Va_attachmentRow img{')
+  assert.match(img, /border:1px solid var\(--dsw-alias-border-l2/, 'B9 附件图必须 1px 边（rounded-xl + border-border）')
+  assert.doesNotMatch(img, /box-shadow/, 'B9 附件图不得加阴影——shadow-2xl 是灯箱 video 误记，正文插图无阴影（2026-11-01 翻案）')
+  console.log('✓ B5-B9：码卡/行内码/表格/引用/附件图 15 条防删失 + 阴影反向守卫')
+}
