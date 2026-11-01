@@ -235,8 +235,8 @@ export const CONVERSATION_LAYOUT_STYLE = `
      rounded-xl bg-background（源码）+ 活体 radius 12px/bg #2b2b2b（9224），
      且有 CodeBlockHeader 头部条（语言标签 mono + 换行/复制钮，px-3 py-2）。
      圆角 0 → 12px；头部条文字 11px → 14px（text-ui-base）。
-     待复核（单样本歧义，夜跑批次1继续）：ZCode 头部文字色实测=全前景（text-muted-foreground
-     在编译产物 0 定义，疑死类），与 DSH 60% 的差集暂不落；语言标签 mono 化待采更多样本。 */
+     2026-11-02 批次1R 复核收口：头部文字色=死类证明+活体（结构性结论，无需多样本）；
+     语言标签 mono 已就位（DSH 宿主本就是 mono 族）；动作钮几何 28×28 见下。 */
   border-radius:var(--dsw-radius-xl);
   background:var(--dsw-alias-markdown-code-block);
 }
@@ -247,6 +247,22 @@ export const CONVERSATION_LAYOUT_STYLE = `
 }
 [data-conversation-scroll] .md-code-block [class*="_header_"]{
   font-size:var(--dsw-font-size-base,14px);
+  /* 2026-11-02 夜跑批次1R 复核：text-muted-foreground 是死类（编译产物 styles-NK68EN_n.css
+     与活体全部 888 条规则 0 定义），ZCode 头部文字=继承全前景（活体实测 oklch(0.87 0 0)）。
+     DSH 宿主 60% 提亮到全前景。 */
+  color:var(--dsw-alias-label-primary);
+}
+[data-conversation-scroll] .md-code-block [class*="_language_"]{
+  /* ZCode CodeBlockFilename 无自身色类，与头部同继承全前景；DSH 宿主 50% 同步提亮。
+     lowercase 不落：DSH 标签文本是中文「代码块」，无大小写变换语义。 */
+  color:var(--dsw-alias-label-primary);
+}
+[data-conversation-scroll] .md-code-block [class*="_action_"]{
+  /* ZCode 码卡动作钮 = Button size="icon-md"（button.tsx:36 = size-7 rounded-lg），
+     编译 CSS .size-7=28px、--radius-lg=8px，活体 28×28。DSH 宿主 24×24/r4。 */
+  width:28px;
+  height:28px;
+  border-radius:var(--dsw-radius-lg,8px);
 }
 [data-conversation-scroll] .md-code-block pre{
   /* shiki 会给部分 pre 盖内联 style（var(--shiki-background/foreground)），

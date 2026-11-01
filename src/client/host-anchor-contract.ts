@@ -94,6 +94,8 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: 'widthHandle', why: '会话区拖动改宽的手柄：只在会话视图渲染；只用于隐藏它的 hover 竖线（::after），缺失即不隐藏（安全降级）' },
   { anchor: '_markdown', why: 'markdown 宿主容器的模块名锚（_markdown_<hash>）：只在会话含 markdown 消息时渲染，空会话/新会话页没有——前置条件无法从 DOM 先验判定，不参与运行时自检。失效后果：⑧ 的 p 段后距静默失效（段落变密，目检可发现）' },
   { anchor: '_header', why: '代码卡头部条内容行（_header_<hash>）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：头部字号回落宿主 11px（批次1 已对齐 text-ui-base 14px）' },
+  { anchor: '_language', why: '代码卡语言标签（_language_<hash>）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：标签色回落宿主 50%（批次1R 已对齐全前景）' },
+  { anchor: '_action', why: '代码卡动作钮（_action_<hash>，换行/复制）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：钮几何回落宿主 24×24（批次1R 已对齐 28×28/r8）' },
 ]
 
 /** 在给定根节点下审计锚点，返回缺失项。作用域不在场时跳过该组（不报）。 */
