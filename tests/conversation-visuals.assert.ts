@@ -395,3 +395,23 @@ console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX �
     '⑧ 段不得给链接改色（颜色挂 F6 决策下：保留 DSH 品牌蓝）')
   console.log('✓ 正文排版：03n 既定在位 + p 段距(收窄域)/marker/ol 纠偏/strong 500/hr 可见 + 链接双反向守卫')
 }
+
+// ── TC4/G4 工具卡展开体 + 推理块竖线（2026-11-02 夜跑批次 7）──
+{
+  const layout = readFileSync(new URL('../src/client/conversation-layout.ts', import.meta.url), 'utf8')
+  const layoutStyle = layout.match(/CONVERSATION_LAYOUT_STYLE = `([\s\S]*?)`/)?.[1]
+  assert.ok(layoutStyle, '必须能读取会话区样式表（TC4/G4 规则所在），避免防回归被跳过')
+  const rules = (sel: string) => layoutStyle.split('}').filter(r => r.includes(sel)).pop()
+  assert.match(rules('[class*="_ioCard"]') ?? '', /border-radius:var\(--dsw-radius-xl\)/, 'TC4 展开体圆角必须 xl(12)——ZCode ToolCallBody.tsx:109 rounded-xl（源码+编译产物双源）')
+  assert.match(rules('[class*="_ioCard"]') ?? '', /border-width:1px/, 'TC4 展开体边必须 1px（ZCode border-border；DSH 宿主 0.5px 偏细）')
+  assert.match(rules('[class*="_ioSection"]') ?? '', /padding:12px/, 'TC4 输出区内距必须 12/12（ZCode px-3 py-3）')
+  const g4 = rules('[class*="TXqvFW_body"]') ?? ''
+  assert.match(g4, /margin-left:8px/, 'G4 竖线块必须 ml 8px（reasoning.tsx ml-2 活体实测）')
+  assert.match(g4, /border-left:1px solid var\(--dsw-alias-border-l2/, 'G4 竖线必须 1px border-l2（reasoning.tsx border-border 值链）')
+  assert.match(g4, /padding-left:14px/, 'G4 竖线与内容间距必须 14px（pl-3.5）')
+  // 反向守卫：ioCard 底色不许落——ZCode bg-muted/15 是死类（主题无 --color-muted，编译产物
+  // 0 命中，实际渲染透明），照抄透明=替宿主制造缺陷；等上游补色后由人裁决。
+  assert.doesNotMatch(layoutStyle.match(/\[class\*="_ioCard"\]\{[^}]*\}/)?.[0] ?? '', /background/,
+    'TC4 展开体不得落底色——bg-muted/15 在 ZCode 是死类（渲染透明），DSH 实底保留（批次7 判定，底色争议待上游补色后重裁）')
+  console.log('✓ TC4/G4：展开体圆角/边/内距 + 推理竖线 ml8/border-l/pl14 + 死类底色反向守卫')
+}

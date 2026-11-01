@@ -438,6 +438,37 @@ export const CONVERSATION_LAYOUT_STYLE = `
   color:var(--dsw-alias-label-primary);
   font-size:var(--dsw-font-size-base);
 }
+
+/* ── TC4/G4 工具卡展开体 + 推理块竖线（2026-11-02 夜跑批次 7，DSH 静默窗）──
+   TC4 真值链：ZCode ToolCallBody.tsx:109 = max-h-60(240) overflow-auto rounded-xl
+   border border-border bg-muted/15 px-3 py-3（编译 JS 同串 + .rounded-xl/.max-h-60
+   工具类在 styles-NK68EN_n.css 均在）；DSH 展开体 = MessageItem.module.css 的
+   Q2dzhW_ioCard/ioSection（asar 静态提取，展开态类名无需活体）。
+   只落三处同构面；三处显式不落：
+   ① 底色不落——ZCode 的 bg-muted/15 是死类（主题无 --color-muted 令牌，编译 CSS
+     0 命中，实际渲染透明），照抄=替宿主制造缺陷观感；DSH 实底（码块令牌）保留，
+     等上游补色后重裁。
+   ② 限高不落——ioSection 150px vs ZCode max-h-60(240)/5lh(100)：改截断改变整页
+     密度，TC6 先例已归用户决策域。
+   ③ 字号/行高不落——DSH ioText 走 --dsh-code-font-size 用户偏好（11/16，比率 1.45），
+     与 ZCode 14/20（1.43）观感一致，覆盖会破坏用户代码字号设置。 */
+[data-conversation-scroll] [class*="_ioCard"]{
+  border-radius:var(--dsw-radius-xl);
+  border-width:1px;
+  border-color:var(--dsw-alias-border-l2);
+}
+[data-conversation-scroll] [class*="_ioSection"]{
+  padding:12px;
+}
+/* G4：ZCode reasoning 内容体 = ml-2(8px 实测) + border-l 1px border-border + pl-3.5(14px)
+   （reasoning.tsx + 编译 CSS）。DSH TXqvFW_body 与其同构（同为滚动容器包思考流），
+   竖线挂 body；折叠态 body 高 0，border 不显形，无需状态分支。
+   限高不落（body 400px/50vh 自适应是 DSH 自有设计，同②密度逻辑）。 */
+[data-conversation-scroll] [class*="TXqvFW_body"]{
+  margin-left:8px;
+  border-left:1px solid var(--dsw-alias-border-l2);
+  padding-left:14px;
+}
 `
 
 const STYLE_ID = 'dcu-conversation-layout'

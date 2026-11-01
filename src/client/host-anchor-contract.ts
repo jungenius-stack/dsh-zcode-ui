@@ -96,6 +96,9 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: '_header', why: '代码卡头部条内容行（_header_<hash>）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：头部字号回落宿主 11px（批次1 已对齐 text-ui-base 14px）' },
   { anchor: '_language', why: '代码卡语言标签（_language_<hash>）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：标签色回落宿主 50%（批次1R 已对齐全前景）' },
   { anchor: '_action', why: '代码卡动作钮（_action_<hash>，换行/复制）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：钮几何回落宿主 24×24（批次1R 已对齐 28×28/r8）' },
+  { anchor: '_ioCard', why: '工具卡展开体卡片（_ioCard_<hash>，MessageItem.module）：只在工具卡展开时渲染——前置条件无法先验判定，不参与运行时自检。失效后果：圆角/边回落宿主 8px/0.5px（批次7 已对齐 xl/1px/l2）' },
+  { anchor: '_ioSection', why: '工具卡展开体输出区（_ioSection_<hash>）：只在工具卡展开时渲染——同上不参与自检。失效后果：内距回落宿主 12/16（批次7 已对齐 12/12）' },
+  { anchor: 'TXqvFW_body', why: '推理块内容体（TXqvFW_body_<hash>，ReasoningRow.module）：只在思考块展开时渲染——同上不参与自检。失效后果：竖线消失（批次7 已落 ml8+border-l1+pl14）' },
 ]
 
 /** 在给定根节点下审计锚点，返回缺失项。作用域不在场时跳过该组（不报）。 */
