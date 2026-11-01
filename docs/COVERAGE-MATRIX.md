@@ -17,8 +17,8 @@
 
 | 状态 | 数量 | 含义 |
 |---|---|---|
-| ✅ 已对齐 | 50 | 有实测值 + 一致 |
-| 🟡 部分 | 3 | B9 正文插图（无样本） / G1 工具卡展开体落码 / G4 推理块连接线落码 |
+| ✅ 已对齐 | 52 | 有实测值 + 一致 |
+| 🟡 部分 | 1 | B9 正文插图（DSH 侧无样本；2026-11-02 夜跑批次 7 后 G1/G4 已收口） |
 | ❌ 缺失 | 0 | 整域缺失已在附录 A 定级并全部处置 |
 | ➖ 不适用 | 12 | DSH 无对应面 / 由其它插件或宿主承担 |
 | 🔀 主动偏离（已登记） | 3 | C10 标题溢出 ellipsis / C11 ARIA 键盘模型 / F6 品牌色（2026-11-01 保留 DSH） |
@@ -29,6 +29,11 @@
 > `^\| \*\*[A-G]\d+\*\* \|`（G 行是粗体，早版正则漏配 G 域 5 格——2026-11-01 深审发现并更正口径）。
 > 2026-10-30 教训仍有效：上一版写「57 格 / ✅35」是手填估算值，实算 **64 格 / ✅47**——「靠推算写数字」被 §1 禁止。
 
+> 2026-11-02 夜跑推进（批次 1R-8，记录见 `design-language/night-audit/night-1102-batch-*.md`）：
+> ① **G1/G4 🟡 → ✅**：DSH 锚点改从 asar css-module 静态提取（Q2dzhW/TXqvFW），无需活体展开，落码 + 断言（commit e6d2af2）。
+> ② **批次 1R**：ZCode 码卡头部 `text-muted-foreground` 死类实锤（活体 888 规则 0 命中）→ 头部文字/语言标签提亮全前景 + 动作钮 28×28/r8（commit 8ea8f7d）。
+> ③ **小面验证（不占格）**：kbd（prose kbd 为死规则，正文无 .prose 靶点，双默认一致）、::selection（唯一规则属 xterm 辅助层非正文）、del/sup/sub/mark（双默认）、task-list（双边无此面）、footnote（双边无）、mermaid（ZCode 有实现双端无样本留观察）——全部 ➖ 无需处理，详见批次记录。
+> ④ **上游哨兵**：装机 asar styles sha256 入基线 + 接 gate（commit 3dc542d）；**断言加固**：B5-B9 十五条防删失（commit 51171a8）。
 > 2026-11-01 二次推进（9224 开启后的活体批次，两次翻案 + 一次落码）：
 > ① **B7 🟡 → ✅**：暗色活体逐项命中；**外框新发现**（ZCode 表格有 rounded-xl+1px 卡片框）→ 插件已补，横滚偏差登记。
 > ② **B12 翻案+修复+活体三连 → ✅**：36×20 是 h-5/w-9 误归因，真值 32×18（双源）→ 插件已改 + 断言锁定；当晚人手开设置页 16 开关实测逐项命中（深审后本行同步关账）。
@@ -199,10 +204,10 @@
 
 | 编号 | 面 | ZCode 依据 | DSH 依据（插件 src 命中） | 状态 |
 |---|---|---|---|---|
-| **G1** | 工具调用卡片（摘要行/内容体/状态/进度） | `ToolCallBlocks/` 83 文件，68 个 renderer | 活体 38 条 `tool-call`，行 `.baXwkG_callRow` | 🟡 **摘要行已对齐**（2026-10-31）：TC1/TC2 落地活体过；TC5 撤销（本就 role=button）；TC3 不做（宿主无 progress）；**TC6 = 主动偏离 🔀**（2026-11-01 用户拍板保持单行省略，ZCode line-clamp-3 会改变行密度）；**TC4 值已定**（2026-11-01 双源：外层 `max-h-60 rounded-xl border bg-muted/15 px-3 py-3` + bash pre `max-h-[5lh] leading-5 text-foreground-subtle`；9224 活体确认工具行常规态就是收起摘要 h=21）——**DSH 侧落码待锚点**（bash 块需展开态样本，见 17-交接） |
+| **G1** | 工具调用卡片（摘要行/内容体/状态/进度） | `ToolCallBlocks/` 83 文件，68 个 renderer | 活体 38 条 `tool-call`，行 `.baXwkG_callRow` | ✅ **摘要行已对齐**（2026-10-31）：TC1/TC2 落地活体过；TC5 撤销（本就 role=button）；TC3 不做（宿主无 progress）；**TC6 = 主动偏离 🔀**（2026-11-01 用户拍板保持单行省略，ZCode line-clamp-3 会改变行密度）；**TC4 值已定**（2026-11-01 双源：外层 `max-h-60 rounded-xl border bg-muted/15 px-3 py-3` + bash pre `max-h-[5lh] leading-5 text-foreground-subtle`；9224 活体确认工具行常规态就是收起摘要 h=21）；**TC4 DSH 已落码**（2026-11-02 夜跑批次 7，commit e6d2af2）：锚点从 DSH asar css-module 静态提取（`Q2dzhW_ioCard/ioSection`），落 radius xl / 边 1px l2 / 内距 12/12 + 5 断言；底色（`bg-muted/15` 系 ZCode 死类——主题无 `--color-muted`，编译产物 0 命中）与限高（密度域，TC6 先例）显式不落登记 |
 | **G2** | 工作区文件树 | `workspace-file-tree/` 22 文件，行高 28/缩进 12/git 字母 M A D R U | **DSH 无文件树**：活页面 0 条文件名行；宿主包 `FileTree/file-tree` 符号 0 命中；插件的 `.dcu-wb-tree` 是项目/会话树（B13），`native-explorer.ts` 只是调起系统文件管理器 | ➖ 不适用 |
 | **G3** | 用量统计面 | `settings/usage-stats/` 14 文件：热力图 / 日趋势 / 模型饼图 / 套餐条形折线 | 用量与余额由**第三方插件 dsh-cost-meter** 自绘在侧栏 footer；本插件只做外来内容契约（`foreign-surface-discovery.ts` 标 `converged`） | ➖ 不适用（非本插件的面） |
-| **G4** | 推理/思维链块 | **`ai-elements/reasoning.tsx`**（2026-11-01 归属更正：矩阵原引 chain-of-thought.tsx 是通用步骤 kit 非聊天思考块；ConversationTurnRow 传 `reasoningContentVariant` 与其 variant 对上）：内容体 default 变体 = `ml-2(8px) border-l 1px border-border pl-3.5(14px)` + `max-h-60(240) space-y-2 overflow-auto text-ui-base text-foreground-subtlest` | 2026-11-01 ZCode 活体（9224）：`.group/reasoning` 触发钮类逐字命中源码；展开体 8px/1px/14px/240px/14px-21px/30% 全实测吻合。DSH：`[data-turn-process]` 触发语义一致；展开内容在兄弟 flowItem `TXqvFW_root`（标题+正文段落+工具行交错，**无竖线**，已目检截图）| 🟡 ZCode 侧全锁；**DSH 侧落码待锚点**——TXqvFW 为复合面（正文与工具行同容器），竖线覆盖范围需在静默会话目检后再定（用户另一任务正在流式渲染，DOM 虚拟化回收，不宜在其活动视图动刀） |
+| **G4** | 推理/思维链块 | **`ai-elements/reasoning.tsx`**（2026-11-01 归属更正：矩阵原引 chain-of-thought.tsx 是通用步骤 kit 非聊天思考块；ConversationTurnRow 传 `reasoningContentVariant` 与其 variant 对上）：内容体 default 变体 = `ml-2(8px) border-l 1px border-border pl-3.5(14px)` + `max-h-60(240) space-y-2 overflow-auto text-ui-base text-foreground-subtlest` | 2026-11-01 ZCode 活体（9224）：`.group/reasoning` 触发钮类逐字命中源码；展开体 8px/1px/14px/240px/14px-21px/30% 全实测吻合。DSH：`[data-turn-process]` 触发语义一致；展开内容在兄弟 flowItem `TXqvFW_root`（标题+正文段落+工具行交错，**无竖线**，已目检截图）| ✅ ZCode 侧全锁 + **DSH 已落码**（2026-11-02 夜跑批次 7，commit e6d2af2）：DSH asar css-module 静态提取证实 `TXqvFW_body` 与 ZCode reasoning 内容体**同构**（同为滚动容器包思考流，折叠态 h=0 竖线不显形）——竖线 ml8 + border-l 1px l2 + pl14 已落 + 3 断言；限高不落（DSH 400px/50vh 自适应属自有设计）；展开态活体目检留用户在场时补 |
 | **G5** | 左右侧面板（子 agent / 终端 / 计划详情） | `app-shell/` 72 文件 | 活体：`[data-dsh-session-kit-left-nav]`×1、`[data-dsh-session-kit-right-nav]`×1 均存在；插件 `src` 0 命中侧面板代码 | ➖ 由宿主 session-kit 承担，插件不参与 |
 
 **B18 修正**：原写「ZCode 的用量在底部 footer」——**错了**。ZCode 的用量是 **设置页的 `usage-stats` 分区**；
