@@ -93,6 +93,7 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: '_leadingSeat', why: '标题栏左侧座位：只在桌面标题栏布局下渲染；关合侧栏去重时用 :has(button[aria-label=打开侧边栏]) 限定，缺失即不隐藏（安全降级）' },
   { anchor: 'widthHandle', why: '会话区拖动改宽的手柄：只在会话视图渲染；只用于隐藏它的 hover 竖线（::after），缺失即不隐藏（安全降级）' },
   { anchor: '_markdown', why: 'markdown 宿主容器的模块名锚（_markdown_<hash>）：只在会话含 markdown 消息时渲染，空会话/新会话页没有——前置条件无法从 DOM 先验判定，不参与运行时自检。失效后果：⑧ 的 p 段后距静默失效（段落变密，目检可发现）' },
+  { anchor: '_header', why: '代码卡头部条内容行（_header_<hash>）：只在含代码块的会话渲染——前置条件无法先验判定，不参与运行时自检。失效后果：头部字号回落宿主 11px（批次1 已对齐 text-ui-base 14px）' },
 ]
 
 /** 在给定根节点下审计锚点，返回缺失项。作用域不在场时跳过该组（不报）。 */

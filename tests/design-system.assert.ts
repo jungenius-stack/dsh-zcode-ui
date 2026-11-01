@@ -218,10 +218,11 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   'settings-page-styles.ts:50%': 1,
   // 2026-10-28 03i 搜索输入胶囊：rounded-full 是「全圆形状」语义（同 999px 先例）
   'CodexSidebar.tsx:9999px': 1,
-  // 2026-10-28 D1 围栏码卡扁平化：`.md-code-block` 与其 banner 同为 0——
-  // ZCode 码卡无圆角（`border border-border bg-card`，无 rounded 类）。
+  // 2026-10-28 D1 围栏码卡扁平化 → 2026-11-01 批次1 部分推翻：上游演进后 ZCode 码卡
+  // CodeBlockContainer = rounded-xl（源码）+ 活体 12px（9224），`.md-code-block` 圆角已改走
+  // var(--dsw-radius-xl) 不再占额度；bannerWrap 同底拼接仍为 0（保留 1 处字面量额度）。
   // （G17 用户气泡已按 ZCode 实测改回 var(--dsw-radius-*) 标度，不再占字面量额度。）
-  'conversation-layout.ts:0': 2,
+  'conversation-layout.ts:0': 1,
   // 2026-10-28 启动徽标：96×96 / 圆角 24 —— ZCode 启动页原文值（startup-logo-shell），
   // 是启动层的独立标度，不属于应用内圆角标度管辖（该层在应用就绪前播放）。
   // inherit = ::before 边框继承壳圆角（ZCode 原文）；12px = 官方 app icon 自带圆角的
