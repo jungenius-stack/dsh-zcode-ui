@@ -76,8 +76,11 @@ const DARK_SELECTOR = ':root:root body[data-ds-dark-theme]'
  * 因此焦点环会跟随主题极性翻转，且不破坏指针/键盘的区分逻辑。
  *
  * 2026-10-30（夜审批次 20 更正）：**焦点环的颜色本身没有 ZCode 对应物**。
- * ZCode 的主题里没有 focus-ring 专令牌（tokens.json 231 个变量无 ring 键），
- * 最近的参照是 `--color-input-border-focused` = brand 蓝 oklch(74.6% .16 232.661)。
+ * ZCode 的主题里没有 focus-ring 专令牌（tokens.json 231 个变量无 ring 键）。
+ * 2026-11-03（night2 surface-7 #1 复核更正）：`--color-input-border-focused` 只在
+ * `:root`/`.dark` 基档 = var(--color-brand)；zai-light/zai-dark 覆盖档 =
+ * var(--color-border-hover)（浅 #0d0d0d26 / 深 #ffffff26，15% 中性）——zai 档在后、实际生效，
+ * 「最近的参照是 brand 蓝」的说法按基档理解才成立。
  * 本仓库的 `--dsw-focus-ring-color`（#0b7fff / #4099ff）是 DSH 侧取值，
  * 消费点都写成 `var(--dsw-focus-ring-color, var(--dcu-focus))` —— 属**有据可依的近似，不是实测继承**。
  */

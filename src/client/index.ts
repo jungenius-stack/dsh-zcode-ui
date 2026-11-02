@@ -56,6 +56,7 @@ import { registerInputHistory } from './InputHistoryDock.tsx'
 import { prefillNewConversation, createDraftPresenceSource } from './new-conversation-draft.ts'
 import { observeComposerToolMenus } from './composer-tool-menus.ts'
 import { installComposerVisuals } from './composer-visuals.ts'
+import { installScrollbarAutohide } from './scrollbar-autohide.ts'
 import { installConversationLayout } from './conversation-layout.ts'
 import { installUserBubbleCollapse } from './user-bubble-collapse.ts'
 import { hasConnectWorkspace, hasOpenWorkspace, hasStartSession, recentWorkspaceId, workspaceBaselinesReady } from './workspace-compat.ts'
@@ -168,6 +169,9 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => syncZCodeTheme(), 'zcode-ui-for-dsh: theme mirror')
   // 输入区静态视觉：加号的圆形底只在 hover/focus 出现；“回到底部”居中。
   ctx.effect(() => installComposerVisuals(), 'zcode-ui-for-dsh: composer visuals')
+  // 滚动条自动隐藏状态机（night2 surface-6 M5）：会话滚动区「滚动才现形、1s 熄灭」，
+  // 写宿主 --dsh-scrollbar-thumb 变量；CSS 侧总闸见 zcode-theme.ts 滚动条段。
+  ctx.effect(() => installScrollbarAutohide(), 'zcode-ui-for-dsh: scrollbar autohide')
   // 实验性：消息离屏跳过。**默认关闭**（需 localStorage dcu-virtual-skip=1）。
   // 它改变宿主消息区的渲染行为，故不走常驻路径；结构不符时自身空转，不做任何写入。
   // 依据与风险见 src/client/virtual-skip.ts 头部注释与 docs/KNOWN-ISSUES.md §43。

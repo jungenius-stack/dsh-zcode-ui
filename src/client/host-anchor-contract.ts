@@ -85,6 +85,7 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: '_centerCol', why: '同上' },
   { anchor: '_viewport', why: '只在工具菜单/弹层打开时出现' },
   { anchor: '_itemIcon', why: '同上' },
+  { anchor: '_danger', why: '树菜单危险行（Menu.module 的 .danger 块，_danger_<hash>）：只在右键菜单打开且含 danger 项时出现（night2 surface-1 #4 危险行高亮注入）；前置条件无法从 DOM 先验判定，不参与自检。失效后果：删除行高亮回落红薄底（安全降级）' },
   { anchor: '_footer', why: '同上' },
   { anchor: '_selected', why: '只在菜单项被选中时出现' },
   { anchor: '_rail', why: '只在输入框有附件时出现' },

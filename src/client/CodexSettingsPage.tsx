@@ -148,6 +148,9 @@ export function CodexSettingsPage({ wide, sections, onboarding, connectionState,
       // Pet 使用 body 下的专用容器，跨页面保留显示与交互，不放行其他浮层。
       if (element.parentElement === document.body && element.hasAttribute('data-dsh-pet-overlay')) return
       // 官方 Toast createPortal 到 body；只放行 body 直接子级，避免会话树里的 role=alert 被当成 sibling 漏出。
+      // night2 surface-4 M3：官方 toast 宿主根 #zcode-toast-host 无 role 属性（惰性创建的
+      // div#zcode-toast-host），必须按 id 放行——否则设置页开启时 toast 全树被 inert，关闭钮点不动。
+      if (element.parentElement === document.body && element.id === 'zcode-toast-host') return
       if (element.parentElement === document.body && element.getAttribute('role') === 'alert') return
       if (element === onboardingRoot.current || guideModals.includes(element)) return
       if (guideModals.some(modal => element.contains(modal))) {
@@ -178,14 +181,14 @@ export function CodexSettingsPage({ wide, sections, onboarding, connectionState,
       const target = event.target
       if (!(target instanceof Node) || page.current === null || !settingsElementAvailable(page.current)) return
       if (page.current.contains(target) || onboardingRoot.current?.contains(target)
-        || [...document.querySelectorAll('body > [data-dsh-pet-overlay], body > [role=alert]')].some(root => root.contains(target))
+        || [...document.querySelectorAll('body > [data-dsh-pet-overlay], body > [role=alert], body > [id=zcode-toast-host]')].some(root => root.contains(target))
         || settingsOverlays().some(overlay => overlay.contains(target))) return
       back.current?.focus()
     }
     const wrapFocus = (event: KeyboardEvent) => {
       if (event.key !== 'Tab' || event.defaultPrevented || page.current === null
         || !settingsElementAvailable(page.current) || settingsOverlays().length > 0) return
-      const roots = [page.current, onboardingRoot.current, ...document.querySelectorAll<HTMLElement>('body > [data-dsh-pet-overlay], body > [role=alert]')].filter((root): root is HTMLElement => root !== null)
+      const roots = [page.current, onboardingRoot.current, ...document.querySelectorAll<HTMLElement>('body > [data-dsh-pet-overlay], body > [role=alert], body > [id=zcode-toast-host]')].filter((root): root is HTMLElement => root !== null)
       const items = roots.flatMap(root => [...root.querySelectorAll<HTMLElement>('button,input,select,textarea,a[href],[tabindex]')])
         .filter(element => element.tabIndex >= 0 && !element.matches(':disabled') && settingsElementAvailable(element))
       const next = event.shiftKey ? items.at(-1) : items[0]
@@ -226,7 +229,7 @@ export function CodexSettingsPage({ wide, sections, onboarding, connectionState,
       <nav className="dcu-settings-nav" aria-label={t('settings.title')}>
         <button ref={back} type="button" className="dcu-settings-back" onClick={close}><ZIconArrowLeft size={16}/>{renderSlot('settings.close', {}) ?? t('settings.back')}</button>
         {renderSlot('settings.header', {})}
-        <label className="dcu-settings-search"><ZIconSearch size={15} aria-hidden="true"/><input type="search" value={query} aria-label={t('settings.search')} placeholder={t('settings.search')} onChange={event => { setQuery(event.target.value) }}/></label>
+        <label className="dcu-settings-search"><ZIconSearch size={16} aria-hidden="true"/><input type="search" value={query} aria-label={t('settings.search')} placeholder={t('settings.search')} onChange={event => { setQuery(event.target.value) }}/></label>
         <div className="dcu-settings-groups">
           {(['personal', 'integrations', 'records'] as const).map(group => {
             const entries = visible.filter(row => settingsGroup(row.id) === group)

@@ -75,7 +75,8 @@ export const ZCODE_LIGHT: TokenMap = {
   '--dsw-alias-background-secondary': '#ffffff',
   '--dsw-alias-bg-document-preview': '#f5f5f5',
   '--dsw-alias-bg-document-selection': 'rgba(11, 127, 255, 0.4)',
-  '--dsw-alias-bg-skeleton': 'rgba(13, 13, 13, 0.04)',
+  // night2 surface-8 §5：骨架填充对齐 ZCode --color-surface（3% 黑），此前 4% 是自造档
+  '--dsw-alias-bg-skeleton': 'rgba(13, 13, 13, 0.03)',
   '--dsw-alias-bg-mask-1': 'rgba(13, 13, 13, 0.24)',
   '--dsw-alias-bg-mask-2': 'rgba(13, 13, 13, 0.12)',
   '--dsw-alias-bg-mask-3': 'rgba(13, 13, 13, 0.48)',
@@ -235,15 +236,19 @@ export const ZCODE_LIGHT: TokenMap = {
   '--dsw-alias-file-diff-deleted-marker': '#e03131',
 
   // ── 滚动条 ────────────────────────────────────────────────────────
-  '--dsw-alias-scrollbar-bg-l1': 'rgba(13, 13, 13, 0.15)',
-  '--dsw-alias-scrollbar-bg-l2': 'rgba(13, 13, 13, 0.15)',
-  '--dsw-alias-scrollbar-hover-l1': 'rgba(13, 13, 13, 0.25)',
-  '--dsw-alias-scrollbar-hover-l2': 'rgba(13, 13, 13, 0.25)',
+  // night2 surface-6 M2/M3：静息 thumb = ZCode --color-border（oklch(14.5% 0 0) 10% ≈ rgb(10,10,10)），
+  // hover = foreground(#404040) 30%（ZCode fallback #4040404d 原值）。原 15%/25% 是 DSH 出厂档。
+  '--dsw-alias-scrollbar-bg-l1': 'rgba(10, 10, 10, 0.1)',
+  '--dsw-alias-scrollbar-bg-l2': 'rgba(10, 10, 10, 0.1)',
+  '--dsw-alias-scrollbar-hover-l1': 'rgba(64, 64, 64, 0.3)',
+  '--dsw-alias-scrollbar-hover-l2': 'rgba(64, 64, 64, 0.3)',
 
   // ── 浮层 / 提示 ───────────────────────────────────────────────────
   // ZCode: --color-toast / --color-tooltip / --color-tag
+  // toast-label 更正（night2 surface-4 M4）：toast 文字类是 text-foreground
+  // （theme-zai-light = neutral-800 = #262626），此前误取 tooltip-foreground 的 #0d0d0d。
   '--dsw-alias-toast-bg': '#fff',
-  '--dsw-alias-toast-label': '#0d0d0d',
+  '--dsw-alias-toast-label': '#262626',
   '--dsw-alias-tooltip-bg': '#f0f0f0',
   '--dsw-alias-tooltip-label': '#0d0d0d',
   '--dsw-alias-tooltip-key-bg': '#e6e6e6',
@@ -308,7 +313,8 @@ export const ZCODE_DARK: TokenMap = {
   '--dsw-alias-background-secondary': '#2b2b2b',
   '--dsw-alias-bg-document-preview': '#161616',
   '--dsw-alias-bg-document-selection': 'rgba(64, 153, 255, 0.4)',
-  '--dsw-alias-bg-skeleton': 'rgba(255, 255, 255, 0.08)',
+  // night2 surface-8 §5：骨架填充暗色对齐 ZCode --color-surface dark（5% 白），此前 8%
+  '--dsw-alias-bg-skeleton': 'rgba(255, 255, 255, 0.05)',
   '--dsw-alias-bg-mask-1': 'rgba(0, 0, 0, 0.5)',
   '--dsw-alias-bg-mask-2': 'rgba(0, 0, 0, 0.2)',
   '--dsw-alias-bg-mask-3': 'rgba(0, 0, 0, 0.48)',
@@ -462,14 +468,17 @@ export const ZCODE_DARK: TokenMap = {
   '--dsw-alias-file-diff-deleted-marker': '#ff5c5c',
 
   // ── 滚动条 ────────────────────────────────────────────────────────
-  '--dsw-alias-scrollbar-bg-l1': 'rgba(255, 255, 255, 0.15)',
-  '--dsw-alias-scrollbar-bg-l2': 'rgba(255, 255, 255, 0.15)',
-  '--dsw-alias-scrollbar-hover-l1': 'rgba(255, 255, 255, 0.25)',
-  '--dsw-alias-scrollbar-hover-l2': 'rgba(255, 255, 255, 0.25)',
+  // night2 surface-6 M2/M3：暗色静息 = .theme-zai-dark --color-border #ffffff1a（10%），
+  // hover = 暗色 foreground(#d4d4d4) 30% / 拖拽 45%。
+  '--dsw-alias-scrollbar-bg-l1': 'rgba(255, 255, 255, 0.1)',
+  '--dsw-alias-scrollbar-bg-l2': 'rgba(255, 255, 255, 0.1)',
+  '--dsw-alias-scrollbar-hover-l1': 'rgba(212, 212, 212, 0.3)',
+  '--dsw-alias-scrollbar-hover-l2': 'rgba(212, 212, 212, 0.3)',
 
   // ── 浮层 / 提示 ───────────────────────────────────────────────────
+  // toast-label 暗色 = text-foreground（neutral-300 = #d4d4d4），同 surface-4 M4 更正。
   '--dsw-alias-toast-bg': '#2b2b2b',
-  '--dsw-alias-toast-label': '#f8f8f8',
+  '--dsw-alias-toast-label': '#d4d4d4',
   '--dsw-alias-tooltip-bg': '#2b2b2b',
   '--dsw-alias-tooltip-label': '#f8f8f8',
   '--dsw-alias-tooltip-key-bg': '#363636',
@@ -529,8 +538,11 @@ export const ZCODE_STRUCTURAL: TokenMap = {
   // ZCode 等宽栈（含 CJK 兜底）
   '--dsh-font-family-code-default':
     'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", monospace',
+  // UI sans 栈（night2 surface-14 #1）：对齐 ZCode --font-sans 原文（asar 基底层唯一一处定义，
+  // 无覆盖）。显式 CJK 字体摘除——system-ui/sans-serif 的系统回退在 mac/Win 上落到同一批
+  // CJK 字体（PingFang SC / Microsoft YaHei），声明等价、栈与 ZCode 逐字符一致。
   '--dsw-font-family':
-    'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif',
+    'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
 
   // ── 字号刻度 ──────────────────────────────────────────────────────────────
   // ZCode DESIGN.md 把 text-ui-* 七档刻度列为「Highest-priority UI constraint」，
@@ -559,9 +571,9 @@ export const ZCODE_STRUCTURAL: TokenMap = {
   '--dsw-font-size-xs': 'calc(var(--dsw-font-size-base) - 4px)',
   '--dsw-font-size-2xs': 'calc(var(--dsw-font-size-base) - 5px)',
 
-  // ZCode 滚动条：细窄、透明轨道
-  '--dsh-scrollbar-width': '8px',
-  '--dsh-scrollbar-thumb-border': '2px',
+  // ZCode 滚动条：轨道 14px − 2×3px 透明边 = 视觉药丸 8px（night2 surface-6 M1；原 8−2×2=4px）
+  '--dsh-scrollbar-width': '14px',
+  '--dsh-scrollbar-thumb-border': '3px',
 }
 
 /**

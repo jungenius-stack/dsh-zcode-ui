@@ -325,7 +325,11 @@ html[data-dsh-zcode-skin]:has(.dcu-root) [class*="_leadingSeat"]:has(button[aria
 .dcu-search-results{display:block}
 .dcu-search-hint{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;padding:8px 8px 2px;border-top:1px solid var(--dcu-sidebar-border);color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);line-height:16px}
 .dcu-search-hint span{display:inline-flex;align-items:center;gap:2px}
-.dcu-search-hint kbd{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 var(--dcu-space-1);border-radius:var(--dsw-radius-sm);background:var(--dcu-surface);color:var(--dcu-kbd-foreground,var(--dcu-sidebar-secondary));font-family:var(--dsw-font-family);font-size:var(--dsw-font-size-2xs);line-height:1}.dcu-search-detail{max-width:160px;overflow:hidden;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);text-overflow:ellipsis;white-space:nowrap}.dcu-search-empty{padding:var(--dcu-space-4) 8px;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-caption)}@media (prefers-reduced-motion:reduce){.dcu-expanded-shell,.dcu-root.dcu-compact .dcu-compact-shell,.dcu-foot,.dcu-search-scrim,.dcu-search-dialog,.dcu-extension-panel,.dcu-extension-leading svg{animation:none;transition:none}}
+.dcu-search-hint kbd{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 var(--dcu-space-1);border-radius:var(--dsw-radius-sm);background:var(--dcu-surface);color:var(--dcu-kbd-foreground,var(--dcu-sidebar-secondary));font-family:var(--dsw-font-family);font-size:var(--dsw-font-size-2xs);line-height:1}.dcu-search-detail{max-width:160px;overflow:hidden;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);text-overflow:ellipsis;white-space:nowrap}
+/* night2 surface-5 M2：搜索空态对齐 ZCode CommandEmpty（aj）——基座 py-6 text-center text-ui-base/relaxed
+   + 调用 px-4 py-5 text-foreground-subtle：块向 20px、行向 16px、水平居中、14px/1.625（leading-relaxed）。
+   文字色维持 --dcu-sidebar-tertiary：空态色属 APPLIED「侧栏三档文字」裁决域（surface-5 D1），不单点修。 */
+.dcu-search-empty{padding:20px 16px;text-align:center;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-base);line-height:1.625}@media (prefers-reduced-motion:reduce){.dcu-expanded-shell,.dcu-root.dcu-compact .dcu-compact-shell,.dcu-foot,.dcu-search-scrim,.dcu-search-dialog,.dcu-extension-panel,.dcu-extension-leading svg{animation:none;transition:none}}
 /* ZCode 输入壳：rounded-2xl(16px)、bg-input + border-input-border、发送键用 Zai primary 黑白。 */
 /* 2026-10-28 二次对齐（用浅色活体把 ZCode 与 DSH 并排量了一遍）：
    ① 阴影：ZCode 输入卡**没有任何阴影**（类名里没有任何 shadow-* 工具类，computed 也是 none），
@@ -562,8 +566,10 @@ html:has([data-dcu-official-turn-empty]) .dcu-turn-navigator.dcu-turn-navigator{
   max-width:320px;
 }
 /* G2（04-open-gaps）：键盘焦点环。
-   ZCode：focus-visible 用 ring-2 + ring-input-border-focused + ring-offset-2，
-   其中 --color-input-border-focused 映射到 var(--color-brand)，即**语义色令牌**而非写死颜色。
+   ZCode：focus-visible 主力形态 = outline-none + ring-2 + ring-input-border-focused（无 offset；
+   ring-offset-2 仅 4 处边缘用法）。--color-input-border-focused 只在 :root/:host 与 .dark
+   基档映射到 var(--color-brand)；zai-light/zai-dark 覆盖档 = var(--color-border-hover)
+   （浅 #0d0d0d26 / 深 #ffffff26，15% 中性），zai 覆盖档在后、实际生效。
    DSH 侧对应物实测为 --dsw-focus-ring-color = #0b7fff（brand 语义），
    回退变量 --dcu-focus 与本文件其他 focus 规则保持同一写法。
    ring-2 ≈ 2px solid；ring-offset-2 ≈ outline-offset 2px。 */

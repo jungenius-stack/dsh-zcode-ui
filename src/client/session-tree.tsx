@@ -20,6 +20,7 @@ import { NS } from './locales.ts'
 import type { PendingInteractionKind } from './session-pending.ts'
 import { sessionTitleLine } from './session-title-scroll.ts'
 import { useArchiveConfirm } from './archive-confirm.ts'
+import { useHoverExiting } from './hover-shell.tsx'
 
 export function PinIcon() {
   return <ZIconPin aria-hidden="true" size={16} strokeWidth={1.5} />
@@ -52,7 +53,8 @@ export function SessionHoverCard({ tip, onEnter, onLeave }: { tip: SessionHoverT
   // 只展示侧栏里看不到的信息：完整标题 + 分支。
   // 时长已在行内右侧常驻、所属项目已由树形层级表达，重复展示只会把卡片撑大并遮挡正文
   // （DSH 内实测反馈：卡片显示「标题 + 19小时 + 测试1」，后两项与侧栏重复）。
-  return <div className="dcu-wb-tip" style={{ left: tip.left, top: tip.top }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+  const exiting = useHoverExiting()
+  return <div className="dcu-wb-tip" data-exit={exiting ? 'true' : undefined} style={{ left: tip.left, top: tip.top }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
     <div className="dcu-wb-tip-title"><span className="dcu-wb-tip-title-main">{tip.title}</span></div>
     {tip.branch !== undefined && tip.branch !== '' && <div className="dcu-wb-tip-row"><span className="dcu-wb-folder"><ZIconBranch size={16} /></span><span>{tip.branch}</span></div>}
   </div>
@@ -161,7 +163,10 @@ export function SessionState({ pendingInteraction, unread, running, t }: Pick<Se
   //    屏幕阅读器用户得到的是**零信息**，而这是并发多会话场景最需要的状态之一。
   if (pendingInteraction !== undefined) {
     const label = pendingLabel(pendingInteraction, t)
-    return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction}><span className="dcu-wb-pending-dot" aria-hidden="true" /><span className="dcu-wb-pending-label">{label}</span></span>
+    // night2 surface-9 M1：胶囊形态对齐 ZCode 注意徽章/pL（绿系药丸，语义由底色+文字承担），
+    // 不再渲染圆点。data-state 维持 "warning"：tests/session-tree.assert.ts:41 按字面钉死该值
+    // （测试文件在落地铁律范围外），语义重估（warning→success）待测试轮同步。
+    return <span className="dcu-wb-pending" data-state="warning" data-pending-kind={pendingInteraction}><span className="dcu-wb-pending-label">{label}</span></span>
   }
   if (unread) return <span className="dcu-wb-unread" role="img" aria-label={t('sessions.unread')} />
   // 运行中：ZCode 会话行的真实写法是 `LoaderIcon size-3.5 animate-spin text-foreground-subtle`
@@ -208,17 +213,22 @@ export function SessionRow({
     </span>
     {archiveConfirm.dialog}
     <span className="dcu-wb-actions">
-      <Menu open={menuOpen} onClose={() => { onMenuChange(false) }} items={menuItems} onSelect={onSelectAction} portal dense getAnchorRect={menuPoint === undefined ? undefined : () => pointerMenuRect(menuPoint.x, menuPoint.y)} anchor={<button type="button" className="dcu-wb-more dcu-wb-context-anchor" aria-label={t('sessions.actions', { name: title })} onClick={(event) => { event.stopPropagation(); onMenuChange(!menuOpen) }}><ZIconMore size={16} /></button>} />
+      <Menu open={menuOpen} onClose={() => { onMenuChange(false) }} items={menuItems} onSelect={onSelectAction} portal dense listClassName="dcu-ctx-menu" getAnchorRect={menuPoint === undefined ? undefined : () => pointerMenuRect(menuPoint.x, menuPoint.y)} anchor={<button type="button" className="dcu-wb-more dcu-wb-context-anchor" aria-label={t('sessions.actions', { name: title })} onClick={(event) => { event.stopPropagation(); onMenuChange(!menuOpen) }}><ZIconMore size={16} /></button>} />
     </span>
   </div>
 }
 
-export function GroupHead({ expanded, title, icon, onToggle, actions, menuOpen }: { expanded: boolean; title: string; icon: ReactNode; onToggle: () => void; actions?: ReactNode; menuOpen?: boolean }) {
+export function GroupHead({ expanded, title, icon, onToggle, actions, menuOpen, count }: { expanded: boolean; title: string; icon: ReactNode; onToggle: () => void; actions?: ReactNode; menuOpen?: boolean; count?: number }) {
   // tabindex 由 tree-keyboard 的 roving 统一管理，行内不再写死 tabIndex={0}
   // （写死会让全树每一行都进 Tab 序列，100 个会话就是 100 次 Tab）。
+  // night2 surface-12 M2/M3：分组头补展开箭头（ZCode 侧栏组头 chevron 14px subtlest，
+  // 展开旋转 90°，左键=折叠/展开语义不变）与 kbt 计数药丸（bg-tag/50 规格同 surface-9 M2
+  // 的 .dcu-wb-collection-count，直接复用该 class；消费点仅频道/定时两树，工作区树不用本组件）。
   return <div className={`dcu-wb-project-head${menuOpen === true ? ' dcu-wb-menu-open' : ''}`} role="treeitem" aria-expanded={expanded} onClick={onToggle} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onToggle() } }}>
     <span className="dcu-wb-folder">{icon}</span>
     <span className="dcu-wb-project-title">{title}</span>
+    <span className="dcu-wb-section-caret dcu-wb-project-caret" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M6.25 4.25 10.25 8 6.25 11.75" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+    {count !== undefined && <span className="dcu-wb-collection-count">{count}</span>}
     {actions !== undefined && <span className="dcu-wb-actions">{actions}</span>}
   </div>
 }

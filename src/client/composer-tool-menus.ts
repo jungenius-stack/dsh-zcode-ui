@@ -13,6 +13,11 @@ export const COMPOSER_TOOL_MENU_STYLE = `
    同系令牌 --dcu-tip-bg / --dcu-tip-shadow 早已用在侧栏浮层上，这里接同一对令牌，
    让「浮层表面」在仓库里有**一个**定义而不是每处一份字面量。 */
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]){box-sizing:border-box;max-height:var(--dcu-tool-menu-height,360px)!important;padding:4px!important;border-radius:var(--dsw-radius-lg)!important;background:var(--dsw-specific-menu,var(--dcu-tip-bg))!important;backdrop-filter:var(--dsw-menu-backdrop-filter,none)!important;color:var(--dsw-alias-label-primary);box-shadow:var(--dcu-tip-shadow)!important;display:flex;flex-direction:column;gap:2px;z-index:1100}
+/* night2 surface-1 #7：壳底优先消费 --dsw-specific-menu，其值定义在 zcode-theme.ts
+   尾部追加块（浅 #fff / 深 #2b2b2b，ZCode --color-menu 同值）——本文件不落颜色字面量
+   （design-system 颜色字面量口径），也不进 zcode-tokens.ts 全局映射（宿主 asar 里该
+   变量是宿主自己的菜单底别名，全局覆盖会连带改掉插件地盘之外的宿主菜单表面，
+   只在 data-dcu-tool-menu 标记面上生效）。 */
 /* 原生菜单保留宿主宽度约束；Git 弹窗沿用独立尺寸，避免观察器标记前后跳变。 */
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover])[data-gitgraph-popover]{min-width:0!important;width:262px;max-width:calc(100vw - 24px)}
 :is([data-dcu-tool-menu=inline],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]:not([data-dcu-tool-menu=portal]))[data-gitgraph-popover]{width:320px}

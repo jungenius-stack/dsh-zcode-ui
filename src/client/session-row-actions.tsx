@@ -105,13 +105,13 @@ export function SessionModals({ t, busy, error, renameTarget, deleteTarget, rena
   const deleting = busy === 'delete'
   return <>
     <Modal open={renameTarget !== undefined} onClose={() => { setRenameTarget(undefined); setError(undefined) }} closeLabel={t('sessions.close')} title={t('sessions.rename')} description={t('sessions.renameDescription')} footer={<div className="dcu-wb-rename-actions"><Button variant="outline" onClick={() => { setRenameTarget(undefined) }}>{t('sessions.cancel')}</Button><Button variant="primary" disabled={busy !== undefined || renameDraft.trim() === ''} onClick={submitRename}>{t('sessions.save')}</Button></div>}>
-      <input className="dcu-wb-rename-input" aria-label={t('sessions.rename')} placeholder={t('sessions.renamePlaceholder')} value={renameDraft} autoFocus onFocus={event => { event.target.select() }} onChange={event => { setRenameDraft(event.target.value); setError(undefined) }} onKeyDown={event => { if (event.key === 'Enter') submitRename() }} />
-      {error !== undefined && <div className="dcu-wb-error" role="alert">{t('sessions.failed', { message: error })}</div>}
+      <input className="dcu-wb-rename-input" aria-label={t('sessions.rename')} placeholder={t('sessions.renamePlaceholder')} value={renameDraft} autoFocus onFocus={event => { event.target.select() }} onChange={event => { setRenameDraft(event.target.value); setError(undefined) }} onKeyDown={event => { if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.keyCode !== 229) submitRename() }} />
+      {error !== undefined && <div className="dcu-wb-error" role="alert">{error}</div>}
     </Modal>
     <Modal open={deleteTarget !== undefined} onClose={() => { if (!deleting) { setDeleteTarget(undefined); setError(undefined) } }} closeLabel={t('sessions.close')} title={t('sessions.delete')} footer={<div className="dcu-wb-rename-actions"><Button variant="outline" disabled={deleting} onClick={() => { setDeleteTarget(undefined); setError(undefined) }}>{t('sessions.cancel')}</Button><Button variant="outline" className="dcu-wb-delete-button" disabled={deleting} onClick={submitDelete}>{t('sessions.delete')}</Button></div>}>
       <p className="dcu-wb-delete-copy">{deleteTarget === undefined ? '' : t('sessions.deleteDescription', { name: deleteTarget.title })}</p>
-      {deleting && <div className="dcu-wb-error" role="status">{t('sessions.deletePending')}</div>}
-      {error !== undefined && <div className="dcu-wb-error" role="alert">{t('sessions.failed', { message: error })}</div>}
+      {deleting && <div className="dcu-state" role="status">{t('sessions.deletePending')}</div>}
+      {error !== undefined && <div className="dcu-wb-error" role="alert">{error}</div>}
     </Modal>
   </>
 }

@@ -2,12 +2,13 @@ import { useEffect } from 'react'
 import { ZIconBranch, ZIconChannels, ZIconFolder, ZIconSettings } from './zcode-icons.tsx'
 import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import { NS } from './locales.ts'
-import { useHoverDispatch, useHoverValue } from './hover-shell.tsx'
+import { useHoverDispatch, useHoverExiting, useHoverValue } from './hover-shell.tsx'
 import { PinIcon } from './session-tree.tsx'
 
 /** 只订阅悬停值，避免工作区树随鼠标移动整树重绘。 */
 export function WorkspaceHoverCard({ t, onEditWorkspace, onToggleWorkspacePin }: { t: TranslateNS<typeof NS>; onEditWorkspace: (id: string, title: string) => void; onToggleWorkspacePin: (id: string) => void }) {
   const hoverTip = useHoverValue()
+  const exiting = useHoverExiting()
   const { keepTip, hideTip, dismissTip } = useHoverDispatch()
   useEffect(() => {
     if (hoverTip === undefined) return
@@ -26,7 +27,7 @@ export function WorkspaceHoverCard({ t, onEditWorkspace, onToggleWorkspacePin }:
   const taskSummary = hoverTip.unreadCount !== undefined && hoverTip.unreadCount > 0
     ? t('workspace.taskSummary', { count: hoverTip.count ?? 0, unreadCount: hoverTip.unreadCount })
     : t('workspace.taskCount', { count: hoverTip.count ?? 0 })
-  return <div className={`dcu-wb-tip${workspace ? ' dcu-wb-tip-workspace' : ''}`} style={{ left: hoverTip.left, top: hoverTip.top }} onMouseEnter={keepTip} onMouseLeave={hideTip}>
+  return <div className={`dcu-wb-tip${workspace ? ' dcu-wb-tip-workspace' : ''}`} data-exit={exiting ? 'true' : undefined} style={{ left: hoverTip.left, top: hoverTip.top }} onMouseEnter={keepTip} onMouseLeave={hideTip}>
     <div className="dcu-wb-tip-title">
       {workspace && <span className="dcu-wb-folder"><ZIconFolder size={16} /></span>}
       <span className="dcu-wb-tip-title-main">{hoverTip.title}</span>

@@ -61,9 +61,9 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
      搬过去对比度会变。此前实测暗色下 secondary 3.99:1 / tertiary 3.68:1 均掉线。2026-10-30（夜审批次 2）：ZCode 浮层分两组——tooltip 浅 #f0f0f0、toast/card 浅 #fff，故对话框底另立 --dcu-dialog-bg（浅 #fff / 深 #2b2b2b）。
      亮底实测：#262626 15.13:1 ／ #5c5c5c 6.69:1 ／ #686868 5.57:1，全部 ≥AA。 */
   --dcu-tip-primary:#0d0d0d;--dcu-tip-secondary:#5c5c5c;--dcu-tip-tertiary:#686868;
-  /* 键帽文字：ZCode Kbd 组件用 text-muted-foreground，本仓按侧栏底重取。
-     实测（底 = #f0f0f0 叠 3% 中性 = #e9e9e9）：#5c5c5c = 5.51:1 ✅ AA。
-     tertiary #686868 只有 4.59:1，看似达标但余量太小，暗色档直接掉到 4.14:1 —— 故不分档都不用它。 */
+  /* 键帽文字：ZCode Kbd 用 text-tooltip-tag-foreground（night2 surface-2 #5 更正注释：原写
+     text-muted-foreground 在 ZCode 编译 CSS 中不存在，Kbd 实际消费 --color-tooltip-tag-foreground，
+     浅 #5c5c5c / 深 #adadad），本仓按侧栏底重取。实测（底 = #f0f0f0 叠 3% 中性 = #e9e9e9）：#5c5c5c = 5.51:1 ✅ AA。tertiary #686868 只有 4.59:1 余量太小，暗色档掉到 4.14:1，故不用。 */
   --dcu-kbd-foreground:#5c5c5c;
   /* 选中行内的次要文字：选中底 #e5e5e5 上 tertiary #686868 只有 4.42:1（<AA），
      提到 secondary #5c5c5c = 5.31:1 ✅。只影响选中行，普通底色下的取值不变。
@@ -249,28 +249,28 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-sidebar-background:#161616}
      ZCode tokens.json 实测（浏览器 canvas 像素回读换算，双已知值反验通过）：
 
        oklch(97%   0 0) → rgb(245)  = #f5f5f5   ← 基础层（非运行时值）
-       oklch(98.5% 0 0) → rgb(250)  = #fafafa   ← --color-background   （内容画布层）
+       oklch(98.5% 0 0) → rgb(250)  = #fafafa   ← 基底层 --color-background（被覆盖残值）
        反验：oklch(87% 0 0) → 212（= 深色前景）、oklch(37.1% 0 0) → 64（= G14 基色）✅
 
-     **245 与 250 的 5 通道差本身就是设计语言**——侧栏略暗以区分层级。
-     上一版取中值 247 是错的：把两层压平，两侧都不准，还丢掉了层级差。
+     night2 surface-14 #5 更正：245/250 都是被 zai 覆盖层覆盖的基底层残值，不是设计语言——
+     运行时真值 = 覆盖层：侧栏 #f0f0f0 / 画布 #f8f8f8（差 8 通道）。
 
      映射：
        .dcu-root（插件侧栏壳）          → #f0f0f0 (240)  ← 2026-11-03 9224 活体实测
-       .dcu-settings-page / .dcu-home（整页弹层）→ #fafafa (250)
+       .dcu-settings-page / .dcu-home（整页弹层）→ #f8f8f8（248，zai-light 覆盖层）
 
      G14 联动（已算）：底 245 上 secondary 85% ≈ 6.2:1、tertiary 75% ≈ 4.7:1，仍双双过 AA，
      故 alpha 保持 85%/75% 不动。
 
-     原值 #f0f0f0（240）比 ZCode 侧栏层还暗 5 个通道。 */
+     tokens.json 浅色列采样于无主题类的基底层（night2 surface-14 §2 根因），换算记录保留。 */
   --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;
   /* G14（03b-sidebar）：原为写死 #595959。改为 alpha 叠加。
-     基色 #404040 = ZCode 浅色 --color-foreground（oklch(37.1% 0 0)，其 oklab L=0.3715）。
+     基色 #404040 = ZCode 基底层 --color-foreground（neutral-700，oklch(37.1% 0 0)）。
      目标渲染色 = oklab(0.371 0 0 / 0.6)，与 ZCode 分组标题实测一致。
      **历史坑（2026-10-27 第 3 轮评判对账）**：最初误用 #0a0a0a（foreground-subtle 的基色），
      那是另一个令牌；正确基色必须是 foreground 本身。 */
-  /* G14 终版（2026-10-27）：基色 #404040 = ZCode 浅色 --color-foreground（oklab L=0.3715），
-     **保住 L 身份**与 ZCode 一致，只把 alpha 抬高以适配 DSH 更暗的侧栏背景。
+  /* G14 终版（2026-10-27；night2 surface-14 #3 更正身份）：#404040 是基底层 foreground（neutral-700），
+     运行时 zai-light --color-foreground = neutral-800（#262626）；取基底层 L 身份，alpha 抬升的 AA 理由独立。
      为什么必须抬 alpha：ZCode 自己的 oklab(0.371/0.6) 在它的 #fbfbfb 上也只有 3.29:1
      （本就不达 AA），而 DSH 背景 #f0f0f0 更暗，同样 alpha 掉到 3.19:1。
      实测解：alpha 0.85 / 0.75 → 6.05:1 / 4.61:1，双档过 AA 且 ΔL*(s-t)=7.4 可分辨。 */
@@ -301,7 +301,7 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-sidebar-background:#161616}
      DSH 原为 14px / 8px。实测 16px 不折行、不溢出（注入验证过），可安全放大。 */
   --dcu-settings-nav-size:16px;
   --dcu-settings-nav-radius:12px;
-  /* TA1：设置页整页底 = ZCode 内容画布层 rgb(250)。侧栏层 245 见 .dcu-root。 */
+  /* TA1：设置页整页底 = ZCode 画布层 #f8f8f8（zai-light 覆盖层真值）；侧栏层 #f0f0f0 见 .dcu-root。 */
   /* TA4（2026-10-28 静态定案）：ZCode 深色设置卡 = --color-background（#161616，与画布
      同底、仅边框分隔——S2 实测）。浅色对称取画布值 #fafafa（旧 #fbfbfb 是未验证猜测）。 */
   --dcu-settings-page-bg:#f8f8f8;
@@ -353,6 +353,112 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
   --dcu-sidebar-border:rgba(255,255,255,.1);--dcu-focus:#4099ff;
   --dcu-surface:rgba(255,255,255,.05);
 }
+/* ── night2 落地追加（2026-11-03）─────────────────────────────────────────
+   本块统一追加在文件尾而非各既有段落内：night-audit-batch-1/8 断言按**行号**锁定
+   上方取值点（:20/:58/:81/:131/:137/:142/:185/:203/:217/:288/:310/:339/:353/:354），
+   段内插行会让全部行号漂移；追加块零位移，语义等价（:root 级变量 + 独立规则，
+   与 :245 --dcu-sidebar-background 的追加先例同款）。 */
+/* night2 surface-3 M9：对话框次级按钮底。ZCode 确认框取消钮 variant:secondary =
+   bg-secondary 实底无边（hover:bg-secondary/80）；--color-secondary 浅 #d4d4d4
+   （编译 CSS fallback 实测 #d4d4d4cc）/ 深 #363636。 */
+:root{--dcu-secondary-bg:#d4d4d4}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-secondary-bg:#363636}
+/* night2 surface-1 #8 / surface-3 M12：ZCode tailwindcss-animate 默认档。右键菜单壳
+   （duration-100 + fade + scale .95 + 8px 方向滑移）与确认框（fade + zoom-in-95，
+   无位移）实测同为 100ms + 浏览器默认 ease——不属于五档意图曲线，独立成档；
+   reduced-motion 与五档一起归零。 */
+:root{--dcu-tw-anim-duration:100ms}
+@media (prefers-reduced-motion:reduce){:root{--dcu-tw-anim-duration:0ms}}
+/* night2 surface-1 #7：composer 工具菜单壳底。ZCode --color-menu = #fff/#2b2b2b（不透明
+   菜单底）；composer 壳的 background 优先消费 --dsw-specific-menu，本仓此前未定义 →
+   浅色 fallback 吃到 tooltip 组的 --dcu-tip-bg。定义在**工具菜单标记面**上而非全局：
+   宿主 asar 里该变量是宿主自己的菜单底别名（指向宿主的毛玻璃填充令牌），全局覆盖会
+   连带改掉插件地盘之外的宿主菜单表面（越权）。 */
+[data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]{--dsw-specific-menu:#fff}
+body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]),
+.theme-zai-dark :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]){--dsw-specific-menu:#2b2b2b}
+/* night2 surface-1 #1-#6/#8/#9：树菜单（context menu）家族注入覆盖。四棵树菜单与
+   共用会话行菜单经 Menu 的 listClassName 挂 dcu-ctx-menu，密度档从 compact 改保
+   dense（primitives：行 30px/内距 4-8px，去掉 compact 的 11px 字、12px 图标、4px 项
+   圆角），再对齐 ZCode 实测：行 14px/行高 1.625（实高 ≈30.75px）、图标 16px、行距 2px、
+   分隔线 1px 全出血（-mx-1）、壳 min-width 176（min-w-44）、壳圆角 8px（去 compact 后
+   MenuSurface 自带 radius-lg）、hover 实色菜单 hover 令牌、禁用 opacity 100 +
+   40%/30% 文字 + pointer-events-none、危险行高亮 = 实色 destructive 底 + 白字。
+   primitives 类名是宿主 CSS Modules 哈希（_item_4ub78 等），item/icon/danger 用
+   类名前缀子串锚定（composer-tool-menus 已验证的同款模式），结构槽用 role 锚定；
+   壳自身规则双写类名抬优先级，压过 .list/.submenu 的同名声明。 */
+@keyframes dcu-ctx-menu-in{from{opacity:0;transform:translateY(-8px) scale(.95)}}
+.dcu-ctx-menu.dcu-ctx-menu{min-width:176px;animation:dcu-ctx-menu-in var(--dcu-tw-anim-duration,100ms) ease}
+.dcu-ctx-menu.dcu-ctx-menu>[role=presentation]{gap:2px}
+.dcu-ctx-menu [role=separator]{height:1px;margin:4px -4px}
+.dcu-ctx-menu button[role=menuitem]{gap:8px;padding:4px 8px;border-radius:var(--dsw-radius-md);font-size:var(--dsw-font-size-base);line-height:1.625}
+.dcu-ctx-menu [class*=_itemIcon]{width:16px;height:16px}
+.dcu-ctx-menu [class*=_itemIcon] svg{width:16px;height:16px}
+.dcu-ctx-menu button[role=menuitem]:hover:not(:disabled),
+.dcu-ctx-menu button[role=menuitem]:focus-visible:not(:disabled){background:var(--dsw-specific-menu-item-hover)}
+.dcu-ctx-menu button[role=menuitem]:disabled{opacity:1;pointer-events:none;color:var(--dsw-alias-label-dimmed);cursor:default}
+.dcu-ctx-menu button[role=menuitem][class*=_danger]:hover:not(:disabled),
+.dcu-ctx-menu button[role=menuitem][class*=_danger]:focus-visible:not(:disabled){background:var(--dsw-alias-state-error-primary);color:#fff}
+.dcu-ctx-menu button[role=menuitem][class*=_danger]:hover:not(:disabled) [class*=_itemIcon],
+.dcu-ctx-menu button[role=menuitem][class*=_danger]:focus-visible:not(:disabled) [class*=_itemIcon]{color:#fff}
+
+/* ── 滚动条：全局基座补齐 + 自动隐藏状态机（night2 surface-6 M1/M4/M5）────────────
+   M1：thumb 最小长度 32px（ZCode 全局基座 css@445006–445362：min-width/height:32px；
+   轨道 14px / 透明边 3px 已由 zcode-tokens.ts 的 --dsh-scrollbar-* 落值）。
+   M4：按压/拖拽态 45%（ZCode :active fallback #40404073 / 45% mix；宿主 scrollbar.css 无 :active）。
+   M5：自动隐藏 = 静息透明 → 滚动显形（alias bg 档）→ 1s 空闲熄灭；hover/dragging 由
+   scrollbar-autohide.ts 挂属性驱动，颜色引 alias 档随主题自动翻转，拖拽 45% 用
+   color-mix(foreground 45%)（ZCode @supports 形态）。总闸 html[data-dcu-scrollbar-autohide]：
+   模块不在场时一切规则失效，滚动条回落宿主常显默认（无「滚动条永久消失」失败态）。
+   需求 @property 注册 <color>：WAAPI 对未注册自定义属性只能离散切换，无法 200ms 渐变。 */
+::-webkit-scrollbar-thumb{min-width:32px;min-height:32px}
+@property --dsh-scrollbar-thumb{syntax:'<color>';inherits:true;initial-value:#0000}
+::-webkit-scrollbar-thumb:active{background-color:rgba(64,64,64,.45)}
+body[data-ds-dark-theme] ::-webkit-scrollbar-thumb:active,.theme-zai-dark ::-webkit-scrollbar-thumb:active{background-color:rgba(212,212,212,.45)}
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll]{--dsh-scrollbar-thumb:transparent;scrollbar-color:auto}
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll][data-dcu-scrollbar-active],
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll] [data-dcu-scrollbar-active]{--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-bg-l1)}
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll][data-dcu-scrollbar-hover],
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll] [data-dcu-scrollbar-hover]{--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-hover-l1)}
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll][data-dcu-scrollbar-dragging],
+html[data-dcu-scrollbar-autohide] [data-conversation-scroll] [data-dcu-scrollbar-dragging]{--dsh-scrollbar-thumb:color-mix(in oklab,var(--dsw-alias-label-primary) 45%,transparent)}
+
+/* night2 surface-5 M7：空置顶从「纯文字提示」升级为 ZCode 官方空容器形态——虚线落区按钮
+   （Jxt：h-8 / rounded-lg / border-dashed / hover 换 border-hover+surface-hover+foreground /
+   reduced-motion 停过渡）。只作用于置顶空；分组/项目的树根空态仍是纯文字行（M3/M4）。
+   落在主题层的原因：CodexWorkspaceBrowser.tsx 是全仓最大文件且行数棘轮顶满（1136），本块
+   无法再行内安家。两处对报告的保留（均为外部约束）：① 文案仍走 workspace.pinnedEmpty、
+   仍是无焦点 div——tests/settings-integration 断言钉死该键与结构，且 div 在 role=tree 内，
+   可聚焦非 treeitem 元素违反 tree-keyboard.ts 契约（focus-visible 段不落，另属 surface-7 #5
+   deviation 域）；② hover 边框用宿主 border-l4 档（16%）近似 ZCode border-hover（15%），
+   过渡走 feedback 令牌（同 duration-150 档，曲线用仓内 canonical hover 曲线，不另造档）。 */
+.dcu-wb-pinned-list>.dcu-wb-empty{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;height:32px;border:1px dashed var(--dcu-sidebar-border);border-radius:var(--dsw-radius-lg);padding:8px;text-align:center;cursor:default;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),border-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-wb-pinned-list>.dcu-wb-empty:hover{border-color:var(--dsw-alias-border-l4);background:var(--dcu-sidebar-hover);color:var(--dcu-sidebar-primary)}
+@media (prefers-reduced-motion:reduce){.dcu-wb-pinned-list>.dcu-wb-empty{transition:none}}
+
+/* night2 surface-9 M1：待处理胶囊底。ZCode 注意徽章 = bg-success/14 dark:bg-success/18
+   （--color-success #1e8a3e/#46bf72 的 oklab 混透明，编译 CSS css@128104/310184）；
+   百分比分明暗，消费方样式表是静态串，故在主题层出令牌。文字档沿用
+   --dcu-state-success-text（亮 #176c31 ≥4.82:1 / 暗 #46bf72 ≥6.04:1，见上方状态色段的实测）。 */
+:root{--dcu-pending-pill-bg:color-mix(in oklab,var(--dsw-alias-state-success-primary,#1e8a3e) 14%,transparent)}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-pending-pill-bg:color-mix(in oklab,var(--dsw-alias-state-success-primary,#46bf72) 18%,transparent)}
+/* night2 surface-10 M1：表格行悬停。ZCode tr = hover:bg-hover/20 —— --color-hover 亮
+   var(--color-neutral-200)=#e5e5e5 / 暗 var(--color-surface-hover)=#ffffff1a（css@16230/417146/417805），
+   再混 20%：亮 = rgba(229,229,229,.2)（编译 fallback #e5e5e533）、暗 = 白 2%（10%×20%）。
+   过渡 = ZCode transition-colors（150ms 默认曲线 = 本仓 feedback 档），在 conversation-layout.ts 消费。 */
+:root{--dcu-table-row-hover:rgba(229,229,229,.2)}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-table-row-hover:rgba(255,255,255,.02)}
+/* night2 surface-12 M1：确认弹窗 destructive 确认钮前景。ZCode confirmVariant:'destructive'
+   23/23 一律实心 destructive + 白字；配方对齐 archive-confirm.ts:42 的真机验收档
+   (#e03131/#ff5c5c 底 + 白字，不分明暗)。落在主题层真值源：消费方 CodexWorkspaceBrowser.tsx
+   的样式表过不了 design-system 颜色字面量扫描（主题层豁免，同 :401 危险行白字先例）。 */
+:root{--dcu-state-error-foreground:#fff}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-state-error-foreground:#fff}
+/* night2 surface-11 M3：设置导航分组标签 = ZCode text-remote-foreground-muted 专用档
+   （styles.css .theme-zai-light/dark 亲读两值；on 导航底实算 6.60:1 / 8.63:1，双档过 AA）。
+   不复用 --sp-muted（那是侧栏 secondary 档，M3 复核：分组标签在 ZCode 用的是独立档）。 */
+:root{--dcu-settings-group-label:#595959}
+body[data-ds-dark-theme],.theme-zai-dark{--dcu-settings-group-label:#b3b3b3}
 `
 
 /**

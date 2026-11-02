@@ -123,7 +123,7 @@ function ChannelBrowserTree({ openSession, archiveSession, deleteSession, forkSe
         const isExpanded = expanded[group.id] ?? true
         const label = channelLabel(group.id, group.label, t)
         return <div className="dcu-wb-project" key={group.id}>
-          <GroupHead expanded={isExpanded} title={label} icon={<ChannelBrandIcon id={group.id} />} onToggle={() => { setExpanded(current => ({ ...current, [group.id]: !isExpanded })) }} />
+          <GroupHead expanded={isExpanded} title={label} icon={<ChannelBrandIcon id={group.id} />} count={group.sessions.length} onToggle={() => { setExpanded(current => ({ ...current, [group.id]: !isExpanded })) }} />
           {isExpanded && <div className="dcu-wb-project-body">{group.sessions.map(session => {
             const id = session.sessionId
             const title = session.title

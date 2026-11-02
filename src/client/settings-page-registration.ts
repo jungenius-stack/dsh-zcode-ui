@@ -128,7 +128,7 @@ export function registerSettingsPage(ctx: Context, shortcutCatalog?: ShortcutCat
   const onboarding = source('settings.onboarding')
   const items = source('settings.general.item')
   ctx.slots.inject('settings.trigger', () => ctx.slots.register({ name: 'settings.trigger', priority: -1, locale: NS },
-    ({ wide }) => createElement('span', { className: 'dcu-settings-trigger-content' }, createElement(ZIconSettings, { size: 16, strokeWidth: 1.6 }), wide ? createElement('span', null, t('settings.title')) : null)))
+    ({ wide }) => createElement('span', { className: 'dcu-settings-trigger-content' }, createElement(ZIconSettings, { size: 16, strokeWidth: 1.5 }), wide ? createElement('span', null, t('settings.title')) : null)))
   ctx.slots.inject('settings.header', () => ctx.slots.register({ name: 'settings.header', priority: -1, locale: NS }, () => null))
   ctx.slots.inject('settings.close', () => ctx.slots.register({ name: 'settings.close', priority: -1, locale: NS }, () => t('settings.back')))
   // 0.1.7 叫 configForms，0.1.5 叫 settingsScope。只等其中一个时，另一版的配置文件入口不会出现。

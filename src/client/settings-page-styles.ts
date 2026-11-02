@@ -62,8 +62,12 @@ body[data-ds-dark-theme] .dcu-settings-page{--sp-muted:#8f8f8f;--sp-muted-on-car
 .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigation,#262626);--sp-muted:var(--dcu-sidebar-secondary,#5c5c5c);--sp-hover:var(--dcu-sidebar-hover,rgba(13,13,13,.05));--sp-active:var(--dcu-sidebar-selected,rgba(13,13,13,.05));--sp-border:var(--dcu-sidebar-border,rgba(13,13,13,.1));display:flex;flex-direction:column;min-height:0;padding:18px 8px;background:var(--sp-nav);box-shadow:inset -1px 0 var(--sp-border);overflow-y:auto}
 /* macOS 普通窗口的原生按钮覆盖 Web 内容；沿用宿主标题栏安全区，仅抬高设置导航。 */
 html[data-platform=darwin]:not([data-fullscreen]) .dcu-settings-nav{padding-top:calc(var(--dsh-frame-top-clearance,48px) + 8px)}
-body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigation,#d4d4d4);--sp-muted:var(--dcu-sidebar-secondary,#888888);--sp-hover:var(--dcu-sidebar-hover,rgba(255,255,255,.05));--sp-active:var(--dcu-sidebar-selected,rgba(255,255,255,.1));--sp-border:var(--dcu-sidebar-border,rgba(255,255,255,.1))}
-.dcu-settings-back{display:flex;align-items:center;flex-shrink:0;gap:8px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--dsw-radius-lg);background:transparent;color:var(--sp-text);text-align:left;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+/* night2 surface-11 M2/M3：导航悬停底 = 选中底（ZCode k1n hover 与 active 同吃 bg-surface-hover，
+   暗 = .1 白，与选中同值）；分组标签 = ZCode text-remote-foreground-muted 专用档
+   （--dcu-settings-group-label，zcode-theme.ts night2 块；不复用 --sp-muted 的侧栏 secondary 档，
+   on 导航底双主题均过 AA）。 */
+body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigation,#d4d4d4);--sp-muted:var(--dcu-sidebar-secondary,#888888);--sp-hover:var(--dcu-sidebar-selected,rgba(255,255,255,.1));--sp-active:var(--dcu-sidebar-selected,rgba(255,255,255,.1));--sp-border:var(--dcu-sidebar-border,rgba(255,255,255,.1))}
+.dcu-settings-back{display:flex;align-items:center;flex-shrink:0;gap:8px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--dsw-radius-xl);background:var(--dcu-surface,rgba(13,13,13,.03));color:var(--sp-text);text-align:left;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 .dcu-settings-back:hover,.dcu-settings-link:hover{background:var(--sp-hover)}
 .dcu-settings-search{display:flex;align-items:center;gap:8px;padding:var(--dcu-space-2);margin:var(--dcu-space-3) 0 var(--dcu-space-4);background:var(--sp-card,#fff);border:1px solid var(--sp-border);border-radius:var(--dsw-radius-lg);color:var(--sp-muted-on-card)}
 .dcu-settings-search:focus-within{border-color:var(--dcu-focus,#0b7fff)}
@@ -72,28 +76,35 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-search input:focus,.dcu-settings-search input:focus-visible{outline:none;box-shadow:none}
 .dcu-settings-search input::placeholder{color:var(--sp-muted-on-card)}
 .dcu-settings-group{flex-shrink:0;margin:0 0 16px}
-.dcu-settings-group-label{margin:0 8px 4px;color:var(--sp-muted);font-size:var(--dsw-font-size-sm);font-weight:500}
-.dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 8px;border:0;border-radius:var(--dsw-radius-xl);overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dcu-settings-nav-size,var(--dsw-font-size-base))!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-settings-group-label{margin:0 10px 4px;color:var(--dcu-settings-group-label,#595959);font-size:var(--dsw-font-size-sm);font-weight:500}
+.dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 10px;border:0;border-radius:var(--dsw-radius-xl);overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dcu-settings-nav-size,var(--dsw-font-size-base))!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 /* Codex Desktop SidebarItem / SidebarSection：30px 行高、1px 行距、内收焦点圈。 */
 .dcu-settings-link+.dcu-settings-link{margin-top:1px}
 .dcu-settings-back:focus-visible,.dcu-settings-link:focus-visible{outline-offset:-2px}
 .dcu-settings-link[aria-current=page]{background:var(--sp-active)}
-.dcu-settings-link svg{flex:none;color:var(--dcu-sidebar-icon,var(--sp-text));opacity:1}
+/* night2 surface-11 M1：图标色 = 前景（ZCode 图标槽 text-foreground 同前景；复核更正：
+   zai 亮前景实为 #262626=neutral-800，与 --dcu-sidebar-navigation 同值，文字侧本就对齐）。 */
+.dcu-settings-link svg{flex:none;color:var(--sp-text);opacity:1}
 .dcu-settings-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dcu-settings-empty{padding:8px;color:var(--sp-muted);font-size:var(--dsw-font-size-caption)}
-.dcu-settings-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--sp-bg);scrollbar-width:thin;scrollbar-color:var(--sp-border) transparent}
-.dcu-settings-inner{width:min(100%,864px);margin:0 auto;padding:48px 48px}
+/* night2 surface-6 M7：拆掉自设细滚动条（thin + --sp-border），回归宿主全局药丸基座
+   （已吃 M1-M3 对齐值：轨道 14/视觉 8、10%/30%/45%）；补 ZCode 设置 main 同款
+   [scrollbar-gutter:stable]（js@6457453）。 */
+.dcu-settings-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--sp-bg);scrollbar-gutter:stable}
+/* night2 surface-11 M10：内容列 = ZCode hR（px-4 pt-0 pb-8，lg:px-8 lg:pb-10 → 0/32/40）。 */
+.dcu-settings-inner{width:min(100%,864px);margin:0 auto;padding:0 32px 40px}
 /* 模型 Pro 的多列表格按主栏宽度伸展；其他设置页仍保持易读的常规宽度。 */
 .dcu-settings-inner[data-settings-section=dsh-model-pro]{width:100%}
-.dcu-settings-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}
+.dcu-settings-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:32px}
 .dcu-settings-heading h1,.dcu-settings-inner:is([data-settings-section=models],[data-settings-section=plugins],[data-settings-section=agent-presets]) [class$="_section"]>h2:is([class$="_title"],[class$="_heading"]){margin:0;font-size:var(--dsw-font-size-xl);line-height:26px;font-weight:600;letter-spacing:-.2px}
 .dcu-settings-inner:is([data-settings-section=models],[data-settings-section=plugins],[data-settings-section=agent-presets]) [class$="_section"]>p[class$="_intro"]{margin:0;font-size:var(--dsw-font-size-base);line-height:22px}
-.dcu-settings-heading[data-own-title=false]{justify-content:flex-end;margin-bottom:16px}
+.dcu-settings-heading[data-own-title=false]{justify-content:flex-end;margin-bottom:32px}
 .dcu-settings-heading:not(:has(h1,button,a,[role=button])){display:none}
 .dcu-settings-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;color:var(--sp-muted)}
 .dcu-settings-actions button{font-size:var(--dsw-font-size-sm)}
 .dcu-settings-general-group{margin-bottom:44px}
-.dcu-settings-general-group h2{margin:0 0 16px;font-size:var(--dsw-font-size-base);font-weight:600;color:var(--sp-text)}
+/* night2 surface-11 M9：分组标题（h2）= ZCode 小节标题档 text-ui-lg（+2=16px）font-semibold。 */
+.dcu-settings-general-group h2{margin:0 0 16px;font-size:var(--dsw-font-size-lg);font-weight:600;color:var(--sp-text)}
 .dcu-settings-card{border:1px solid var(--sp-border);border-radius:var(--dsw-radius-xl);background:var(--sp-card);padding:0 16px;overflow:hidden}
 /* S3（03f 设置页）：下拉控件对齐 ZCode 的 h32 / r8 / fs14。
    宿主下拉实测 h36 / r8 / fs13（类名 Mka9mW_selector / AsDdya_selector / _28qALa_selector 等，
@@ -124,10 +135,13 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 /* 2026-11-01 几何对齐 ZCode v3.17.1 switch.tsx（双源：GitHub 源码 + 装机 asar 编译 CSS 一致）：
    default 轨道 h-[18px] w-[32px]、p-px、thumb size-4(16)、checked 位移 calc(100%-2px)、
    thumb 无阴影（ring-0）。旧值 36×20/2px/14/16px 是 DSH 内部值，矩阵曾误记为 ZCode 规格。 */
-.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:32px;height:18px;padding:1px;border:0;border-radius:999px;background:color-mix(in srgb,var(--dcu-primary,#000) 30%,transparent);cursor:pointer;outline:none}
+.dcu-settings-switch{box-sizing:border-box;position:relative;flex:0 0 auto;width:32px;height:18px;padding:1px;border:0;border-radius:999px;background:color-mix(in srgb,var(--dcu-primary,#000) 30%,transparent);cursor:pointer;outline:none;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 .dcu-settings-switch:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
+/* night2 surface-11 M8：轨道 transition-all + 命中区外扩（ZCode after:-inset-x-3/-inset-y-2 = 横 ±12px / 纵 ±8px；150ms 曲线 = tailwind 默认 = 本仓 feedback 档，见 A13）。 */
+.dcu-settings-switch::after{content:"";position:absolute;inset:-8px -12px}
 .dcu-settings-switch[aria-checked=true]{background:var(--dsw-alias-brand-primary,#000)}
-.dcu-settings-switch:disabled{cursor:default;opacity:.5}
+/* night2 surface-8 #1：禁用 cursor 对齐 ZCode Switch data-disabled:cursor-not-allowed（opacity .5 两端一致）。 */
+.dcu-settings-switch:disabled{cursor:not-allowed;opacity:.5}
 .dcu-settings-switch-thumb{display:block;width:16px;height:16px;border-radius:50%;background:var(--dsw-alias-switch-thumb,#fff);transition:transform var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);pointer-events:none}
 .dcu-settings-switch[aria-checked=true] .dcu-settings-switch-thumb{background:var(--dsw-alias-label-primary-foreground,#fff);transform:translateX(calc(100% - 2px))}
 .dcu-settings-document-copy{min-width:0}

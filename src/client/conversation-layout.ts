@@ -45,6 +45,14 @@ export const CONVERSATION_LAYOUT_STYLE = `
    冒出横向滚动条——与 ZCode 不符，且与「会话只需上下滚」的直觉冲突。 */
 [data-conversation-scroll]{overflow-x:hidden}
 
+/* ── X2 会话滚动区 gutter 全程双边预留（night2 surface-6 M6）──────────
+   ZCode 会话滚动区 = overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable_both-edges]
+   （asar 全文唯一 both-edges 用点，全程挂）。插件此前只有 hero 阶段有 both-edges
+   （new-conversation-style.ts），非 hero 吃宿主单边 stable——右侧内容宽度会在滚动条
+   出现与否之间跳。用 :not(:has(overlay)) 守卫避开宿主 overlay 态：宿主对
+   :has([data-conversation-composer-overlay]) 显式声明 gutter:auto 是宿主自有意图。 */
+[data-conversation-scroll]:not(:has([data-conversation-composer-overlay])){scrollbar-gutter:stable both-edges}
+
 /* ── C1 内容列宽 640 → 924 ──────────────────────────────────────────
    宿主用 .icaHSq_column{max-width:640px} 限宽，宽度由 max-width 决定、
    两侧留白是 margin auto 的结果。所以这里改 max-width，不动 margin。
@@ -280,6 +288,11 @@ export const CONVERSATION_LAYOUT_STYLE = `
   border:0;
   border-radius:var(--dsw-radius-md);
   padding:2px 6px;
+  /* night2 surface-10 M4：行内码外距对齐 ZCode mx-0.5（左右各 2px，js@2858100 code 分支）。
+     宿主侧已静态核尽：DSH asar 全部 3 处 :not(pre)>code 规则（web-frontend index css ×2、
+     trajectory client.js ×1）均无 margin 声明，code 元素 UA 默认 margin 0 → 不会叠加；
+     N4 的 getComputedStyle 活体采样未跑，登记。 */
+  margin-inline:2px;
   font-size:var(--dsw-font-size-sm,12px);
 }
 
@@ -385,6 +398,12 @@ export const CONVERSATION_LAYOUT_STYLE = `
   padding:8px 12px;
   border:0;
   border-bottom:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));
+  /* night2 surface-10 M3：单元格宽约束对齐 ZCode qNt/JNt（min-w-16=64px / max-w-md=448px /
+     whitespace-normal / break-words）——长内容列收进 448px 折行，不再把表撑成横滚。 */
+  min-width:64px;
+  max-width:448px;
+  white-space:normal;
+  overflow-wrap:break-word;
   font-size:var(--dsh-content-font-size,14px);
   line-height:calc(24.5px + var(--dsh-content-font-delta,0px));
   vertical-align:top;
@@ -392,8 +411,20 @@ export const CONVERSATION_LAYOUT_STYLE = `
 [data-conversation-scroll] .icaHSq_column th{
   font-weight:400;
   color:var(--dsw-alias-label-dimmed,rgba(212,212,212,.3));
+  /* night2 surface-10 M3：ZCode qNt 带 text-left（th 的 UA 默认是 center）。 */
+  text-align:left;
 }
 [data-conversation-scroll] .icaHSq_column td{color:var(--dsw-alias-label-primary)}
+/* night2 surface-10 M1/M2：行悬停与末行去底线对齐 ZCode KNt
+   （transition-colors + hover:bg-hover/20 + last:[&>td]:border-b-0）。
+   悬停色走 --dcu-table-row-hover（主题层令牌，见 zcode-theme.ts 追加块：亮 rgba(229,229,229,.2) /
+   暗 白 2%）；过渡走 feedback 档（= ZCode transition-colors 默认 150ms/.4,0,.2,1）。
+   末行去底线后由 ⑦ 的表格外框承担封底，消除 separate 折叠下的双线。 */
+[data-conversation-scroll] .icaHSq_column tr{
+  transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease);
+}
+[data-conversation-scroll] .icaHSq_column tr:hover{background:var(--dcu-table-row-hover,transparent)}
+[data-conversation-scroll] .icaHSq_column tr:last-child td{border-bottom:0}
 [data-conversation-scroll] .icaHSq_column blockquote{
   /* 1.6em 是 ZCode 自带 prose CSS 的原值（14px 下 = 22.4px）；写 em 而非 px，
      既忠于原式又随字号缩放，不占 4px 标度的字面量额度。 */

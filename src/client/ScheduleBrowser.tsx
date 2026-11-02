@@ -63,8 +63,13 @@ type ScheduleBrowserProps = {
   openTaskSettings?: (request: { name: string; sessionIds: string[] }) => void
 }
 
+/* night2 surface-12 M4：实心自绘钟 → ZCode 全站 lucide Clock 描边语言（N1 静态破案：
+   cron 行图标 = lucide Clock，`M12 6v6l4 2` + circle r10，icon 名字符串就是 clock）。
+   几何按 24 栅格 × 2/3 缩到 16 栅格（r10→6.67、M12 6v6l4 2→M8 4v4l2.67 1.33），
+   描边 1.5×16/24=1 有效宽度，与同屏 ZIcon*（16px/1.5）同重量；外框 16×16 与
+   night-audit-batch-20 断言（锁尺寸非风格）保持一致。 */
 function ScheduleClock() {
-  return <svg viewBox="0 0 16 16" width={16} height={16} aria-hidden="true"><path fill="currentColor" d="M8 1.15A6.85 6.85 0 1 0 8 14.85 6.85 6.85 0 0 0 8 1.15Zm0 1.4a5.45 5.45 0 1 1 0 10.9 5.45 5.45 0 0 1 0-10.9Z" /><path fill="currentColor" d="M8.62 4.35H7.28v4.2l3.02 1.78.67-1.13-2.35-1.39V4.35Z" /></svg>
+  return <svg viewBox="0 0 16 16" width={16} height={16} aria-hidden="true"><circle cx="8" cy="8" r="6.67" fill="none" stroke="currentColor" strokeWidth="1" /><path d="M8 4v4l2.67 1.33" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }
 
 /** 定时树：数据来自会话快照，行/菜单/悬停与任务树共用。 */
@@ -126,6 +131,7 @@ function ScheduleBrowserTree({ openSession, archiveSession, deleteSession, forkS
             expanded={isExpanded}
             title={group.label}
             icon={<ScheduleClock />}
+            count={group.sessions.length}
             menuOpen={groupMenu === group.id}
             onToggle={() => { setExpanded(current => ({ ...current, [group.id]: !isExpanded })) }}
             actions={<Menu
@@ -188,8 +194,8 @@ function ScheduleBrowserTree({ openSession, archiveSession, deleteSession, forkS
       </div>}
     >
       <p className="dcu-wb-delete-copy">{archiveGroupTarget === undefined ? '' : t('schedule.archiveGroupDescription', { name: archiveGroupTarget.label, count: archiveGroupTarget.sessionIds.length })}</p>
-      {busy === 'archive-group' && <div className="dcu-wb-error" role="status">{t('schedule.archiveGroupPending')}</div>}
-      {error !== undefined && <div className="dcu-wb-error" role="alert">{t('sessions.failed', { message: error })}</div>}
+      {busy === 'archive-group' && <div className="dcu-state" role="status">{t('schedule.archiveGroupPending')}</div>}
+      {error !== undefined && <div className="dcu-wb-error" role="alert">{error}</div>}
     </Modal>
   </section>
 }

@@ -6,7 +6,7 @@ type StorageFace = Pick<Storage, 'getItem' | 'setItem'>
 /** 只保存已发送文本；浏览器存储失败时仍保留本次内存历史。 */
 export class InputHistory {
   private readonly scopes = new Map<string, string[]>()
-  constructor(private readonly storage?: StorageFace, private readonly limit = 200, private readonly warn: (message: string) => void = console.warn) {
+  constructor(private readonly storage?: StorageFace, private readonly limit = 30, private readonly warn: (message: string) => void = console.warn) {
     try {
       const current = storage?.getItem(HISTORY_KEY)
       const raw = current ?? storage?.getItem(LEGACY_HISTORY_KEY)

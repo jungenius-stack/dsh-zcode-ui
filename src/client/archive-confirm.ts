@@ -21,16 +21,25 @@ import { NS } from './locales.ts'
  */
 
 const ARCHIVE_CONFIRM_STYLE = `
-.dcu-archive-scrim{position:fixed;inset:0;z-index:10060;display:grid;place-items:center;padding:24px;background:color-mix(in srgb,#000 48%,transparent);animation:dcu-archive-fade var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}
+/* night2 surface-3（M1-M9/M11-M12）：对齐 ZCode confirmDialog 标准档（c0n）——
+   遮罩 bg-black/60 + backdrop-blur-xs(4px)；壳 448（sm:max-w-md）/ rounded-2xl(16px) /
+   shadow-2xl / border-none（分离感靠底色+大柔影，ring-border 未配 .ring 宽度 = 无环）；
+   标题 text-ui-lg 16px/行高 1.625（继承基座 relaxed）/600；描述 14px/24px（leading-6）；
+   动画 100ms + tailwindcss-animate 默认 ease，内容 fade+zoom-in-95 无位移。
+   M10 浅色确认钮不随（surface-4 §6 交叉核对：ZCode destructive 浅色实为 #e03131，
+   与本仓 --dcu-state-error-fill 精确一致，原报告 #e7000b 系取错基座档，作废）。 */
+.dcu-archive-scrim{position:fixed;inset:0;z-index:10060;display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.6);animation:dcu-archive-fade var(--dcu-tw-anim-duration) ease}
+@supports (backdrop-filter: blur(4px)){.dcu-archive-scrim{backdrop-filter:blur(4px)}}
 @keyframes dcu-archive-fade{from{opacity:0}to{opacity:1}}
-.dcu-archive-dialog{box-sizing:border-box;width:min(420px,100%);padding:20px;border:1px solid var(--dcu-tip-border);border-radius:var(--dsw-radius-xl);background:var(--dcu-dialog-bg);color:var(--dcu-tip-primary);box-shadow:0 8px 24px rgba(0,0,0,.24);animation:dcu-archive-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}
-@keyframes dcu-archive-in{from{opacity:0;transform:translateY(-4px) scale(.99)}to{opacity:1;transform:none}}
-.dcu-archive-title{margin:0;font-size:var(--dsw-font-size-base);line-height:21px;font-weight:600}
-.dcu-archive-desc{margin:8px 0 0;color:var(--dcu-tip-secondary);font-size:var(--dsw-font-size-sm);line-height:18px}
+.dcu-archive-dialog{box-sizing:border-box;width:min(448px,100%);padding:20px;border-radius:var(--dsw-radius-2xl);background:var(--dcu-dialog-bg);color:var(--dcu-tip-primary);box-shadow:0 25px 50px -12px rgba(0,0,0,.25);animation:dcu-archive-in var(--dcu-tw-anim-duration) ease}
+@keyframes dcu-archive-in{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.dcu-archive-title{margin:0;font-size:var(--dsw-font-size-lg);line-height:26px;font-weight:600}
+.dcu-archive-desc{margin:8px 0 0;color:var(--dcu-tip-secondary);font-size:var(--dsw-font-size-base);line-height:24px}
 .dcu-archive-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
-.dcu-archive-btn{appearance:none;min-height:32px;padding:0 12px;border:1px solid var(--dcu-tip-border);border-radius:var(--dsw-radius-lg);background:transparent;color:inherit;font:inherit;font-size:var(--dsw-font-size-sm);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-archive-btn{appearance:none;min-height:36px;padding:0 16px;border:0;border-radius:var(--dsw-radius-lg);background:var(--dcu-secondary-bg);color:inherit;font:inherit;font-size:var(--dsw-font-size-base);cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-archive-btn:hover:not(:disabled){background:color-mix(in srgb,var(--dcu-secondary-bg) 80%,transparent)}
 .dcu-archive-btn:focus-visible{outline:2px solid var(--dsw-focus-ring-color,var(--dcu-focus));outline-offset:2px}
-.dcu-archive-confirm{border-color:transparent;background:var(--dcu-state-error-fill);color:#fff;font-weight:500}
+.dcu-archive-confirm{background:var(--dcu-state-error-fill);color:#fff;font-weight:500}
 .dcu-archive-confirm:hover:not(:disabled){background:var(--dcu-state-error-fill-hover)}
 @media (prefers-reduced-motion:reduce){.dcu-archive-scrim,.dcu-archive-dialog{animation:none}}
 `
@@ -71,6 +80,16 @@ export function useArchiveConfirm(t: Translate): {
       if (event.key === 'Escape') {
         event.preventDefault()
         close()
+        return
+      }
+      // night2 surface-3 M13：ZCode 标准档（非破坏型确认框）window 级 Enter 直接确认
+      // （capture）。焦点本就落在确认钮上；preventDefault 挡掉按钮的原生 Enter 激活，
+      // 确认只走这一条路，避免双重触发。
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        const run = pending.run
+        close()
+        run()
       }
     }
     window.addEventListener('keydown', onKeyDown, true)

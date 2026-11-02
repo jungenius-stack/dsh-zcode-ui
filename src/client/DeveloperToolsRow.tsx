@@ -40,6 +40,7 @@ export function DeveloperToolsRow({ developerTools, t }: PropsLocale<typeof NS> 
         aria-checked={enabled}
         aria-label={t('settings.developerTools.title')}
         disabled={busy}
+        aria-busy={busy}
         className="dcu-settings-switch"
         onClick={() => { toggle(!enabled) }}
       >
