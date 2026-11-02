@@ -280,7 +280,7 @@ function clearShift(element: HTMLElement, varName: string): void {
 function applyRailShifts(rails: readonly RailShift[]): void {
   for (const rail of rails) {
     // 兜底：自绘索引栏的 left 走 React state，比轨道切换晚一拍，那一拍里它可能压在侧栏上。
-    // 侧栏面不透明（--dcu-sidebar-background 为 #f5f5f5 / #161616），落到它下面即可藏掉。
+    // 侧栏面不透明（--dcu-sidebar-background 为 #f0f0f0 / #161616），落到它下面即可藏掉。
     if (rail.element.classList.contains('dcu-turn-navigator')) rail.element.style.zIndex = '0'
     primeShift(rail.element, rail.varName, rail.compensation)
   }

@@ -146,7 +146,10 @@ assert.doesNotMatch(sidebar, /transition:none!important/, '不得再关闭宿主
      反验：oklch(87%) → 212（深色前景）、oklch(37.1%) → 64（G14 基色）✅
    245 与 250 的 5 通道差本身就是设计语言（侧栏略暗以区分层级）。
    侧栏壳 .dcu-root 取 245；整页视图（设置页/首页）取 250，见 settings-page-styles.ts。 */
-assert.match(theme, /--dcu-sidebar-background:#f5f5f5/, '浅色侧栏壳底对齐 ZCode --color-sidebar oklch(97%) = rgb(245)')
+// 2026-11-03（9224 活体实测）：ZCode 运行时 --color-sidebar 浅色解析为 **#f0f0f0**（不是 tokens.json
+// 记的 oklch(97%)=245）。此前锁 #f5f5f5 是照 tokens.json 推的，活体证明那份是基础层、不是覆盖层。
+const SIDEBAR_LIGHT_CDP = '#f0f0f0'
+assert.match(theme, new RegExp('--dcu-sidebar-background:' + SIDEBAR_LIGHT_CDP), '浅色侧栏壳底必须对齐 9224 活体实测 --color-sidebar = #f0f0f0')
 assert.match(theme, /--dcu-sidebar-background:#161616/, '暗色侧栏必须使用 Zai ZCode 的 #161616 背景')
 assert.match(sidebar, /body\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*pointer-events:none[^}]*--we-sidebar-color[^}]*--we-sidebar-alpha[^}]*backdrop-filter:blur\(var\(--we-sidebar-blur/, 'Wallpaper Engine 玻璃必须在不拦截点击的独立背景层复用颜色、透明度和模糊变量')
 assert.doesNotMatch(sidebar, /\.dcu-root\{[^}]*(?:backdrop-filter|transform|contain):/, '侧栏根节点不得创建 fixed 包含块，否则设置和搜索弹窗会被限制在侧栏内')

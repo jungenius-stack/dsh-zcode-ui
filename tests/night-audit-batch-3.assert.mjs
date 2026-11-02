@@ -67,8 +67,8 @@ assert.match(
 // 1b. 该条目 expected 的底色令牌文本（zcode-theme.ts:245/:246，03b-sidebar.md §8 裁决「保持实色」）
 assert.match(
   zcodeTheme,
-  /--dcu-sidebar-background:#f5f5f5/,
-  '浅色侧栏底色令牌必须是 #f5f5f5：ZCode tokens.json 实测 --color-sidebar = oklch(97% 0 0)',
+  /--dcu-sidebar-background:#f0f0f0/,
+  '浅色侧栏底色令牌必须是 #f0f0f0：2026-11-03 9224 活体实测 --color-sidebar 浅色 = #f0f0f0（tokens.json 的 oklch(97%) 是基础层，不是运行时覆盖层）',
 )
 assert.match(
   zcodeTheme,

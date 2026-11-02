@@ -60,7 +60,7 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
      为什么不能复用侧栏色板：侧栏底是 #f0f0f0，浮层底是 #ffffff，同一个 tertiary
      搬过去对比度会变。此前实测暗色下 secondary 3.99:1 / tertiary 3.68:1 均掉线。2026-10-30（夜审批次 2）：ZCode 浮层分两组——tooltip 浅 #f0f0f0、toast/card 浅 #fff，故对话框底另立 --dcu-dialog-bg（浅 #fff / 深 #2b2b2b）。
      亮底实测：#262626 15.13:1 ／ #5c5c5c 6.69:1 ／ #686868 5.57:1，全部 ≥AA。 */
-  --dcu-tip-primary:#0a0a0a;--dcu-tip-secondary:#5c5c5c;--dcu-tip-tertiary:#686868;
+  --dcu-tip-primary:#0d0d0d;--dcu-tip-secondary:#5c5c5c;--dcu-tip-tertiary:#686868;
   /* 键帽文字：ZCode Kbd 组件用 text-muted-foreground，本仓按侧栏底重取。
      实测（底 = #f0f0f0 叠 3% 中性 = #e9e9e9）：#5c5c5c = 5.51:1 ✅ AA。
      tertiary #686868 只有 4.59:1，看似达标但余量太小，暗色档直接掉到 4.14:1 —— 故不分档都不用它。 */
@@ -242,13 +242,13 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
    静止态被插件自己的壳盖住看不见，但开合动画期间「已收窄的侧栏列」与「未到位的正文列」
    之间会露出这段宽度（实测收起时 104px），深色主题下就是一道白缝。
    修法：在 html/body 上也挂一份同名变量，让祖先链能解析；壳内同名声明值相同，不冲突。 */
-:root{--dcu-sidebar-background:#f5f5f5}
+:root{--dcu-sidebar-background:#f0f0f0}
 body[data-ds-dark-theme],.theme-zai-dark{--dcu-sidebar-background:#161616}
 .dcu-root,.dcu-settings-page,.dcu-home{
   /* TA1（03g 主题审计，2026-10-27）：浅色底按 ZCode **分层**取值，不再取中值。
      ZCode tokens.json 实测（浏览器 canvas 像素回读换算，双已知值反验通过）：
 
-       oklch(97%   0 0) → rgb(245)  = #f5f5f5   ← --color-sidebar      （侧栏层）
+       oklch(97%   0 0) → rgb(245)  = #f5f5f5   ← 基础层（非运行时值）
        oklch(98.5% 0 0) → rgb(250)  = #fafafa   ← --color-background   （内容画布层）
        反验：oklch(87% 0 0) → 212（= 深色前景）、oklch(37.1% 0 0) → 64（= G14 基色）✅
 
@@ -256,14 +256,14 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-sidebar-background:#161616}
      上一版取中值 247 是错的：把两层压平，两侧都不准，还丢掉了层级差。
 
      映射：
-       .dcu-root（插件侧栏壳）          → #f5f5f5 (245)
+       .dcu-root（插件侧栏壳）          → #f0f0f0 (240)  ← 2026-11-03 9224 活体实测
        .dcu-settings-page / .dcu-home（整页弹层）→ #fafafa (250)
 
      G14 联动（已算）：底 245 上 secondary 85% ≈ 6.2:1、tertiary 75% ≈ 4.7:1，仍双双过 AA，
      故 alpha 保持 85%/75% 不动。
 
      原值 #f0f0f0（240）比 ZCode 侧栏层还暗 5 个通道。 */
-  --dcu-sidebar-background:#f5f5f5;--dcu-sidebar-primary:#262626;
+  --dcu-sidebar-background:#f0f0f0;--dcu-sidebar-primary:#262626;
   /* G14（03b-sidebar）：原为写死 #595959。改为 alpha 叠加。
      基色 #404040 = ZCode 浅色 --color-foreground（oklch(37.1% 0 0)，其 oklab L=0.3715）。
      目标渲染色 = oklab(0.371 0 0 / 0.6)，与 ZCode 分组标题实测一致。
@@ -304,7 +304,7 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-sidebar-background:#161616}
   /* TA1：设置页整页底 = ZCode 内容画布层 rgb(250)。侧栏层 245 见 .dcu-root。 */
   /* TA4（2026-10-28 静态定案）：ZCode 深色设置卡 = --color-background（#161616，与画布
      同底、仅边框分隔——S2 实测）。浅色对称取画布值 #fafafa（旧 #fbfbfb 是未验证猜测）。 */
-  --dcu-settings-page-bg:#fafafa;
+  --dcu-settings-page-bg:#f8f8f8;
   --dcu-settings-card-fill:#fafafa;
   --dcu-header-border:1px solid rgba(13,13,13,.05);
   --dcu-sidebar-border:rgba(13,13,13,.1);--dcu-focus:#0b7fff;
