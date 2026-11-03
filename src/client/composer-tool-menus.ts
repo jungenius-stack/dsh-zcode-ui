@@ -26,7 +26,7 @@ export const COMPOSER_TOOL_MENU_STYLE = `
 [class*="_heroWorkspaceRow"] [data-gitgraph-popover]:not([data-dcu-tool-menu=portal]){top:auto!important;bottom:calc(100% + 4px)!important}
 /* 原先这里还有一条 body[data-ds-dark-theme] …{background:#2b2b2b!important;…} 的暗色补丁，
    现在由 --dcu-tip-bg / --dcu-tip-shadow 的暗色值统一承担（见文件头注释），补丁已删。 */
-:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover])>[class*="_viewport"]{min-height:0;max-height:none;overflow-y:auto;scrollbar-width:thin}
+:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover])>[class*="_viewport"]{min-height:0;max-height:none;overflow-y:auto;scrollbar-width:none}
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) :is([role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=option]){box-sizing:border-box;min-height:32px;padding:0 10px;gap:8px;border-radius:var(--dsw-radius-md);font-size:var(--dsw-font-size-base);line-height:21px}
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) :is([role=menuitem],[role=menuitemradio],[role=option]):hover:not(:disabled),:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [class*="_selected"],:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [aria-selected=true],:is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [aria-checked=true]{background:var(--dsw-specific-menu-item-hover,var(--dcu-sidebar-hover))}
 :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]) [class*="_itemIcon"] svg{width:16px;height:16px}
@@ -48,7 +48,7 @@ export const COMPOSER_TOOL_MENU_STYLE = `
    建议菜单**明确不继承**主输入壳的 2xl 例外，此前沿用 12px 属违规，本轮按宪章收敛。 */
 [data-conversation-scroll] [data-trigger-menu]{box-sizing:border-box;left:0;right:0;width:auto;min-width:0;max-width:none;padding:4px;border-radius:var(--dsw-radius-lg);background:var(--dcu-tip-bg);box-shadow:var(--dcu-tip-shadow)}
 
-[data-conversation-scroll] [data-trigger-menu]>[role=listbox]{box-sizing:border-box;width:100%;min-width:0;align-self:stretch;scrollbar-width:thin}
+[data-conversation-scroll] [data-trigger-menu]>[role=listbox]{box-sizing:border-box;width:100%;min-width:0;align-self:stretch;scrollbar-width:none}
 [data-conversation-scroll] [data-trigger-menu] [role=option]{box-sizing:border-box;width:100%;min-width:0;min-height:32px;padding:0 10px;gap:8px;border-radius:var(--dsw-radius-md);font-size:var(--dsw-font-size-base);line-height:21px}
 [data-conversation-scroll] [data-trigger-menu] [role=option][aria-selected=true]{background:var(--dsw-specific-menu-item-hover,var(--dcu-sidebar-hover))}
 `
