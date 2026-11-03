@@ -90,7 +90,7 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 /* night2 surface-6 M7：拆掉自设细滚动条（thin + --sp-border），回归宿主全局药丸基座
    （已吃 M1-M3 对齐值：轨道 14/视觉 8、10%/30%/45%）；补 ZCode 设置 main 同款
    [scrollbar-gutter:stable]（js@6457453）。 */
-.dcu-settings-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--sp-bg);scrollbar-gutter:stable}
+.dcu-settings-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--sp-bg);scrollbar-width:thin;scrollbar-color:var(--sp-border) transparent}
 /* night2 surface-11 M10：内容列 = ZCode hR（px-4 pt-0 pb-8，lg:px-8 lg:pb-10 → 0/32/40）。 */
 .dcu-settings-inner{width:min(100%,864px);margin:0 auto;padding:0 32px 40px}
 /* 模型 Pro 的多列表格按主栏宽度伸展；其他设置页仍保持易读的常规宽度。 */
