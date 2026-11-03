@@ -4,6 +4,50 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.2.1 - 2026-11-03
+
+**整夜对着运行中的 ZCode 实测，以及随后的一轮代码复核。**
+
+下面所有结论都对过 ZCode 本体：它的 asar（含运行时真正加载的那份 480KB 样式表），以及一个以调试
+端口启动的 ZCode 实例上的 CDP 活体会话。
+
+### 按实测更正的三个令牌（文档打架，实测定案）
+
+这几条两份文档争了好几天，一次活体读值全部落定：
+
+- 浅色侧栏底：`#f5f5f5` → **`#f0f0f0`** —— `tokens.json` 里的 `oklch(97%)` 是基础层，运行时被
+  `.theme-zai-light` 覆盖。
+- 浅色设置页底：`#fafafa` → **`#f8f8f8`**（= `--color-background`）。
+- 浮层主文字（浅）：`#0a0a0a` → **`#0d0d0d`**（= `--color-tooltip-foreground`）。
+
+### 十四面深扫，落地 74 条
+
+14 个面（菜单、悬停卡、对话框、toast、空态、滚动条、焦点与键盘、禁用/加载、徽标、markdown、
+设置页、频道/定时、无参照二轮、主题层叠）逐面与 ZCode 对照，每条结论经独立复核，最终落地
+173 条差异中的 74 条（其余登记为刻意偏离或需真机确认）。
+
+主要项：菜单项内距与行高、悬停卡时序、对话框几何、toast 文字色、空态行高、滚动条滑块
+（静息 = `--color-border` 10%）、骨架填充（`--color-surface` 3%/5%）、焦点环几何、徽标互斥、
+码块头部条。
+
+### ⌘K 与工具菜单
+
+- ⌘K 外壳：`padding:12px` → **2px + 16px 行间距**（ZCode 是外层 0 + 内层 2px + 分段 16px）。
+- 工具菜单滚动条：`thin` → 隐藏 —— ZCode 全站只有 `auto` 或 `none`，没有 `thin`。
+
+### 深扫之后修掉的
+
+- busy 钮禁用态对齐 ZCode 的 `pointer-events:none` + `opacity:.5` + `cursor:default`。
+- **回退一处回归**：设置页滚动容器的 `scrollbar-gutter:stable` 会永久预留 15px，破坏「Pro 设置页
+  随主栏伸展」这条既有契约。
+- 行内码 margin 确认本就正确（`2px` = ZCode 的 `mx-0.5`）—— 销案，未改。
+
+### 取证设施
+
+- 抽出 ZCode 运行时真正加载的样式表（480,065 字节）：今后类名级的问题可直接对着真文件查，
+  不必在 341MB 包里 grep。
+- 新增 asar 哈希哨兵，防上游漂移。
+
 ## 2.2.0 - 2026-10-31
 
 **看得见的两处，外加一张决定后面还该改什么的表。**

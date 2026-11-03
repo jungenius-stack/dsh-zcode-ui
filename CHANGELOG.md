@@ -4,6 +4,52 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.2.1 - 2026-11-03
+
+**A full night of measurement against the running ZCode, plus the code review that followed.**
+
+Everything below was verified against ZCode itself: its asar (including the 480 KB stylesheet it
+actually loads at runtime), and a live CDP session on a ZCode instance started with a debug port.
+
+### Themed values corrected (live measurement beat the docs)
+
+The two documents disagreed on these for days; a live read settled all three:
+
+- Sidebar background (light): `#f5f5f5` → **`#f0f0f0`** — `tokens.json`'s `oklch(97%)` is the base
+  layer, overridden at runtime by `.theme-zai-light`.
+- Settings page background (light): `#fafafa` → **`#f8f8f8`** (= `--color-background`).
+- Overlay primary text (light): `#0a0a0a` → **`#0d0d0d`** (= `--color-tooltip-foreground`).
+
+### Fourteen-surface sweep, 74 changes landed
+
+A 14-surface audit (menus, hover cards, dialogs, toast, empty states, scrollbars, focus/keyboard,
+disabled/loading, badges, markdown, settings, channels/schedules, the "no-reference" backlog, and
+theme layering) compared the plugin against ZCode, re-verified every claim independently, then
+applied 74 of 173 findings (the rest are recorded as deliberate deviations or need a live check).
+
+Highlights: menu item padding/height, hover-card timing, dialog geometry, toast label colour,
+empty-state line height, scrollbar thumb (`--color-border` 10% at rest), skeleton fill
+(`--color-surface` 3%/5%), focus ring geometry, badge exclusivity, code-block header bar.
+
+### ⌘K and tool menus
+
+- ⌘K shell: `padding: 12px` → **2px with a 16px gap** (ZCode's dialog uses 0 outer padding plus a
+  2px inner wrapper and 16px section gap).
+- Tool-menu scrollbars: `thin` → hidden — ZCode uses only `auto` or `none`, never `thin`.
+
+### Fixed after the sweep
+
+- `busy` button disabled state aligned to ZCode's `pointer-events:none` + `opacity:.5` + `cursor:default`.
+- **Reverted a regression**: `scrollbar-gutter:stable` on the settings scroller permanently reserved
+  15px, breaking the "Pro settings page stretches with the main column" contract.
+- Inline-code margins confirmed already correct (`2px` = ZCode's `mx-0.5`) — closed, not changed.
+
+### Instrumentation
+
+- Extracted the runtime stylesheet ZCode actually loads (480,065 bytes) — future class-level questions
+  can be answered against the real file instead of grepping a 341 MB archive.
+- An asar-hash sentinel now guards against upstream drift.
+
 ## 2.2.0 - 2026-10-31
 
 **Two things you can see, plus the table that decides what comes next.**
