@@ -1,0 +1,62 @@
+{
+  "capturedAt": "2026-11-02T19:52:50.208Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "settingsIdentity": {
+    "dark": {
+      "found": true,
+      "bg": "rgb(22, 22, 22)",
+      "cls": "relative flex flex-col min-h-0 h-full border border-border bg-background rounded-xl",
+      "headings": [
+        "外观",
+        "界面设置",
+        "代码设置",
+        "代码预览"
+      ],
+      "navTexts": [
+        "系统",
+        "GitHub Light",
+        "GitHub Dark"
+      ]
+    },
+    "light": {
+      "found": true,
+      "bg": "rgb(248, 248, 248)",
+      "cls": "relative flex flex-col min-h-0 h-full border border-border bg-background rounded-xl",
+      "headings": [
+        "外观",
+        "界面设置",
+        "代码设置",
+        "代码预览"
+      ],
+      "navTexts": [
+        "系统",
+        "GitHub Light",
+        "GitHub Dark"
+      ]
+    }
+  },
+  "shots": {
+    "dark": "cdp-shot-settings-dark.png",
+    "light": "cdp-shot-settings-light.png"
+  },
+  "themeRestored": {
+    "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+    "bodyClass": "zcode-startup-ready"
+  },
+  "conversationBack": true,
+  "mainTextBefore": "计划议题①裁决：半透明侧栏 — 采纳 OpenDesign 数据，保持实色，不改",
+  "mainTextAfter": "计划议题①裁决：半透明侧栏 — 采纳 OpenDesign 数据，保持实色，不改",
+  "tooltipDarkInstance": {
+    "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-",
+    "bg": "rgb(43, 43, 43)",
+    "color": "rgb(248, 248, 248)",
+    "border": "1px rgba(255, 255, 255, 0.1)",
+    "radius": "8px",
+    "text": "返回工作区返回工作区",
+    "rect": {
+      "w": 83,
+      "h": 28
+    }
+  },
+  "tooltipAppeared": true
+}

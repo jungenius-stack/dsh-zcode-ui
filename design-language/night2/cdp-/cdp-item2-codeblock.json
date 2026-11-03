@@ -1,0 +1,191 @@
+{
+  "blocks": [
+    {
+      "tree": [
+        {
+          "tag": "DIV",
+          "cls": "group relative w-full overflow-hidden rounded-xl text-foreground my-4 border border-border bg-card",
+          "rect": {
+            "y": -2208,
+            "h": 901,
+            "w": 435
+          },
+          "padding": "0px/0px/0px/0px",
+          "margin": "16px/0px/16px/0px",
+          "bg": "rgb(43, 43, 43)",
+          "radius": "12px",
+          "border": "1px rgba(255, 255, 255, 0.1)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "24.5px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "flex items-center justify-between gap-3 px-3 py-2 text-ui-base text-muted-foreground pl-3 pr-2 pt-2",
+          "rect": {
+            "y": -2207,
+            "h": 41,
+            "w": 433
+          },
+          "padding": "8px/8px/8px/12px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px oklch(0.87 0 0)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "24.5px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "flex items-center gap-2 min-w-0",
+          "rect": {
+            "y": -2199,
+            "h": 25,
+            "w": 59
+          },
+          "padding": "0px/0px/0px/0px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px oklch(0.87 0 0)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "24.5px"
+        }
+      ],
+      "lineSample": {
+        "tag": "BUTTON",
+        "cls": "group/button inline-flex items-center justify-center border border-transparent bg-clip-padding text-ui-base/relaxed whit",
+        "rect": {
+          "y": -2201,
+          "h": 28,
+          "w": 28
+        },
+        "padding": "0px/0px/0px/0px",
+        "margin": "0px/0px/0px/0px",
+        "bg": "rgba(0, 0, 0, 0)",
+        "radius": "8px",
+        "border": "1px rgba(0, 0, 0, 0)",
+        "fontSize": "14px",
+        "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+        "lineHeight": "22.75px"
+      },
+      "hasPre": false,
+      "hasCodeTag": false,
+      "text": "bash"
+    },
+    {
+      "tree": [
+        {
+          "tag": "DIV",
+          "cls": "group/card flex flex-col gap-4 overflow-hidden rounded-xl text-ui-base/relaxed text-foreground has-[>img:first-child]:pt",
+          "rect": {
+            "y": 10,
+            "h": 380,
+            "w": 832
+          },
+          "padding": "0px/0px/0px/0px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgb(43, 43, 43)",
+          "radius": "12px",
+          "border": "1px rgba(255, 255, 255, 0.1)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "22.75px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "group-data-[size=sm]/card:px-3 space-y-0 px-0",
+          "rect": {
+            "y": 11,
+            "h": 378,
+            "w": 830
+          },
+          "padding": "0px/0px/0px/0px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px oklch(0.87 0 0)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "22.75px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "border-t border-border px-4 py-3 first:border-t-0",
+          "rect": {
+            "y": 11,
+            "h": 75,
+            "w": 830
+          },
+          "padding": "12px/16px/12px/16px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px rgba(255, 255, 255, 0.1)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "22.75px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "grid items-center gap-4 grid-cols-[minmax(0,1fr)_192px]",
+          "rect": {
+            "y": 23,
+            "h": 51,
+            "w": 798
+          },
+          "padding": "0px/0px/0px/0px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px oklch(0.87 0 0)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "22.75px"
+        },
+        {
+          "tag": "DIV",
+          "cls": "min-w-0",
+          "rect": {
+            "y": 23,
+            "h": 51,
+            "w": 590
+          },
+          "padding": "0px/0px/0px/0px",
+          "margin": "0px/0px/0px/0px",
+          "bg": "rgba(0, 0, 0, 0)",
+          "radius": "0px",
+          "border": "0px oklch(0.87 0 0)",
+          "fontSize": "14px",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+          "lineHeight": "22.75px"
+        }
+      ],
+      "lineSample": {
+        "tag": "BUTTON",
+        "cls": "flex items-center gap-1.5 border whitespace-nowrap transition-colors outline-none disabled:cursor-not-allowed disabled:o",
+        "rect": {
+          "y": 32,
+          "h": 32,
+          "w": 192
+        },
+        "padding": "0px/8px/0px/12px",
+        "margin": "0px/0px/0px/0px",
+        "bg": "rgb(43, 43, 43)",
+        "radius": "8px",
+        "border": "1px rgba(255, 255, 255, 0.1)",
+        "fontSize": "14px",
+        "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color",
+        "lineHeight": "22.75px"
+      },
+      "hasPre": false,
+      "hasCodeTag": false,
+      "text": "浅色代码主题浅色界面下代码内容使用的高亮主题。GitHub Light深色代码主题深色界面下代码内容使用的高亮主题。Gi"
+    }
+  ],
+  "globalPre": 0,
+  "capturedAt": "2026-11-02T20:06:06.727Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D"
+}

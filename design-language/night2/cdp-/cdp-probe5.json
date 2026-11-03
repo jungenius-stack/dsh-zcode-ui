@@ -1,0 +1,91 @@
+{
+  "capturedAt": "2026-11-02T19:16:11.893Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "steps": [
+    {
+      "step": "baseline",
+      "visible": "hidden",
+      "opacity": "0",
+      "transform": "none",
+      "scroller": {
+        "scrollH": 8,
+        "clientH": 8,
+        "scrollTop": 0
+      },
+      "childCount": 0,
+      "dots": [],
+      "navFullCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motion-reduce:transition-none @min-[864px]/conversation:visible @min-[864px]/conversation:translate-x-0 @min-[864px]/conversation:opacity-100"
+    },
+    {
+      "step": "conv-classes",
+      "conv": {
+        "cls": "@container/conversation relative flex min-h-0 flex-1 flex-col",
+        "parentCls": "relative flex h-full min-h-0 flex-col"
+      }
+    },
+    {
+      "step": "after-trajectory-1.5s",
+      "visible": "hidden",
+      "opacity": "0",
+      "transform": "none",
+      "scroller": {
+        "scrollH": 8,
+        "clientH": 8,
+        "scrollTop": 0
+      },
+      "childCount": 0,
+      "dots": [],
+      "navFullCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motion-reduce:transition-none @min-[864px]/conversation:visible @min-[864px]/conversation:translate-x-0 @min-[864px]/conversation:opacity-100"
+    },
+    {
+      "step": "chat-scrollTop-before",
+      "st": 212904
+    },
+    {
+      "step": "after-chat-scroll-minus-1500-plus-hover",
+      "visible": "hidden",
+      "opacity": "0",
+      "transform": "none",
+      "scroller": {
+        "scrollH": 8,
+        "clientH": 8,
+        "scrollTop": 0
+      },
+      "childCount": 0,
+      "dots": [],
+      "navFullCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motion-reduce:transition-none @min-[864px]/conversation:visible @min-[864px]/conversation:translate-x-0 @min-[864px]/conversation:opacity-100"
+    },
+    {
+      "step": "chat-scroll-restored",
+      "st": 212904
+    },
+    {
+      "step": "after-hover-left-edge",
+      "visible": "hidden",
+      "opacity": "0",
+      "transform": "none",
+      "scroller": {
+        "scrollH": 8,
+        "clientH": 8,
+        "scrollTop": 0
+      },
+      "childCount": 0,
+      "dots": [],
+      "navFullCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motion-reduce:transition-none @min-[864px]/conversation:visible @min-[864px]/conversation:translate-x-0 @min-[864px]/conversation:opacity-100"
+    },
+    {
+      "step": "pointer-away",
+      "visible": "hidden",
+      "opacity": "0",
+      "transform": "none",
+      "scroller": {
+        "scrollH": 8,
+        "clientH": 8,
+        "scrollTop": 0
+      },
+      "childCount": 0,
+      "dots": [],
+      "navFullCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motion-reduce:transition-none @min-[864px]/conversation:visible @min-[864px]/conversation:translate-x-0 @min-[864px]/conversation:opacity-100"
+    }
+  ]
+}

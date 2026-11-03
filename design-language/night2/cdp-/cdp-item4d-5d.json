@@ -1,0 +1,248 @@
+{
+  "capturedAt": "2026-11-02T19:31:21.320Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "item4_verdict": {
+    "target": {
+      "aria": "搜索",
+      "x": 216,
+      "y": 201,
+      "w": 24,
+      "h": 24
+    },
+    "firstHover": 6094.199999928474,
+    "repeatHovers": [
+      5789,
+      5896.199999928474
+    ],
+    "gearRepeat": 5688.399999976158,
+    "note": "firstHover=该按钮首次 hover；repeatHovers=第2/3次；gearRepeat=齿轮（已多次 hover）"
+  },
+  "item5_cssom": {
+    "sheetCount": 2,
+    "hits": [
+      {
+        "sel": ".composer-thought-slider:has(input:focus-visible)",
+        "css": "outline: 2px solid var(--color-ring); outline-offset: 2px;"
+      },
+      {
+        "sel": ".focus-visible\\:\\!shadow-md:focus-visible",
+        "css": "--tw-shadow: 0 4px 6px -1px var(--tw-shadow-color,#0000001a), 0 2px 4px -2px var(--tw-shadow-color,#0000001a) !important; box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), "
+      },
+      {
+        "sel": ".focus-visible\\:ring-0:focus-visible",
+        "css": "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), v"
+      },
+      {
+        "sel": ".focus-visible\\:ring-1:focus-visible",
+        "css": "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), v"
+      },
+      {
+        "sel": ".focus-visible\\:ring-2:focus-visible",
+        "css": "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), v"
+      },
+      {
+        "sel": ".focus-visible\\:ring-\\[3px\\]:focus-visible",
+        "css": "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), v"
+      },
+      {
+        "sel": ".focus-visible\\:ring-\\[var\\(--color-input-border-focused\\)\\]:focus-visible",
+        "css": "--tw-ring-color: var(--color-input-border-focused);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-border-hover:focus-visible",
+        "css": "--tw-ring-color: var(--color-border-hover);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-brand\\/40:focus-visible",
+        "css": "--tw-ring-color: #00bcfe66;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-brand\\/40:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-brand) 40%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-destructive\\/20:focus-visible",
+        "css": "--tw-ring-color: #e4001433;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-destructive\\/20:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-destructive) 20%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-destructive\\/30:focus-visible",
+        "css": "--tw-ring-color: #e400144d;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-destructive\\/30:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-destructive) 30%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-foreground\\/50:focus-visible",
+        "css": "--tw-ring-color: #40404080;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-foreground\\/50:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-foreground) 50%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-input-border-focused:focus-visible",
+        "css": "--tw-ring-color: var(--color-input-border-focused);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-input-border-focused\\/30:focus-visible",
+        "css": "--tw-ring-color: #00bcfe4d;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-input-border-focused\\/30:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-input-border-focused) 30%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary:focus-visible",
+        "css": "--tw-ring-color: var(--color-primary);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary\\/30:focus-visible",
+        "css": "--tw-ring-color: #0a0a0a4d;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary\\/30:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-primary) 30%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary\\/40:focus-visible",
+        "css": "--tw-ring-color: #0a0a0a66;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary\\/40:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-primary) 40%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary\\/50:focus-visible",
+        "css": "--tw-ring-color: #0a0a0a80;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-primary\\/50:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-primary) 50%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-warning\\/20:focus-visible",
+        "css": "--tw-ring-color: #cd890033;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-warning\\/20:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-warning) 20%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-white\\/70:focus-visible",
+        "css": "--tw-ring-color: #ffffffb3;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-white\\/70:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-white) 70%, transparent);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-offset-2:focus-visible",
+        "css": "--tw-ring-offset-width: 2px; --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-offset-background:focus-visible",
+        "css": "--tw-ring-offset-color: var(--color-background);"
+      },
+      {
+        "sel": ".focus-visible\\:ring-offset-card:focus-visible",
+        "css": "--tw-ring-offset-color: var(--color-card);"
+      },
+      {
+        "sel": ".focus-visible\\:outline:focus-visible, .focus-visible\\:outline-1:focus-visible",
+        "css": "outline-style: var(--tw-outline-style); outline-width: 1px;"
+      },
+      {
+        "sel": ".focus-visible\\:outline-2:focus-visible",
+        "css": "outline-style: var(--tw-outline-style); outline-width: 2px;"
+      },
+      {
+        "sel": ".focus-visible\\:outline-offset-4:focus-visible",
+        "css": "outline-offset: 4px;"
+      },
+      {
+        "sel": ".focus-visible\\:outline-primary:focus-visible",
+        "css": "outline-color: var(--color-primary);"
+      },
+      {
+        "sel": ".focus-visible\\:outline-none:focus-visible",
+        "css": "--tw-outline-style: none; outline-style: none;"
+      },
+      {
+        "sel": ".focus-visible\\:ring-inset:focus-visible",
+        "css": "--tw-ring-inset: inset;"
+      },
+      {
+        "sel": ".has-\\[\\[data-slot\\=input-group-control\\]\\:focus-visible\\]\\:ring-2:has([data-slot=\"input-group-control\"]:focus-visible)",
+        "css": "--tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), v"
+      },
+      {
+        "sel": ".dark\\:focus-visible\\:ring-destructive\\/40:focus-visible",
+        "css": "--tw-ring-color: #e4001466;"
+      },
+      {
+        "sel": ".dark\\:focus-visible\\:ring-destructive\\/40:focus-visible",
+        "css": "--tw-ring-color: color-mix(in oklab, var(--color-destructive) 40%, transparent);"
+      },
+      {
+        "sel": ":focus, :focus-visible",
+        "css": "box-shadow: none !important; outline: none !important;"
+      },
+      {
+        "sel": ":focus, :focus-visible",
+        "css": "box-shadow: none !important; outline: none !important;"
+      },
+      {
+        "sel": ".wf-pill-open:hover, .wf-pill-open:focus-visible",
+        "css": "background-color: var(--color-surface-hover); box-shadow: inset 0 0 0 1px var(--wf-avatar,color-mix(in oklab, var(--color-neutral-950) 20%, transparent));"
+      },
+      {
+        "sel": ".wf-pill-open:hover, .wf-pill-open:focus-visible",
+        "css": "box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wf-avatar,var(--color-border-hover)) 35%, transparent);"
+      },
+      {
+        "sel": ".wf-tile:has(.wf-tile-hit:focus-visible)",
+        "css": "outline: 2px solid var(--color-ring);"
+      },
+      {
+        "sel": ".wf-tile:has(.wf-tile-hit:focus-visible)",
+        "css": "outline: 2px solid color-mix(in oklab, var(--color-ring) 40%, transparent);"
+      },
+      {
+        "sel": ".wf-tile:has(.wf-tile-hit:focus-visible)",
+        "css": "outline-offset: 2px; border-radius: 0.5rem;"
+      }
+    ]
+  },
+  "item5_tabSeq": [
+    null,
+    {
+      "tag": "BUTTON",
+      "aria": "复制",
+      "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-pa",
+      "outline": "none 3px oklch(0.269 0 0) offset 0px",
+      "boxShadow": "none",
+      "fv": true
+    },
+    {
+      "tag": "BUTTON",
+      "aria": null,
+      "cls": "group/history-message inline-flex max-w-full items-center gap-2 text-left text-ui-base text-foregrou",
+      "outline": "none 3px oklab(0.269 0 0 / 0.6) offset 0px",
+      "boxShadow": "none",
+      "fv": true
+    },
+    {
+      "tag": "BUTTON",
+      "aria": "复制代码",
+      "cls": "group/button inline-flex items-center justify-center border border-transparent bg-clip-padding text-",
+      "outline": "none 3px oklch(0.269 0 0) offset 0px",
+      "boxShadow": "none",
+      "fv": true
+    }
+  ]
+}

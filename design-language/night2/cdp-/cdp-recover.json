@@ -1,0 +1,22 @@
+{
+  "capturedAt": "2026-11-02T19:58:34.182Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "final": {
+    "main": true,
+    "mainText": "计划议题①裁决：半透明侧栏 — 采纳 OpenDesign 数据，保持实色，不改",
+    "settingsHeadings": [
+      "还采不到的四项（需要特定界面在场）",
+      "外观",
+      "界面设置",
+      "代码设置",
+      "代码预览"
+    ],
+    "backBtn": {
+      "aria": "关闭 工作流脚本",
+      "x": 965,
+      "y": 28,
+      "w": 20,
+      "h": 20
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "capturedAt": "2026-11-02T19:24:10.847Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "tooltipPathAB": {
+    "A_cleanPath": {
+      "runs": [
+        {
+          "from": [
+            236,
+            700
+          ],
+          "elapsed": 5497,
+          "tooltipGoneBeforeStart": true
+        },
+        {
+          "from": [
+            236,
+            700
+          ],
+          "elapsed": 6015,
+          "tooltipGoneBeforeStart": true
+        },
+        {
+          "from": [
+            236,
+            700
+          ],
+          "elapsed": 6011,
+          "tooltipGoneBeforeStart": true
+        }
+      ],
+      "medianMs": 6011
+    },
+    "B_diagonalThroughSessionList": {
+      "runs": [
+        {
+          "from": [
+            5,
+            400
+          ],
+          "elapsed": 6085,
+          "tooltipGoneBeforeStart": true
+        },
+        {
+          "from": [
+            5,
+            400
+          ],
+          "elapsed": 6031,
+          "tooltipGoneBeforeStart": true
+        },
+        {
+          "from": [
+            5,
+            400
+          ],
+          "elapsed": 5976,
+          "tooltipGoneBeforeStart": true
+        }
+      ],
+      "medianMs": 6031
+    },
+    "note": "A=路径不掠过其他 trigger；B=斜穿会话列表（会路过多个潜在 trigger）"
+  },
+  "focusRingDeep": [
+    {
+      "step": "baseline",
+      "focused": null
+    },
+    {
+      "step": "tab-1",
+      "focused": {
+        "tag": "BUTTON",
+        "cls": "group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-base transition-colors",
+        "aria": null,
+        "rect": {
+          "x": 307,
+          "y": 506,
+          "w": 168,
+          "h": 21
+        },
+        "outlineColor": "oklch(0.269 0 0)",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "ringColorVar": null,
+        "matchesFocusVisible": true
+      },
+      "shadowChildren": []
+    },
+    {
+      "step": "tab-2",
+      "focused": {
+        "tag": "BUTTON",
+        "cls": "group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-base transition-colors",
+        "aria": null,
+        "rect": {
+          "x": 307,
+          "y": 645,
+          "w": 168,
+          "h": 21
+        },
+        "outlineColor": "oklch(0.269 0 0)",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "ringColorVar": null,
+        "matchesFocusVisible": true
+      },
+      "shadowChildren": []
+    },
+    {
+      "step": "tab-3",
+      "focused": {
+        "tag": "BUTTON",
+        "cls": "group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-base transition-colors",
+        "aria": null,
+        "rect": {
+          "x": 307,
+          "y": 414,
+          "w": 168,
+          "h": 21
+        },
+        "outlineColor": "oklch(0.269 0 0)",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "ringColorVar": null,
+        "matchesFocusVisible": true
+      },
+      "shadowChildren": []
+    },
+    {
+      "step": "tab-4",
+      "focused": {
+        "tag": "BUTTON",
+        "cls": "group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-base transition-colors",
+        "aria": null,
+        "rect": {
+          "x": 307,
+          "y": 488,
+          "w": 168,
+          "h": 21
+        },
+        "outlineColor": "oklch(0.269 0 0)",
+        "outlineStyle": "none",
+        "boxShadow": "none",
+        "ringColorVar": null,
+        "matchesFocusVisible": true
+      },
+      "shadowChildren": []
+    },
+    {
+      "step": "after-click-blank",
+      "focused": null
+    }
+  ]
+}

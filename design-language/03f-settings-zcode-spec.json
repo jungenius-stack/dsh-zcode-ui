@@ -1,0 +1,137 @@
+{
+ "url": "file:///Applications/ZCode.app/Contents/Resources/app.asar/o",
+ "winW": 1728,
+ "winH": 1084,
+ "navItems": [
+  {
+   "text": "基础设置",
+   "fs": "12px",
+   "fw": "500",
+   "color": "rgb(179, 179, 179)",
+   "h": 22,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "外观",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 32,
+   "r": "12px",
+   "sel": false
+  },
+  {
+   "text": "外观",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 21,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "外观",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 21,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "外观",
+   "fs": "14px",
+   "fw": "400",
+   "color": "oklch(0.87 0 0)",
+   "h": 21,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "模型设置",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 32,
+   "r": "12px",
+   "sel": false
+  },
+  {
+   "text": "模型设置",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 21,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "模型设置",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 21,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "模型设置",
+   "fs": "14px",
+   "fw": "400",
+   "color": "oklch(0.87 0 0)",
+   "h": 21,
+   "r": "0px",
+   "sel": false
+  },
+  {
+   "text": "键盘快捷键",
+   "fs": "16px",
+   "fw": "400",
+   "color": "rgb(179, 179, 179)",
+   "h": 32,
+   "r": "12px",
+   "sel": false
+  }
+ ],
+ "cards": [
+  {
+   "bg": "rgb(22, 22, 22)",
+   "border": "1px solid rgba(255, 255, 255, 0.1)",
+   "radius": "12px",
+   "pad": "0px",
+   "w": 1456
+  },
+  {
+   "bg": "rgba(0, 0, 0, 0)",
+   "border": "1px solid rgba(255, 255, 255, 0.1)",
+   "radius": "12px",
+   "pad": "0px",
+   "w": 1007
+  },
+  {
+   "bg": "rgba(255, 255, 255, 0.05)",
+   "border": "1px solid rgba(255, 255, 255, 0.1)",
+   "radius": "12px 2px 12px 12px",
+   "pad": "12px 16px",
+   "w": 576
+  }
+ ],
+ "switches": [],
+ "selects": [
+  {
+   "h": 1084,
+   "bg": "rgba(0, 0, 0, 0)",
+   "radius": "0px",
+   "fs": "16px"
+  },
+  {
+   "h": 32,
+   "bg": "rgba(0, 0, 0, 0)",
+   "radius": "8px",
+   "fs": "14px"
+  }
+ ],
+ "inputs": [],
+ "mainW": 1454
+}

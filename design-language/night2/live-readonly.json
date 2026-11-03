@@ -1,0 +1,127 @@
+{
+  "dshUrl": "dsh-app://app/",
+  "dsh": {
+    "theme": {
+      "dark": false,
+      "dcu": 727
+    },
+    "tokens": {
+      "--dcu-sidebar-background": "#f0f0f0",
+      "--dcu-sidebar-tertiary": "",
+      "--dcu-sidebar-secondary": "",
+      "--dcu-state-success-text": "#176c31",
+      "--dcu-state-error-fill": "#e03131",
+      "--dcu-tip-bg": "#f0f0f0",
+      "--dcu-dialog-bg": "#fff",
+      "--dsw-radius-xl": "12px",
+      "--dsw-radius-md": "6px"
+    },
+    "unread": null,
+    "pending": null,
+    "inlineCode": [
+      {
+        "text": "TIMEOUT",
+        "ml": "2px",
+        "mr": "2px",
+        "pad": "2px 6px",
+        "radius": "6px",
+        "bg": "rgba(230, 230, 230, 0.5)"
+      },
+      {
+        "text": "~/.npm/_cacach",
+        "ml": "2px",
+        "mr": "2px",
+        "pad": "2px 6px",
+        "radius": "6px",
+        "bg": "rgba(230, 230, 230, 0.5)"
+      },
+      {
+        "text": "~/.dsh",
+        "ml": "2px",
+        "mr": "2px",
+        "pad": "2px 6px",
+        "radius": "6px",
+        "bg": "rgba(230, 230, 230, 0.5)"
+      }
+    ],
+    "tableGap": "无表格",
+    "scrollbar": {
+      "overflowing": [
+        {
+          "cls": "dcu-wb-tree",
+          "sbw": "none",
+          "gutter": "auto"
+        },
+        {
+          "cls": "ST7X_W_scrollBody",
+          "sbw": "auto",
+          "gutter": "stable both-edges"
+        },
+        {
+          "cls": "dcu-settings-main",
+          "sbw": "auto",
+          "gutter": "stable"
+        }
+      ],
+      "rules": []
+    },
+    "switch": "当前界面无开关"
+  },
+  "zUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "z": {
+    "theme": {
+      "dark": false,
+      "cls": "platform-mac-desktop dark theme-zai-dark"
+    },
+    "scrollbar": {
+      "containers": [
+        {
+          "cls": "min-h-0 flex-1 overflow-y-auto [ma",
+          "sbw": "auto",
+          "gutter": "auto",
+          "over": true
+        },
+        {
+          "cls": "",
+          "sbw": "auto",
+          "gutter": "auto",
+          "over": false
+        },
+        {
+          "cls": "",
+          "sbw": "auto",
+          "gutter": "auto",
+          "over": false
+        },
+        {
+          "cls": "!scrollbar-hide pointer-events-aut",
+          "sbw": "none",
+          "gutter": "auto",
+          "over": true
+        },
+        {
+          "cls": "min-h-0 flex-1 overflow-x-hidden o",
+          "sbw": "auto",
+          "gutter": "stable both-edges",
+          "over": true
+        }
+      ],
+      "rules": []
+    },
+    "busy": [
+      {
+        "text": "停止运行",
+        "cursor": "default",
+        "opacity": "0.5",
+        "pe": "none"
+      },
+      {
+        "text": "",
+        "cursor": "default",
+        "opacity": "0.5",
+        "pe": "none"
+      }
+    ],
+    "rows": []
+  }
+}

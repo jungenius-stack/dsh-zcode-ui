@@ -1,0 +1,24 @@
+{
+  "capturedAt": "2026-11-02T19:38:38.978Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "rationale": "body.theme-zai-light 为上夜 cdp-capture.mjs 还原 bug 残留（上夜 summary: themeState.bodyClasses=\"zcode-startup-ready\", restoredToOriginalTheme:false）；变量就近解析使元素级被压成浅色。移除该类恢复用户真实深色态。",
+  "before": {
+    "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+    "bodyClass": "zcode-startup-ready theme-zai-light"
+  },
+  "beforeRead": {
+    "rootSidebar": "#161616",
+    "rootFg": "oklch(87% 0 0)",
+    "asideColor": "oklch(0.269 0 0)",
+    "rootDivBg": "oklab(0.979123 0.0000446141 0.0000196099 / 0.7)"
+  },
+  "after": {
+    "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+    "bodyClass": "zcode-startup-ready",
+    "rootSidebar": "#161616",
+    "rootFg": "oklch(87% 0 0)",
+    "asideColor": "oklch(0.87 0 0)",
+    "rootDivBg": "oklab(0.289078 0.0000131428 0.00000579655 / 0.6)"
+  },
+  "consistentNow": true
+}

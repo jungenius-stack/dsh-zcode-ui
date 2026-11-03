@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-11-02T19:41:06.298Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "before": {
+    "vw": 1202,
+    "vh": 800,
+    "tops": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        },
+        "position": "static",
+        "zIndex": "auto",
+        "display": "block",
+        "opacity": "1",
+        "bg": "rgba(0, 0, 0, 0)"
+      }
+    ],
+    "bodyChildren": 1
+  },
+  "clicks": [
+    {
+      "t": 10654870.899999976,
+      "x": 236,
+      "y": 768,
+      "trusted": true,
+      "target": "group/button inline-flex items-center justify-center border "
+    }
+  ],
+  "after": {
+    "vw": 1202,
+    "vh": 800,
+    "tops": [
+      {
+        "tag": "DIV",
+        "cls": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        },
+        "position": "static",
+        "zIndex": "auto",
+        "display": "block",
+        "opacity": "1",
+        "bg": "rgba(0, 0, 0, 0)"
+      }
+    ],
+    "bodyChildren": 1
+  }
+}

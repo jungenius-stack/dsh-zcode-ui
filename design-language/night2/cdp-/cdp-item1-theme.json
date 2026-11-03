@@ -1,0 +1,375 @@
+{
+  "capturedAt": "2026-11-02T19:36:23.337Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "method": "先 remove 两 root 的 theme-zai-*，再向指定 root 单独挂 theme-zai-light/dark；每轮等待 450ms（transition 余量）后读 computed；结束后逐字还原 className/attributes 快照",
+  "snapshotBefore": {
+    "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+    "bodyClass": "zcode-startup-ready theme-zai-light",
+    "htmlAttrs": {
+      "lang": "en",
+      "class": "platform-mac-desktop dark theme-zai-dark",
+      "data-document-hidden": "",
+      "style": "--ui-font-size: 14px;"
+    },
+    "bodyAttrs": {
+      "class": "zcode-startup-ready theme-zai-light",
+      "style": ""
+    }
+  },
+  "baseline_pointerAway": {
+    "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+    "bodyClass": "zcode-startup-ready theme-zai-light",
+    "bodyDarkAttr": false,
+    "vars": {
+      "--color-sidebar": "#161616",
+      "--color-background": "#161616",
+      "--color-background-alt": "color-mix(in oklab, #2b2b2b 60%, transparent)",
+      "--color-foreground": "oklch(87% 0 0)",
+      "--color-menu": "#2b2b2b",
+      "--color-menu-hover": "#363636",
+      "--color-tooltip": "#2b2b2b",
+      "--color-tooltip-foreground": "#f8f8f8",
+      "--color-tooltip-tag": "#363636",
+      "--color-border": "#ffffff1a",
+      "--color-border-hover": "#ffffff26",
+      "--color-hover": "#ffffff0d",
+      "--color-selected": "#ffffff1a",
+      "--color-card": "#2b2b2b",
+      "--color-input-border-focused": "#ffffff26",
+      "--color-success": "#46bf72",
+      "--color-warning": "#ff8a30",
+      "--color-destructive": "#ff5c5c",
+      "--font-sans": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\""
+    },
+    "ringVars": {},
+    "sidebarPaintChain": [],
+    "bodyFont": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+    "textSample": {
+      "tag": "SPAN",
+      "cls": "max-w-[45%] shrink-0 truncate text-[var(--color-foreground-subtle)]",
+      "color": "oklab(0.269 0 0 / 0.6)",
+      "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "text": "活体实测：CDP 采集 → 裁决"
+    },
+    "icons": [
+      {
+        "svgStroke": "oklch(0.269 0 0)",
+        "svgStrokeWidth": "1.5px",
+        "svgColor": "oklch(0.269 0 0)",
+        "childStroke": "oklch(0.269 0 0)",
+        "childStrokeW": "1.5px",
+        "cls": "lucide lucide-message-circle-plus h-4 w-4 shrink-0"
+      },
+      {
+        "svgStroke": "oklch(0.269 0 0)",
+        "svgStrokeWidth": "1.5px",
+        "svgColor": "oklch(0.269 0 0)",
+        "childStroke": "oklch(0.269 0 0)",
+        "childStrokeW": "1.5px",
+        "cls": "lucide lucide-calendar-clock size-4"
+      }
+    ],
+    "menuHoverTarget": {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklch(0.269 0 0)",
+      "radius": "8px"
+    }
+  },
+  "baseline_menuRow_hover": {
+    "tag": "BUTTON",
+    "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+    "bg": "rgba(13, 13, 13, 0.05)",
+    "color": "oklch(0.269 0 0)"
+  },
+  "matrix": [
+    {
+      "mountOn": "documentElement",
+      "mode": "light",
+      "read": {
+        "htmlClass": "platform-mac-desktop dark theme-zai-light",
+        "bodyClass": "zcode-startup-ready",
+        "bodyDarkAttr": false,
+        "vars": {
+          "--color-sidebar": "#f0f0f0",
+          "--color-background": "#f8f8f8",
+          "--color-background-alt": "color-mix(in oklab, #f8f8f8 70%, transparent)",
+          "--color-foreground": "oklch(26.9% 0 0)",
+          "--color-menu": "#fff",
+          "--color-menu-hover": "#f0f0f0",
+          "--color-tooltip": "#f0f0f0",
+          "--color-tooltip-foreground": "#0d0d0d",
+          "--color-tooltip-tag": "#e6e6e6",
+          "--color-border": "#0d0d0d1a",
+          "--color-border-hover": "#0d0d0d26",
+          "--color-hover": "#0d0d0d0d",
+          "--color-selected": "#0d0d0d0d",
+          "--color-card": "#fff",
+          "--color-input-border-focused": "#0d0d0d26",
+          "--color-success": "#1e8a3e",
+          "--color-warning": "#e07b00",
+          "--color-destructive": "#e03131",
+          "--font-sans": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\""
+        },
+        "ringVars": {},
+        "sidebarPaintChain": [],
+        "bodyFont": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+        "textSample": {
+          "tag": "SPAN",
+          "cls": "max-w-[45%] shrink-0 truncate text-[var(--color-foreground-subtle)]",
+          "color": "oklab(0.269 0 0 / 0.6)",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+          "fontSize": "14px",
+          "fontWeight": "400",
+          "lineHeight": "21px",
+          "text": "活体实测：CDP 采集 → 裁决"
+        },
+        "icons": [
+          {
+            "svgStroke": "oklch(0.269 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.269 0 0)",
+            "childStroke": "oklch(0.269 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-message-circle-plus h-4 w-4 shrink-0"
+          },
+          {
+            "svgStroke": "oklch(0.269 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.269 0 0)",
+            "childStroke": "oklch(0.269 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-calendar-clock size-4"
+          }
+        ],
+        "menuHoverTarget": {
+          "tag": "BUTTON",
+          "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+          "bg": "rgba(13, 13, 13, 0.05)",
+          "color": "oklch(0.269 0 0)",
+          "radius": "8px"
+        }
+      }
+    },
+    {
+      "mountOn": "documentElement",
+      "mode": "dark",
+      "read": {
+        "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+        "bodyClass": "zcode-startup-ready",
+        "bodyDarkAttr": false,
+        "vars": {
+          "--color-sidebar": "#161616",
+          "--color-background": "#161616",
+          "--color-background-alt": "color-mix(in oklab, #2b2b2b 60%, transparent)",
+          "--color-foreground": "oklch(87% 0 0)",
+          "--color-menu": "#2b2b2b",
+          "--color-menu-hover": "#363636",
+          "--color-tooltip": "#2b2b2b",
+          "--color-tooltip-foreground": "#f8f8f8",
+          "--color-tooltip-tag": "#363636",
+          "--color-border": "#ffffff1a",
+          "--color-border-hover": "#ffffff26",
+          "--color-hover": "#ffffff0d",
+          "--color-selected": "#ffffff1a",
+          "--color-card": "#2b2b2b",
+          "--color-input-border-focused": "#ffffff26",
+          "--color-success": "#46bf72",
+          "--color-warning": "#ff8a30",
+          "--color-destructive": "#ff5c5c",
+          "--font-sans": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\""
+        },
+        "ringVars": {},
+        "sidebarPaintChain": [],
+        "bodyFont": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+        "textSample": {
+          "tag": "SPAN",
+          "cls": "max-w-[45%] shrink-0 truncate text-[var(--color-foreground-subtle)]",
+          "color": "oklab(0.87 0 0 / 0.6)",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+          "fontSize": "14px",
+          "fontWeight": "400",
+          "lineHeight": "21px",
+          "text": "活体实测：CDP 采集 → 裁决"
+        },
+        "icons": [
+          {
+            "svgStroke": "oklch(0.87 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.87 0 0)",
+            "childStroke": "oklch(0.87 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-message-circle-plus h-4 w-4 shrink-0"
+          },
+          {
+            "svgStroke": "oklch(0.87 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.87 0 0)",
+            "childStroke": "oklch(0.87 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-calendar-clock size-4"
+          }
+        ],
+        "menuHoverTarget": {
+          "tag": "BUTTON",
+          "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+          "bg": "rgba(255, 255, 255, 0.05)",
+          "color": "oklch(0.87 0 0)",
+          "radius": "8px"
+        }
+      }
+    },
+    {
+      "mountOn": "body",
+      "mode": "light",
+      "read": {
+        "htmlClass": "platform-mac-desktop dark",
+        "bodyClass": "zcode-startup-ready theme-zai-light",
+        "bodyDarkAttr": false,
+        "vars": {
+          "--color-sidebar": "oklch(14.5% 0 0)",
+          "--color-background": "oklch(20.5% 0 0)",
+          "--color-background-alt": "color-mix(in oklab, oklch(26.9% 0 0) 60%, transparent)",
+          "--color-foreground": "oklch(92.2% 0 0)",
+          "--color-menu": "oklch(14.5% 0 0)",
+          "--color-menu-hover": "oklch(20.5% 0 0)",
+          "--color-tooltip": "oklch(20.5% 0 0)",
+          "--color-tooltip-foreground": "oklch(98.5% 0 0)",
+          "--color-tooltip-tag": "oklch(26.9% 0 0)",
+          "--color-border": "color-mix(in oklab, oklch(98.5% 0 0) 10%, transparent)",
+          "--color-border-hover": "color-mix(in oklab, oklch(98.5% 0 0) 30%, transparent)",
+          "--color-hover": "color-mix(in oklab, #fff 10%, transparent)",
+          "--color-selected": "color-mix(in oklab, #fff 10%, transparent)",
+          "--color-card": "oklch(26.9% 0 0)",
+          "--color-input-border-focused": "oklch(68.5% .169 237.323)",
+          "--color-success": "oklch(72.3% .219 149.579)",
+          "--color-warning": "oklch(79.5% .184 86.047)",
+          "--color-destructive": "oklch(63.7% .237 25.331)",
+          "--font-sans": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\""
+        },
+        "ringVars": {},
+        "sidebarPaintChain": [],
+        "bodyFont": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+        "textSample": {
+          "tag": "SPAN",
+          "cls": "max-w-[45%] shrink-0 truncate text-[var(--color-foreground-subtle)]",
+          "color": "oklab(0.269 0 0 / 0.6)",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+          "fontSize": "14px",
+          "fontWeight": "400",
+          "lineHeight": "21px",
+          "text": "活体实测：CDP 采集 → 裁决"
+        },
+        "icons": [
+          {
+            "svgStroke": "oklch(0.269 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.269 0 0)",
+            "childStroke": "oklch(0.269 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-message-circle-plus h-4 w-4 shrink-0"
+          },
+          {
+            "svgStroke": "oklch(0.269 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.269 0 0)",
+            "childStroke": "oklch(0.269 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-calendar-clock size-4"
+          }
+        ],
+        "menuHoverTarget": {
+          "tag": "BUTTON",
+          "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+          "bg": "rgba(13, 13, 13, 0.05)",
+          "color": "oklch(0.269 0 0)",
+          "radius": "8px"
+        }
+      }
+    },
+    {
+      "mountOn": "body",
+      "mode": "dark",
+      "read": {
+        "htmlClass": "platform-mac-desktop dark",
+        "bodyClass": "zcode-startup-ready theme-zai-dark",
+        "bodyDarkAttr": false,
+        "vars": {
+          "--color-sidebar": "oklch(14.5% 0 0)",
+          "--color-background": "oklch(20.5% 0 0)",
+          "--color-background-alt": "color-mix(in oklab, oklch(26.9% 0 0) 60%, transparent)",
+          "--color-foreground": "oklch(92.2% 0 0)",
+          "--color-menu": "oklch(14.5% 0 0)",
+          "--color-menu-hover": "oklch(20.5% 0 0)",
+          "--color-tooltip": "oklch(20.5% 0 0)",
+          "--color-tooltip-foreground": "oklch(98.5% 0 0)",
+          "--color-tooltip-tag": "oklch(26.9% 0 0)",
+          "--color-border": "color-mix(in oklab, oklch(98.5% 0 0) 10%, transparent)",
+          "--color-border-hover": "color-mix(in oklab, oklch(98.5% 0 0) 30%, transparent)",
+          "--color-hover": "color-mix(in oklab, #fff 10%, transparent)",
+          "--color-selected": "color-mix(in oklab, #fff 10%, transparent)",
+          "--color-card": "oklch(26.9% 0 0)",
+          "--color-input-border-focused": "oklch(68.5% .169 237.323)",
+          "--color-success": "oklch(72.3% .219 149.579)",
+          "--color-warning": "oklch(79.5% .184 86.047)",
+          "--color-destructive": "oklch(63.7% .237 25.331)",
+          "--font-sans": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\""
+        },
+        "ringVars": {},
+        "sidebarPaintChain": [],
+        "bodyFont": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+        "textSample": {
+          "tag": "SPAN",
+          "cls": "max-w-[45%] shrink-0 truncate text-[var(--color-foreground-subtle)]",
+          "color": "oklab(0.87 0 0 / 0.6)",
+          "fontFamily": "ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+          "fontSize": "14px",
+          "fontWeight": "400",
+          "lineHeight": "21px",
+          "text": "活体实测：CDP 采集 → 裁决"
+        },
+        "icons": [
+          {
+            "svgStroke": "oklch(0.87 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.87 0 0)",
+            "childStroke": "oklch(0.87 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-message-circle-plus h-4 w-4 shrink-0"
+          },
+          {
+            "svgStroke": "oklch(0.87 0 0)",
+            "svgStrokeWidth": "1.5px",
+            "svgColor": "oklch(0.87 0 0)",
+            "childStroke": "oklch(0.87 0 0)",
+            "childStrokeW": "1.5px",
+            "cls": "lucide lucide-calendar-clock size-4"
+          }
+        ],
+        "menuHoverTarget": {
+          "tag": "BUTTON",
+          "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+          "bg": "rgba(255, 255, 255, 0.05)",
+          "color": "oklch(0.87 0 0)",
+          "radius": "8px"
+        }
+      }
+    }
+  ],
+  "restore": {
+    "restoredClassNames": {
+      "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+      "bodyClass": "zcode-startup-ready theme-zai-light"
+    },
+    "verifyAfter": {
+      "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+      "bodyClass": "zcode-startup-ready theme-zai-light",
+      "darkAttr": false
+    },
+    "exactMatch": true
+  }
+}

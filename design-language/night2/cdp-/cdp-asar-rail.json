@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-11-02T20:05:25.925Z",
+  "findings": [
+    {
+      "kind": "onScroll",
+      "at": 4420046,
+      "ctx": "x-0 @min-[864px]/conversation:opacity-100`,children:(0,$.jsx)(`div`,{ref:v,className:`!scrollbar-hide pointer-events-auto absolute left-3 top-1/2 max-h-[calc(100%-6rem)] w-9 -translate-y-1/2 overflow-x-hidden overflow-y-auto py-1`,onPointerLeave:()=>d(void 0),onScroll:()=>d(void 0),children:(0,$.jsx)(`div`,{className:`relative w-9`,style:{height:`${x.getTotalSize()}px`},children:S.map(e=>{let t=e.index,n=p[t];return n?(0,$.jsx)(I_n,{item:n,itemIndex:t,itemCount:p.length,start:e.start,active:t===g,visualDistance:_===void 0?void 0:Math.min(3,Math.abs(t-_))"
+    },
+    {
+      "kind": "onScroll",
+      "at": 4464291,
+      "ctx": "e.length,\"data-window-row-count\":e.length,\"data-render-unit-count\":le,\"data-total-row-count\":i,\"data-following\":Ze?`false`:`true`,\"data-loading-older\":p?`true`:`false`,onKeyDownCapture:zt,onPointerCancelCapture:Vt,onPointerDownCapture:Bt,onPointerUpCapture:Vt,onScroll:Qt,onTouchCancelCapture:Rt,onTouchEndCapture:Rt,onTouchMoveCapture:Lt,onTouchStartCapture:It,onWheelCapture:Ft,className:Z(`min-h-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable_both-edges] [--markdown-table-layout-left-inset:16px] [--markdown-table-layout-right-inset:16"
+    }
+  ],
+  "onScrollCount": 2,
+  "logs": [
+    {
+      "at": 4448878,
+      "msg": "J.debug(`[v4-turn-navigator] 目录请求补齐完整历史`"
+    },
+    {
+      "at": 4458714,
+      "msg": "J.debug(`[v4-turn-navigator] 定位用户 query`"
+    }
+  ]
+}

@@ -1,0 +1,338 @@
+{
+  "capturedAt": "2026-11-02T19:50:05.599Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "viewBefore": {
+    "mainText": "计划议题①裁决：半透明侧栏 — 采纳 OpenDesign 数据，保持实色，不改代码启动画面二次修订",
+    "chatScrollTop": 212682
+  },
+  "cmdkItem": {
+    "x": 601,
+    "y": 292
+  },
+  "opened": true,
+  "settings_dark": {
+    "bgRoots": [
+      {
+        "tag": "DIV",
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        },
+        "bg": "oklab(0.289078 0.0000131428 0.00000579655 / 0.6)",
+        "color": "oklch(0.87 0 0)",
+        "radius": "0px"
+      },
+      {
+        "tag": "DIV",
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        },
+        "bg": "oklab(0.289078 0.0000131428 0.00000579655 / 0.6)",
+        "color": "oklch(0.87 0 0)",
+        "radius": "0px"
+      },
+      {
+        "tag": "DIV",
+        "cls": "relative flex flex-col min-h-0 h-full border border-border bg-background rounded-xl",
+        "rect": {
+          "x": 268,
+          "y": 4,
+          "w": 930,
+          "h": 792
+        },
+        "bg": "rgb(22, 22, 22)",
+        "color": "oklch(0.87 0 0)",
+        "radius": "12px"
+      },
+      {
+        "tag": "SECTION",
+        "cls": "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background rounded-[var(--workspace-panel-radius)] border-border border-[0.5px] shadow",
+        "rect": {
+          "x": 268,
+          "y": 4,
+          "w": 512,
+          "h": 792
+        },
+        "bg": "rgb(22, 22, 22)",
+        "color": "oklch(0.87 0 0)",
+        "radius": "12px"
+      }
+    ],
+    "vars": {
+      "--color-sidebar": "#161616",
+      "--color-background": "#161616",
+      "--color-background-alt": "color-mix(in oklab, #2b2b2b 60%, transparent)",
+      "--color-foreground": "oklch(87% 0 0)",
+      "--color-card": "#2b2b2b",
+      "--color-border": "#ffffff1a"
+    },
+    "cards": [
+      {
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "bg": "oklab(0.289078 0.0000131428 0.00000579655 / 0.6)",
+        "radius": "0px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        }
+      },
+      {
+        "cls": "flex max-w-full flex-col gap-2 rounded-xl rounded-tr-xs border border-border bg-surface px",
+        "bg": "rgba(255, 255, 255, 0.08)",
+        "radius": "24px",
+        "rect": {
+          "x": 307,
+          "y": -2694,
+          "w": 435,
+          "h": 69
+        }
+      },
+      {
+        "cls": "group relative w-full overflow-hidden rounded-xl text-foreground my-4 border border-border",
+        "bg": "rgb(43, 43, 43)",
+        "radius": "12px",
+        "rect": {
+          "x": 307,
+          "y": -2208,
+          "w": 435,
+          "h": 901
+        }
+      },
+      {
+        "cls": "relative flex flex-col gap-3 overflow-hidden rounded-2xl border-[0.5px] border-input-borde",
+        "bg": "rgb(43, 43, 43)",
+        "radius": "32px",
+        "rect": {
+          "x": 291,
+          "y": 675,
+          "w": 467,
+          "h": 105
+        }
+      },
+      {
+        "cls": "h-full overflow-hidden bg-background rounded-xl border-border border-[0.5px] shadow-xs",
+        "bg": "rgb(22, 22, 22)",
+        "radius": "12px",
+        "rect": {
+          "x": 780,
+          "y": 4,
+          "w": 419,
+          "h": 792
+        }
+      },
+      {
+        "cls": "flex-1 text-ui-base outline-none relative z-10 h-full min-h-0 bg-background data-[state=in",
+        "bg": "rgb(22, 22, 22)",
+        "radius": "0px",
+        "rect": {
+          "x": 780,
+          "y": 53,
+          "w": 418,
+          "h": 743
+        }
+      },
+      {
+        "cls": "flex h-full min-h-0 flex-col bg-background",
+        "bg": "rgb(22, 22, 22)",
+        "radius": "0px",
+        "rect": {
+          "x": 780,
+          "y": 53,
+          "w": 418,
+          "h": 743
+        }
+      },
+      {
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "bg": "oklab(0.289078 0.0000131428 0.00000579655 / 0.6)",
+        "radius": "0px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        }
+      }
+    ],
+    "inputBg": "rgba(0, 0, 0, 0)",
+    "title": "命令面板",
+    "asideVisible": true
+  },
+  "settings_light": {
+    "bgRoots": [
+      {
+        "tag": "DIV",
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        },
+        "bg": "oklab(0.979123 0.0000446141 0.0000196099 / 0.7)",
+        "color": "oklch(0.269 0 0)",
+        "radius": "0px"
+      },
+      {
+        "tag": "DIV",
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        },
+        "bg": "oklab(0.979123 0.0000446141 0.0000196099 / 0.7)",
+        "color": "oklch(0.269 0 0)",
+        "radius": "0px"
+      },
+      {
+        "tag": "DIV",
+        "cls": "relative flex flex-col min-h-0 h-full border border-border bg-background rounded-xl",
+        "rect": {
+          "x": 268,
+          "y": 4,
+          "w": 930,
+          "h": 792
+        },
+        "bg": "rgb(248, 248, 248)",
+        "color": "oklch(0.269 0 0)",
+        "radius": "12px"
+      },
+      {
+        "tag": "SECTION",
+        "cls": "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background rounded-[var(--workspace-panel-radius)] border-border border-[0.5px] shadow",
+        "rect": {
+          "x": 268,
+          "y": 4,
+          "w": 512,
+          "h": 792
+        },
+        "bg": "rgb(248, 248, 248)",
+        "color": "oklch(0.269 0 0)",
+        "radius": "12px"
+      }
+    ],
+    "vars": {
+      "--color-sidebar": "#f0f0f0",
+      "--color-background": "#f8f8f8",
+      "--color-background-alt": "color-mix(in oklab, #f8f8f8 70%, transparent)",
+      "--color-foreground": "oklch(26.9% 0 0)",
+      "--color-card": "#fff",
+      "--color-border": "#0d0d0d1a"
+    },
+    "cards": [
+      {
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "bg": "oklab(0.979123 0.0000446141 0.0000196099 / 0.7)",
+        "radius": "0px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        }
+      },
+      {
+        "cls": "flex max-w-full flex-col gap-2 rounded-xl rounded-tr-xs border border-border bg-surface px",
+        "bg": "rgba(13, 13, 13, 0.05)",
+        "radius": "24px",
+        "rect": {
+          "x": 307,
+          "y": -2694,
+          "w": 435,
+          "h": 69
+        }
+      },
+      {
+        "cls": "group relative w-full overflow-hidden rounded-xl text-foreground my-4 border border-border",
+        "bg": "rgb(255, 255, 255)",
+        "radius": "12px",
+        "rect": {
+          "x": 307,
+          "y": -2208,
+          "w": 435,
+          "h": 901
+        }
+      },
+      {
+        "cls": "relative flex flex-col gap-3 overflow-hidden rounded-2xl border-[0.5px] border-input-borde",
+        "bg": "rgb(255, 255, 255)",
+        "radius": "32px",
+        "rect": {
+          "x": 291,
+          "y": 675,
+          "w": 467,
+          "h": 105
+        }
+      },
+      {
+        "cls": "h-full overflow-hidden bg-background rounded-xl border-border border-[0.5px] shadow-xs",
+        "bg": "rgb(248, 248, 248)",
+        "radius": "12px",
+        "rect": {
+          "x": 780,
+          "y": 4,
+          "w": 419,
+          "h": 792
+        }
+      },
+      {
+        "cls": "flex-1 text-ui-base outline-none relative z-10 h-full min-h-0 bg-background data-[state=in",
+        "bg": "rgb(248, 248, 248)",
+        "radius": "0px",
+        "rect": {
+          "x": 780,
+          "y": 53,
+          "w": 418,
+          "h": 743
+        }
+      },
+      {
+        "cls": "flex h-full min-h-0 flex-col bg-background",
+        "bg": "rgb(248, 248, 248)",
+        "radius": "0px",
+        "rect": {
+          "x": 780,
+          "y": 53,
+          "w": 418,
+          "h": 743
+        }
+      },
+      {
+        "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+        "bg": "oklab(0.979123 0.0000446141 0.0000196099 / 0.7)",
+        "radius": "0px",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1202,
+          "h": 800
+        }
+      }
+    ],
+    "inputBg": "rgba(0, 0, 0, 0)",
+    "title": "命令面板",
+    "asideVisible": true
+  },
+  "themeClassRestore": {
+    "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+    "bodyClass": "zcode-startup-ready"
+  },
+  "closeHow": "Escape×1",
+  "viewAfterClose": {
+    "mainText": "计划议题①裁决：半透明侧栏 — 采纳 OpenDesign 数据，保持实色，不改代码启动画面二次修订",
+    "chatScrollTop": 212682
+  },
+  "backToConversation": true,
+  "chatScrollRestored": true
+}

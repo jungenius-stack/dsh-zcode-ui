@@ -1,0 +1,422 @@
+{
+  "capturedAt": "2026-11-02T19:20:08.638Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "item4_tooltipDelay": {
+    "target": "齿轮按钮 aria=设置, center(236,768), Radix Tooltip",
+    "runs": [
+      {
+        "run": 1,
+        "appeared": true,
+        "elapsedMs": 6592,
+        "pollIntervalMs": 16,
+        "snapshot": {
+          "wrapper": {
+            "cls": "",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(0, 0, 0)",
+            "border": "0px rgb(0, 0, 0)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "16px",
+            "transition": "none 0s"
+          },
+          "content": {
+            "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-foreground data-[side=bottom]:slide-in-f",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgb(240, 240, 240)",
+            "color": "rgb(13, 13, 13)",
+            "border": "1px rgba(13, 13, 13, 0.1)",
+            "radius": "8px",
+            "boxShadow": "none",
+            "padding": "4px/10px/4px/10px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "roleTooltipEl": {
+            "cls": "",
+            "rect": {
+              "x": 223,
+              "y": 736,
+              "w": 1,
+              "h": 1
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(13, 13, 13)",
+            "border": "0px rgb(13, 13, 13)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "text": "设置设置",
+          "triggerAria": null
+        }
+      },
+      {
+        "run": 2,
+        "appeared": true,
+        "elapsedMs": 6392,
+        "pollIntervalMs": 16,
+        "snapshot": {
+          "wrapper": {
+            "cls": "",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(0, 0, 0)",
+            "border": "0px rgb(0, 0, 0)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "16px",
+            "transition": "none 0s"
+          },
+          "content": {
+            "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-foreground data-[side=bottom]:slide-in-f",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgb(240, 240, 240)",
+            "color": "rgb(13, 13, 13)",
+            "border": "1px rgba(13, 13, 13, 0.1)",
+            "radius": "8px",
+            "boxShadow": "none",
+            "padding": "4px/10px/4px/10px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "roleTooltipEl": {
+            "cls": "",
+            "rect": {
+              "x": 223,
+              "y": 736,
+              "w": 1,
+              "h": 1
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(13, 13, 13)",
+            "border": "0px rgb(13, 13, 13)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "text": "设置设置",
+          "triggerAria": null
+        }
+      },
+      {
+        "run": 3,
+        "appeared": true,
+        "elapsedMs": 6432,
+        "pollIntervalMs": 16,
+        "snapshot": {
+          "wrapper": {
+            "cls": "",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(0, 0, 0)",
+            "border": "0px rgb(0, 0, 0)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "16px",
+            "transition": "none 0s"
+          },
+          "content": {
+            "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-foreground data-[side=bottom]:slide-in-f",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgb(240, 240, 240)",
+            "color": "rgb(13, 13, 13)",
+            "border": "1px rgba(13, 13, 13, 0.1)",
+            "radius": "8px",
+            "boxShadow": "none",
+            "padding": "4px/10px/4px/10px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "roleTooltipEl": {
+            "cls": "",
+            "rect": {
+              "x": 223,
+              "y": 736,
+              "w": 1,
+              "h": 1
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(13, 13, 13)",
+            "border": "0px rgb(13, 13, 13)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "text": "设置设置",
+          "triggerAria": null
+        }
+      },
+      {
+        "run": 4,
+        "appeared": true,
+        "elapsedMs": 6281,
+        "pollIntervalMs": 16,
+        "snapshot": {
+          "wrapper": {
+            "cls": "",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(0, 0, 0)",
+            "border": "0px rgb(0, 0, 0)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "16px",
+            "transition": "none 0s"
+          },
+          "content": {
+            "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-foreground data-[side=bottom]:slide-in-f",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgb(240, 240, 240)",
+            "color": "rgb(13, 13, 13)",
+            "border": "1px rgba(13, 13, 13, 0.1)",
+            "radius": "8px",
+            "boxShadow": "none",
+            "padding": "4px/10px/4px/10px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "roleTooltipEl": {
+            "cls": "",
+            "rect": {
+              "x": 223,
+              "y": 736,
+              "w": 1,
+              "h": 1
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(13, 13, 13)",
+            "border": "0px rgb(13, 13, 13)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "text": "设置设置",
+          "triggerAria": null
+        }
+      },
+      {
+        "run": 5,
+        "appeared": true,
+        "elapsedMs": 6365,
+        "pollIntervalMs": 16,
+        "snapshot": {
+          "wrapper": {
+            "cls": "",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(0, 0, 0)",
+            "border": "0px rgb(0, 0, 0)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "16px",
+            "transition": "none 0s"
+          },
+          "content": {
+            "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-foreground data-[side=bottom]:slide-in-f",
+            "rect": {
+              "x": 213,
+              "y": 722,
+              "w": 47,
+              "h": 28
+            },
+            "bg": "rgb(240, 240, 240)",
+            "color": "rgb(13, 13, 13)",
+            "border": "1px rgba(13, 13, 13, 0.1)",
+            "radius": "8px",
+            "boxShadow": "none",
+            "padding": "4px/10px/4px/10px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "roleTooltipEl": {
+            "cls": "",
+            "rect": {
+              "x": 223,
+              "y": 736,
+              "w": 1,
+              "h": 1
+            },
+            "bg": "rgba(0, 0, 0, 0)",
+            "color": "rgb(13, 13, 13)",
+            "border": "0px rgb(13, 13, 13)",
+            "radius": "0px",
+            "boxShadow": "none",
+            "padding": "0px/0px/0px/0px",
+            "fontSize": "12px",
+            "transition": "none 0s"
+          },
+          "text": "设置设置",
+          "triggerAria": null
+        }
+      }
+    ],
+    "appearedCount": 5,
+    "medianMs": 6392,
+    "method": "CDP Input.dispatchMouseEvent + 16ms 轮询 [role=tooltip]/[data-radix-popper-content-wrapper]"
+  },
+  "item5_focusRing": {
+    "method": "CDP Input.dispatchKeyEvent Tab(rawKeyDown+keyUp, vk=9)",
+    "steps": [
+      {
+        "step": "baseline",
+        "focused": null
+      },
+      {
+        "step": "tab-1",
+        "focused": {
+          "tag": "BUTTON",
+          "cls": "shrink-0 group inline-flex w-max max-w-full cursor-pointer flex-col items-stretch text-left text-[var(--color-foreground)] transition-colors",
+          "aria": "展开状态",
+          "text": "工作流脚本活体实测：CDP 采集 → 裁决",
+          "rect": {
+            "x": 448,
+            "y": 70,
+            "w": 312,
+            "h": 32
+          },
+          "outlineColor": "oklch(0.269 0 0)",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineOffset": "0px",
+          "boxShadow": "none",
+          "ringVar": "#0d0d0d26",
+          "matchesFocusVisible": true,
+          "matchesFocus": true
+        }
+      },
+      {
+        "step": "tab-2",
+        "focused": {
+          "tag": "BUTTON",
+          "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-padding text-ui-base/relaxed whitespace-no",
+          "aria": "复制",
+          "text": "复制",
+          "rect": {
+            "x": 715,
+            "y": 412,
+            "w": 24,
+            "h": 24
+          },
+          "outlineColor": "oklch(0.269 0 0)",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineOffset": "0px",
+          "boxShadow": "none",
+          "ringVar": null,
+          "matchesFocusVisible": true,
+          "matchesFocus": true
+        }
+      },
+      {
+        "step": "tab-3",
+        "focused": {
+          "tag": "BUTTON",
+          "cls": "group/history-message inline-flex max-w-full items-center gap-2 text-left text-ui-base text-foreground-subtle focus-visible:outline-none foc",
+          "aria": null,
+          "text": "已停止",
+          "rect": {
+            "x": 307,
+            "y": 456,
+            "w": 43,
+            "h": 21
+          },
+          "outlineColor": "oklab(0.269 0 0 / 0.6)",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineOffset": "0px",
+          "boxShadow": "none",
+          "ringVar": "#0d0d0d26",
+          "matchesFocusVisible": true,
+          "matchesFocus": true
+        }
+      },
+      {
+        "step": "tab-4",
+        "focused": {
+          "tag": "BUTTON",
+          "cls": "group/reasoning inline-flex max-w-full min-w-0 items-center gap-2 self-start text-ui-base transition-colors",
+          "aria": null,
+          "text": "思考·持续了几秒",
+          "rect": {
+            "x": 307,
+            "y": 506,
+            "w": 168,
+            "h": 21
+          },
+          "outlineColor": "oklch(0.269 0 0)",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineOffset": "0px",
+          "boxShadow": "none",
+          "ringVar": null,
+          "matchesFocusVisible": true,
+          "matchesFocus": true
+        }
+      },
+      {
+        "step": "after-click-blank",
+        "focused": null
+      }
+    ]
+  }
+}

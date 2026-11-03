@@ -1,0 +1,167 @@
+{
+  "capturedAt": "2026-11-02T19:13:37.896Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "steps": [
+    {
+      "step": "rail-baseline",
+      "rail": {
+        "navCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motio",
+        "visible": "hidden",
+        "opacity": "0",
+        "scroller": {
+          "scrollH": 8,
+          "clientH": 8,
+          "scrollTop": 0
+        },
+        "innerH": "0px",
+        "children": [],
+        "childCount": 0
+      }
+    },
+    {
+      "step": "hover-main-523-400",
+      "rail": {
+        "navCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motio",
+        "visible": "hidden",
+        "opacity": "0",
+        "scroller": {
+          "scrollH": 8,
+          "clientH": 8,
+          "scrollTop": 0
+        },
+        "innerH": "0px",
+        "children": [],
+        "childCount": 0
+      }
+    },
+    {
+      "step": "rail-clickables",
+      "railClickables": []
+    },
+    {
+      "step": "pointer-away",
+      "rail": {
+        "navCls": "pointer-events-none invisible absolute inset-y-0 left-0 z-10 w-12 -translate-x-2 opacity-0 transition-[opacity,transform,visibility] duration-150 ease-out motio",
+        "visible": "hidden",
+        "opacity": "0",
+        "scroller": {
+          "scrollH": 8,
+          "clientH": 8,
+          "scrollTop": 0
+        },
+        "innerH": "0px",
+        "children": [],
+        "childCount": 0
+      }
+    },
+    {
+      "step": "tooltip-hover-finder-btn",
+      "tooltip": [
+        {
+          "elapsedMs": 2454,
+          "note": "poll-end",
+          "tooltipsFinal": []
+        }
+      ]
+    },
+    {
+      "step": "tooltip-after-away",
+      "tooltips": []
+    },
+    {
+      "step": "tooltip-hover-gear",
+      "tooltip": [
+        {
+          "elapsedMs": 693,
+          "tooltips": [
+            {
+              "tag": "DIV",
+              "role": null,
+              "cls": "",
+              "rect": {
+                "x": 213,
+                "y": 722,
+                "w": 47,
+                "h": 28
+              },
+              "bg": "rgba(0, 0, 0, 0)",
+              "color": "rgb(0, 0, 0)",
+              "opacity": "1",
+              "zIndex": "50",
+              "text": "设置设置",
+              "parentCls": "pointer-events-none"
+            },
+            {
+              "tag": "DIV",
+              "role": null,
+              "cls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded-lg border border-border bg-tooltip text-ui-sm text-tooltip-",
+              "rect": {
+                "x": 213,
+                "y": 722,
+                "w": 47,
+                "h": 28
+              },
+              "bg": "rgb(240, 240, 240)",
+              "color": "rgb(13, 13, 13)",
+              "opacity": "1",
+              "zIndex": "50",
+              "text": "设置设置",
+              "parentCls": ""
+            },
+            {
+              "tag": "SPAN",
+              "role": null,
+              "cls": "text-ui-sm font-medium whitespace-pre-line break-words text-tooltip-foreground",
+              "rect": {
+                "x": 224,
+                "y": 727,
+                "w": 25,
+                "h": 18
+              },
+              "bg": "rgba(0, 0, 0, 0)",
+              "color": "rgb(13, 13, 13)",
+              "opacity": "1",
+              "zIndex": "auto",
+              "text": "设置",
+              "parentCls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded"
+            },
+            {
+              "tag": "SPAN",
+              "role": "tooltip",
+              "cls": "",
+              "rect": {
+                "x": 223,
+                "y": 736,
+                "w": 1,
+                "h": 1
+              },
+              "bg": "rgba(0, 0, 0, 0)",
+              "color": "rgb(13, 13, 13)",
+              "opacity": "1",
+              "zIndex": "auto",
+              "text": "设置",
+              "parentCls": "z-50 inline-flex w-fit origin-(--radix-tooltip-content-transform-origin) rounded"
+            },
+            {
+              "tag": "SPAN",
+              "role": null,
+              "cls": "text-ui-sm font-medium whitespace-pre-line break-words text-tooltip-foreground",
+              "rect": {
+                "x": 223,
+                "y": 738,
+                "w": 12,
+                "h": 32
+              },
+              "bg": "rgba(0, 0, 0, 0)",
+              "color": "rgb(13, 13, 13)",
+              "opacity": "1",
+              "zIndex": "auto",
+              "text": "设置",
+              "parentCls": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

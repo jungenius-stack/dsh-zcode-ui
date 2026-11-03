@@ -1,0 +1,66 @@
+{
+  "capturedAt": "2026-11-02T19:44:30.745Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "probe": {
+    "found": true,
+    "propsKeys": [
+      "data-slot",
+      "data-variant",
+      "data-size",
+      "className",
+      "type",
+      "data-testid",
+      "aria-label",
+      "disabled",
+      "onClick",
+      "children",
+      "ref",
+      "aria-describedby",
+      "data-state",
+      "onPointerMove",
+      "onPointerLeave",
+      "onPointerDown",
+      "onFocus",
+      "onBlur"
+    ],
+    "onClickOnButton": "(...e)=>{let t=a(...e);return i(...e),t}",
+    "disabled": false,
+    "ancestorsWithHandlers": [
+      {
+        "depth": 0,
+        "tag": 5,
+        "type": "button",
+        "handlers": "onClick,onPointerMove,onPointerLeave,onPointerDown,onFocus,onBlur",
+        "onClickSrc": "(...e)=>{let t=a(...e);return i(...e),t}"
+      },
+      {
+        "depth": 1,
+        "tag": 0,
+        "type": "S",
+        "handlers": "onClick,onPointerMove,onPointerLeave,onPointerDown,onFocus,onBlur",
+        "onClickSrc": "(...e)=>{let t=a(...e);return i(...e),t}"
+      },
+      {
+        "depth": 2,
+        "tag": 11,
+        "type": "[object Object]",
+        "handlers": "onPointerMove,onPointerLeave,onPointerDown,onFocus,onBlur,onClick",
+        "onClickSrc": "function(r){if(e?.(r),n===!1||!r.defaultPrevented)return t?.(r)}"
+      },
+      {
+        "depth": 3,
+        "tag": 11,
+        "type": "[object Object]",
+        "handlers": "onPointerMove,onPointerLeave,onPointerDown,onFocus,onBlur,onClick",
+        "onClickSrc": "function(r){if(e?.(r),n===!1||!r.defaultPrevented)return t?.(r)}"
+      },
+      {
+        "depth": 4,
+        "tag": 11,
+        "type": "[object Object]",
+        "handlers": "onPointerMove,onPointerLeave,onPointerDown,onFocus,onBlur,onClick",
+        "onClickSrc": "function(r){if(e?.(r),n===!1||!r.defaultPrevented)return t?.(r)}"
+      }
+    ]
+  }
+}

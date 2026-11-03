@@ -1,0 +1,251 @@
+{
+  "z.hint": {
+    "菜单": 0,
+    "treeitem": 0,
+    "aside": true,
+    "links": [
+      "",
+      "自动化",
+      "插件市场"
+    ]
+  },
+  "z.targets": [
+    {
+      "tag": "LI",
+      "cls": "group/task-item flex cursor-pointer gap-2 ro",
+      "text": "每25分钟设计语言扩张自动跑（通宵到",
+      "x": 8,
+      "y": 286,
+      "w": 242,
+      "h": 32
+    },
+    {
+      "tag": "LI",
+      "cls": "group/task-item flex cursor-pointer gap-2 ro",
+      "text": "插件UI优化方向探讨22小时",
+      "x": 8,
+      "y": 320,
+      "w": 242,
+      "h": 32
+    },
+    {
+      "tag": "LI",
+      "cls": "group/task-item flex cursor-pointer gap-2 ro",
+      "text": "[$pitfall-expert](",
+      "x": 8,
+      "y": 354,
+      "w": 242,
+      "h": 32
+    },
+    {
+      "tag": "LI",
+      "cls": "group/task-item flex cursor-pointer gap-2 ro",
+      "text": "如何系统搜集各领域经典坑并设计分层坑",
+      "x": 8,
+      "y": 424,
+      "w": 242,
+      "h": 32
+    },
+    {
+      "tag": "LI",
+      "cls": "group/task-item flex cursor-pointer gap-2 ro",
+      "text": "[$elon-musk-perspe",
+      "x": 8,
+      "y": 458,
+      "w": 242,
+      "h": 32
+    },
+    {
+      "tag": "LI",
+      "cls": "group/task-item flex cursor-pointer gap-2 ro",
+      "text": "每小时自动同步踩坑专家到所有 age",
+      "x": 8,
+      "y": 492,
+      "w": 242,
+      "h": 32
+    }
+  ],
+  "z.menu": {
+    "clickPoint": {
+      "cx": 48,
+      "cy": 302
+    },
+    "menuBox": {
+      "x": 50,
+      "y": 292,
+      "w": 208,
+      "h": 509
+    },
+    "anchorOffset": {
+      "dx": 2,
+      "dy": -10
+    },
+    "menuStyle": {
+      "pad": "4px",
+      "radius": "8px",
+      "bg": "rgb(43, 43, 43)",
+      "border": "1px rgba(255, 255, 255, 0.1)",
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0",
+      "gap": "2px",
+      "anim": "enter 0.1s",
+      "trans": "0.1s"
+    },
+    "itemCount": 14,
+    "rows": [
+      {
+        "text": "移到分组",
+        "h": 29,
+        "pad": "4px 8px",
+        "lh": "21px",
+        "fs": "14px",
+        "gap": "8px",
+        "icon": true
+      },
+      {
+        "text": "移出分组",
+        "h": 31,
+        "pad": "4px 8px",
+        "lh": "22.75px",
+        "fs": "14px",
+        "gap": "8px",
+        "icon": false
+      },
+      {
+        "text": "置顶任务",
+        "h": 31,
+        "pad": "4px 8px",
+        "lh": "22.75px",
+        "fs": "14px",
+        "gap": "8px",
+        "icon": false
+      },
+      {
+        "text": "重命名任务",
+        "h": 31,
+        "pad": "4px 8px",
+        "lh": "22.75px",
+        "fs": "14px",
+        "gap": "8px",
+        "icon": false
+      },
+      {
+        "text": "归档任务",
+        "h": 31,
+        "pad": "4px 8px",
+        "lh": "22.75px",
+        "fs": "14px",
+        "gap": "8px",
+        "icon": false
+      },
+      {
+        "text": "标记为未读",
+        "h": 31,
+        "pad": "4px 8px",
+        "lh": "22.75px",
+        "fs": "14px",
+        "gap": "8px",
+        "icon": false
+      }
+    ],
+    "separators": [
+      {
+        "h": 1,
+        "margin": "4px -4px",
+        "bg": "rgba(255, 255, 255, 0.1)"
+      },
+      {
+        "h": 1,
+        "margin": "4px -4px",
+        "bg": "rgba(255, 255, 255, 0.1)"
+      },
+      {
+        "h": 1,
+        "margin": "4px -4px",
+        "bg": "rgba(255, 255, 255, 0.1)"
+      },
+      {
+        "h": 1,
+        "margin": "4px -4px",
+        "bg": "rgba(255, 255, 255, 0.1)"
+      }
+    ],
+    "hasSubmenu": true
+  },
+  "z.submenu": {
+    "error": "子菜单未展开",
+    "triggerText": "移到分组",
+    "menus": 1
+  },
+  "z.search": {
+    "box": {
+      "w": 512,
+      "h": 527,
+      "x": 345,
+      "y": 80
+    },
+    "style": {
+      "pad": "0px",
+      "gap": "16px",
+      "radius": "16px",
+      "bg": "rgb(43, 43, 43)",
+      "border": "1px rgba(255, 255, 255, 0.1)",
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0)"
+    },
+    "children": [
+      {
+        "tag": "DIV",
+        "cls": "flex size-full flex-col overfl",
+        "pad": "2px",
+        "margin": "0px",
+        "gap": "normal",
+        "h": 525
+      }
+    ],
+    "input": {
+      "h": 20,
+      "pad": "0px",
+      "bg": "rgba(0, 0, 0, 0)",
+      "radius": "0px",
+      "border": "0px oklch(0.87 0 0)"
+    }
+  },
+  "d.switch": {
+    "error": "找不到设置入口"
+  },
+  "d.leaveSettings": {
+    "settingsOpen": false
+  },
+  "d.search": {
+    "box": {
+      "w": 512,
+      "h": 632
+    },
+    "pad": "12px",
+    "gap": "normal",
+    "radius": "16px",
+    "bg": "rgb(255, 255, 255)",
+    "input": {
+      "h": 32,
+      "pad": "0px 10px",
+      "bg": "rgb(255, 255, 255)",
+      "radius": "9999px"
+    },
+    "rows": [
+      {
+        "h": 35,
+        "pad": "6px 10px",
+        "fs": "14px"
+      },
+      {
+        "h": 35,
+        "pad": "6px 10px",
+        "fs": "14px"
+      },
+      {
+        "h": 35,
+        "pad": "6px 10px",
+        "fs": "14px"
+      }
+    ]
+  }
+}

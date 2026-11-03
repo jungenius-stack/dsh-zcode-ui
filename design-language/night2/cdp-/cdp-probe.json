@@ -1,0 +1,400 @@
+{
+  "url": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "title": "ZCode",
+  "htmlClass": "platform-mac-desktop dark theme-zai-dark",
+  "bodyClass": "zcode-startup-ready theme-zai-light",
+  "counts": {
+    "aside": 3,
+    "nav": 1,
+    "pre": 0,
+    "textarea": 0,
+    "tooltipRole": 0,
+    "tooltipCls": 0,
+    "menuRole": 0,
+    "menuitem": 0,
+    "dataSlot": 174,
+    "scrollers": 3,
+    "settingsCandidates": 1,
+    "radixTooltipRoots": 0
+  },
+  "aside": {
+    "tag": "ASIDE",
+    "cls": "h-full overflow-hidden select-none",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "w": 264,
+      "h": 800
+    },
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "oklch(0.269 0 0)",
+    "overflow": "hidden",
+    "display": "block",
+    "visible": true
+  },
+  "firstAsideChildren": [
+    "ASIDE.flex h-full min-h-0 flex-col overflow-hidden"
+  ],
+  "railCandidates": [
+    {
+      "tag": "H2",
+      "cls": "text-ui-base font-medium text-foreground",
+      "rect": {
+        "x": -1,
+        "y": -1,
+        "w": 1,
+        "h": 21
+      },
+      "overflowY": "visible",
+      "scrollH": 21,
+      "clientH": 21
+    },
+    {
+      "tag": "P",
+      "cls": "text-ui-base/relaxed text-foreground-subtle *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:tex",
+      "rect": {
+        "x": -1,
+        "y": 24,
+        "w": 1,
+        "h": 23
+      },
+      "overflowY": "visible",
+      "scrollH": 23,
+      "clientH": 23
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex h-dvh flex-col overflow-hidden border-border text-foreground bg-background-alt",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1202,
+        "h": 800
+      },
+      "overflowY": "hidden",
+      "scrollH": 800,
+      "clientH": 800
+    },
+    {
+      "tag": "DIV",
+      "cls": "group w-full h-8 rounded-lg inline-flex shrink-0 items-center justify-stretch gap-2 overflow-hidden ",
+      "rect": {
+        "x": 8,
+        "y": 60,
+        "w": 248,
+        "h": 32
+      },
+      "overflowY": "hidden",
+      "scrollH": 32,
+      "clientH": 32
+    },
+    {
+      "tag": "SPAN",
+      "cls": "ml-auto shrink-0 text-ui-xs font-normal text-foreground-subtlest",
+      "rect": {
+        "x": 226,
+        "y": 69,
+        "w": 20,
+        "h": 15
+      },
+      "overflowY": "visible",
+      "scrollH": 15,
+      "clientH": 15
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+      "rect": {
+        "x": 8,
+        "y": 96,
+        "w": 248,
+        "h": 32
+      },
+      "overflowY": "visible",
+      "scrollH": 30,
+      "clientH": 30
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-",
+      "rect": {
+        "x": 8,
+        "y": 132,
+        "w": 248,
+        "h": 32
+      },
+      "overflowY": "visible",
+      "scrollH": 30,
+      "clientH": 30
+    },
+    {
+      "tag": "SPAN",
+      "cls": "min-w-0 flex-1 truncate px-2.5 text-ui-base font-medium text-foreground-subtle",
+      "rect": {
+        "x": 8,
+        "y": 191,
+        "w": 192,
+        "h": 21
+      },
+      "overflowY": "hidden",
+      "scrollH": 21,
+      "clientH": 21
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-pa",
+      "rect": {
+        "x": 204,
+        "y": 189,
+        "w": 24,
+        "h": 24
+      },
+      "overflowY": "visible",
+      "scrollH": 22,
+      "clientH": 22
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-pa",
+      "rect": {
+        "x": 232,
+        "y": 189,
+        "w": 24,
+        "h": 24
+      },
+      "overflowY": "visible",
+      "scrollH": 22,
+      "clientH": 22
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "flex h-7 min-w-0 flex-1 touch-none items-center gap-1 px-2.5 text-left text-ui-base font-medium text",
+      "rect": {
+        "x": 8,
+        "y": 221,
+        "w": 190,
+        "h": 28
+      },
+      "overflowY": "visible",
+      "scrollH": 28,
+      "clientH": 28
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-pa",
+      "rect": {
+        "x": 198,
+        "y": 223,
+        "w": 24,
+        "h": 24
+      },
+      "overflowY": "visible",
+      "scrollH": 22,
+      "clientH": 22
+    }
+  ],
+  "scrollers": [
+    {
+      "tag": "DIV",
+      "cls": "min-h-0 flex-1 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_0,black_calc(100%_-_24px)",
+      "rect": {
+        "x": 0,
+        "y": 221,
+        "w": 264,
+        "h": 523
+      },
+      "scrollH": 727,
+      "clientH": 523
+    },
+    {
+      "tag": "DIV",
+      "cls": "min-h-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable_both-edges] [--markdown-ta",
+      "rect": {
+        "x": 269,
+        "y": 53,
+        "w": 509,
+        "h": 743
+      },
+      "scrollH": 213647,
+      "clientH": 743
+    },
+    {
+      "tag": "DIV",
+      "cls": "wf-motion relative flex min-h-0 flex-1 flex-col overflow-auto pb-3 pt-2.5",
+      "rect": {
+        "x": 781,
+        "y": 195,
+        "w": 416,
+        "h": 414
+      },
+      "scrollH": 628,
+      "clientH": 414
+    }
+  ],
+  "pre": null,
+  "preCount": 0,
+  "settingsEls": [
+    {
+      "tag": "svg",
+      "cls": "[object SVGAnimatedString]",
+      "rect": {
+        "x": 228,
+        "y": 760,
+        "w": 16,
+        "h": 16
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklch(0.269 0 0)",
+      "overflow": "hidden",
+      "display": "block",
+      "visible": true
+    }
+  ],
+  "tooltipEls": [],
+  "main": {
+    "tag": "MAIN",
+    "cls": "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden",
+    "rect": {
+      "x": 269,
+      "y": 53,
+      "w": 509,
+      "h": 743
+    },
+    "bg": "rgba(0, 0, 0, 0)",
+    "color": "oklch(0.269 0 0)",
+    "overflow": "hidden",
+    "display": "flex",
+    "visible": true
+  },
+  "bodyBg": "rgba(0, 0, 0, 0)",
+  "htmlBg": "rgba(0, 0, 0, 0)",
+  "hoverRows": [
+    {
+      "tag": "DIV",
+      "cls": "group w-full h-8 rounded-lg inline-flex shrink-0 items-center justify-stretch gap-2 overflow-hidden pl-2.5 pr-2.5 hover:",
+      "rect": {
+        "x": 8,
+        "y": 60,
+        "w": 248,
+        "h": 32
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklch(0.269 0 0)",
+      "overflow": "hidden",
+      "display": "flex",
+      "visible": true
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-nowrap transition-co",
+      "rect": {
+        "x": 8,
+        "y": 96,
+        "w": 248,
+        "h": 32
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklch(0.269 0 0)",
+      "overflow": "visible",
+      "display": "flex",
+      "visible": true
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex shrink-0 items-center border border-transparent bg-clip-padding whitespace-nowrap transition-co",
+      "rect": {
+        "x": 8,
+        "y": 132,
+        "w": 248,
+        "h": 32
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklch(0.269 0 0)",
+      "overflow": "visible",
+      "display": "flex",
+      "visible": true
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-padding text-ui-base/r",
+      "rect": {
+        "x": 204,
+        "y": 189,
+        "w": 24,
+        "h": 24
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklab(0.269 0 0 / 0.6)",
+      "overflow": "visible",
+      "display": "flex",
+      "visible": true
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "group/button inline-flex items-center justify-center rounded-md border border-transparent bg-clip-padding text-ui-base/r",
+      "rect": {
+        "x": 232,
+        "y": 189,
+        "w": 24,
+        "h": 24
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklab(0.269 0 0 / 0.6)",
+      "overflow": "visible",
+      "display": "flex",
+      "visible": true
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "flex h-7 min-w-0 flex-1 touch-none items-center gap-1 px-2.5 text-left text-ui-base font-medium text-foreground-subtlest",
+      "rect": {
+        "x": 8,
+        "y": 221,
+        "w": 190,
+        "h": 28
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklab(0.269 0 0 / 0.4)",
+      "overflow": "visible",
+      "display": "flex",
+      "visible": true
+    },
+    {
+      "tag": "svg",
+      "cls": "[object SVGAnimatedString]",
+      "rect": {
+        "x": 51,
+        "y": 228,
+        "w": 14,
+        "h": 14
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklab(0.269 0 0 / 0.4)",
+      "overflow": "hidden",
+      "display": "block",
+      "visible": true
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex shrink-0 items-center opacity-0 transition-opacity group-hover/purpose-section:opacity-100 group-focus-within/purpo",
+      "rect": {
+        "x": 198,
+        "y": 223,
+        "w": 48,
+        "h": 24
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "oklch(0.269 0 0)",
+      "overflow": "visible",
+      "display": "flex",
+      "visible": true
+    }
+  ],
+  "svgSample": {
+    "stroke": "oklch(0.269 0 0)",
+    "children": "<path d=\"M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719\"></path><path d=\""
+  },
+  "capturedAt": "2026-11-02T19:05:18.040Z",
+  "pageUrl": "file:///Applications/ZCode.app/Contents/Resources/app.asar/out/renderer/index.html?restoreSession=true&supportsSettings=true&zcodeLaunchMarks=%7B%22createdAt%22%3A1793637808609.15%2C%22mainStart%22%3A1793637809015%2C%22appReady%22%3A1793637809122%2C%22loadUrl%22%3A1793637809631%7D",
+  "wsUrl": "ws://127.0.0.1:9224/devtools/browser/635c1f59-04bf-4b57-9f92-d2ad461ac541"
+}
