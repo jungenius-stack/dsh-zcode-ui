@@ -38,17 +38,17 @@ assert.match(
 )
 assert.match(
   sidebar,
-  /\[data-dcu-sidebar-motion\]:not\(\[data-dragging\]\) \[data-dcu-center-column\]\{transition:transform var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/,
+  /\[data-dcu-center-column\]\[data-dcu-motion\]\{transition:transform var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/,
   '内容列同步位移必须挂 move 档；换档会让索引栏与内容列错帧（曾出现 77px 漂移）',
 )
 assert.match(
   sidebar,
-  /\[data-dcu-sidebar-motion\]:not\(\[data-dragging\]\) \[data-side="sidebar"\]\{transition:left var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/,
+  /\[data-side="sidebar"\]\[data-dcu-motion\]\{transition:left var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/,
   '侧栏面 left 同步必须挂 move 档',
 )
 assert.match(
   sidebar,
-  /\[data-dcu-sidebar-motion\]:not\(\[data-dragging\]\) \.dcu-root\{transition:clip-path var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/,
+  /\.dcu-root\[data-dcu-motion\]\{transition:clip-path var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\)/,
   '侧栏裁剪同步必须挂 move 档（clip-path 是三路同步的第三路）',
 )
 

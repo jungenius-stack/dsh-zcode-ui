@@ -163,7 +163,7 @@ assert.doesNotMatch(sidebar, /(?<!\]:not\(\[data-dragging\]\) )\.dcu-root\{[^}]*
 // 「弹窗与开合动画同时存在」在交互上不可达；宿主浮层（overlayLayer z-index 20）
 // 同理会挡住侧栏的收起按钮。禁止的是**无条件**隔离——那会把弹窗长期困在侧栏的
 // 层叠上下文里。动画窗口仅 180ms（--dcu-motion-move-duration）。
-assert.match(sidebar, /\[data-dcu-sidebar-motion\]:not\(\[data-dragging\]\) \.dcu-root\{z-index:1\}/, '动画期间侧栏必须抬到位移中的内容列之上，且只允许动画期间抬升')
+assert.match(sidebar, /\.dcu-root\[data-dcu-motion\]\{z-index:1\}/, '动画期间侧栏必须抬到位移中的内容列之上，且只允许动画期间抬升')
 assert.match(sidebar, /body\[data-ds-dark-theme\]\[data-we-sidebar-glass\] \.dcu-root::before\{[^}]*--we-sidebar-color[^}]*--we-sidebar-alpha/, '暗色侧栏必须单独降低 Wallpaper Engine 玻璃底色强度')
 // 2026-10-12 设计变更登记：原 `@supports not (backdrop-filter)` 的"恢复实底"降级已不存在。
 // 现方案是玻璃层本身半透明，另由 `body[data-we-appwindow]` 关闭模糊（见下一行断言）；

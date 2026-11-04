@@ -1145,12 +1145,12 @@ console.log(`✓ 动效曲线：四档对齐 ZCode 真值，move 在 10% 时间�
 // 有时 Layout +0 / Task 8ms。动画中途不再触发布局，是「丝滑」的可量化来源。
 // 约束：**只在动画期间**生效（motion 标记存在时），否则会常驻显存并新增层叠上下文。
 assert.match(sidebar,
-  /\[data-dcu-sidebar-motion\][^{]*\[data-dcu-center-column\]\{transition:transform var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\);will-change:transform\}/,
+  /\[data-dcu-center-column\]\[data-dcu-motion\]\{transition:transform var\(--dcu-motion-move-duration\) var\(--dcu-motion-move-ease\);will-change:transform\}/,
   '内容列在动画期间必须加 will-change:transform（实测消除动画中途的 Layout）')
 // 反向守护：不得把 will-change 挂在没有 motion 标记的静态规则上（会常驻）。
 assert.doesNotMatch(sidebar,
-  /\[data-dcu-center-column\]\{[^}]*will-change:transform[^}]*\}(?![\s\S]*data-dcu-sidebar-motion)/,
-  'will-change 不得常驻在静态规则上——必须由 [data-dcu-sidebar-motion] 限定在动画期间')
+  /\[data-dcu-center-column\]\{[^}]*will-change:transform[^}]*\}(?![\s\S]*data-dcu-motion)/,
+  'will-change 不得常驻在静态规则上——必须由 [data-dcu-motion] 限定在动画期间')
 console.log('✓ 动画合成层提示：will-change 限定在 motion 标记期间')
 
 // ── 2026-10-17 浮层文字色必须与浮层底「成对」（用户报「灰底白字看不清」）──────

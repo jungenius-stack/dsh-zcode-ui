@@ -544,11 +544,41 @@ function cancelMotionStyles(frame: HTMLElement): void {
 }
 
 /** 取消飞行中的动画（不落定——调用方自己决定落到哪）。 */
+/**
+ * 动画标记挂在**目标元素自身**上（2026-11-04 性能）。
+ *
+ * 此前挂在 frame（`_6Qf49G_frame`，宿主实测 5930 个子节点）上，CSS 用
+ * `[data-dcu-sidebar-motion] ...` 祖先前缀选择器 → 属性一挂/摘，整棵子树都要重新
+ * 匹配这些规则（实测一次开合 151 次样式重算 / Task 0.39s）。改为给 6 个目标元素各打
+ * 一个 `data-dcu-motion`，选择器变成元素自身匹配，匹配范围从「5930 节点子树」缩到
+ * 「6 个元素」。`data-dcu-sidebar-motion` 仍挂在 frame 上——其他模块（轮次导航、
+ * 锚点审计、气泡折叠）用它判断「是否正在开合」，那个查询只看单个属性，成本可忽略。
+ */
+const MOTION_FLAG = 'data-dcu-motion'
+const MOTION_FLAG_TARGETS = [
+  '[data-dcu-center-column]',
+  '[data-side="sidebar"]',
+  '.dcu-root',
+  '[data-dcu-sidebar-column]',
+  '[data-dcu-official-turn-navigator]',
+]
+
+function setMotionFlags(frame: HTMLElement, on: boolean): void {
+  const doc = frame.ownerDocument
+  for (const selector of MOTION_FLAG_TARGETS) {
+    const element = frame.querySelector<HTMLElement>(selector) ?? doc.querySelector<HTMLElement>(selector)
+    if (element === null) continue
+    if (on) element.setAttribute(MOTION_FLAG, '')
+    else element.removeAttribute(MOTION_FLAG)
+  }
+}
+
 function cancelSidebarMotion(frame: HTMLElement): void {
   const motion = motions.get(frame)
   if (motion === undefined) return
   frame.ownerDocument.defaultView?.clearTimeout(motion.timer)
   motions.delete(frame)
+  setMotionFlags(frame, false)
 }
 
 /**
@@ -573,6 +603,7 @@ function settleMotion(frame: HTMLElement, collapsed: boolean): void {
   }
   try {
     frame.removeAttribute(SIDEBAR_MOTION_ATTRIBUTE)
+    setMotionFlags(frame, false)
     clearCenterShift(frame)
     if (tracks !== undefined) frame.style.gridTemplateColumns = `${width}px ${tracks.middle} ${tracks.details}`
     if (handle !== null) handle.style.left = `${width}px`
@@ -714,6 +745,7 @@ function beginSidebarMotion(frame: HTMLElement, collapsed: boolean): boolean {
       rail.compensation = edgeTravel - (naturalStart - baseLefts[index])
     })
     frame.setAttribute(SIDEBAR_MOTION_ATTRIBUTE, kind)
+    setMotionFlags(frame, true)
     applyRailShifts(rails)
     // 侧栏面与内容列、索引栏同时开跑，三者共用 move-duration + move-ease。
     runSidebarSlide(frame, collapsed, expandedWidth)

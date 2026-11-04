@@ -298,24 +298,24 @@ html[data-dsh-zcode-skin]:has(.dcu-root) [class*="_leadingSeat"]:has(button[aria
  * 完整一次开合样式重算 172.6ms → 90.4ms，重算次数 17000 → 8000。
  * 另一处收益：@keyframes 里含 var() 会让动画无法交给合成器，去掉后重算次数直接减半。
  * 两种方案的完整对照见 docs/KNOWN-ISSUES.md §27。 */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-center-column]{transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease);will-change:transform}
+[data-dcu-center-column][data-dcu-motion]{transition:transform var(--dcu-motion-move-duration) var(--dcu-motion-move-ease);will-change:transform}
 /* 拖拽柄同曲线位移（它绝对定位于列边界，动画期间布局 left 从收起视觉位滑到展开位）。
    宿主只给展开态挂手柄，收起时它随宿主卸载，无需收起向位移。
    （2026-10-17 实测确认「可忽略」这个说法成立，不是未经验证的假设：
      left 动画期间 LayoutDuration +0.19ms / transform +0.04ms，绝对差 0.15ms，
      不值得为此引入 will-change 与层叠上下文。故保持 left 不变。） */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"]{transition:left var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+[data-side="sidebar"][data-dcu-motion]{transition:left var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 /* 位移中的内容列会盖住侧栏列（transform 生成层叠上下文）；动画期间把外壳抬到它之上。 */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root{z-index:1}
+.dcu-root[data-dcu-motion]{z-index:1}
 /* 侧栏面自身的滑动（2026-10-19）。JS 在飞行期间把 .dcu-root 宽度钉在展开宽度，右缘用
    clip-path 从旧宽度裁到目标宽度（见 sidebar-width.ts 的 primeSidebarSlide）。
    裁剪不触发布局，所以每帧零重排；时长与曲线必须与内容列、索引栏完全一致，
    否则三者会互相追赶。内联 transition:none 用于写起点，挂上 motion 标记后移除，
    这里这条规则才接手——顺序见 beginAnimation。 */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root{transition:clip-path var(--dcu-motion-move-duration) var(--dcu-motion-move-ease);will-change:clip-path}/* 2026-11-04 性能：此前只写了 transition，没有 will-change——注释说的是「零重排」，但 clip-path 每帧仍需重新光栅化被裁区域，侧栏列表长时重绘成本高，表现为开合「一格格走」。will-change:clip-path 把该元素提到独立合成层，裁剪交给合成器；只在 motion 期间生效，静止态不加，避免常驻层叠上下文与显存占用。content-visibility:visible 覆盖宿主可能设的 auto，防止动画期间子树上屏时重新计算。 */
+.dcu-root[data-dcu-motion]{transition:clip-path var(--dcu-motion-move-duration) var(--dcu-motion-move-ease);will-change:clip-path}/* 2026-11-04 性能：此前只写了 transition，没有 will-change——注释说的是「零重排」，但 clip-path 每帧仍需重新光栅化被裁区域，侧栏列表长时重绘成本高，表现为开合「一格格走」。will-change:clip-path 把该元素提到独立合成层，裁剪交给合成器；只在 motion 期间生效，静止态不加，避免常驻层叠上下文与显存占用。content-visibility:visible 覆盖宿主可能设的 auto，防止动画期间子树上屏时重新计算。 */
 /* 两个方向都要 overflow:visible：收起时外壳仍按展开宽度渲染（裁到 56），
    展开时外壳按展开宽度淡入——列本身只有 56px，不让溢出就等于一帧切完、没有滑动。 */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-sidebar-column]{overflow:visible}
+[data-dcu-sidebar-column][data-dcu-motion]{overflow:visible}
 [data-dcu-codex-sidebar-initialized][data-dragging] [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dragging] [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dragging] [data-side="sidebar"]{transition:none;width:auto;transform:none}
 @media (prefers-reduced-motion:reduce){[data-dcu-codex-sidebar-initialized],#root [data-dcu-codex-sidebar-initialized]:not([data-dragging]),[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-center-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-sidebar-column],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-side="sidebar"],[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) .dcu-root,[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-official-turn-navigator]{transition:none}.dcu-root.dcu-collapsing .dcu-compact-shell{animation:none}}
 .dcu-native-workspaces{flex-direction:column}.dcu-native-workspaces>[data-mcp-connector-top-mount=true]{flex:none}.dcu-root .mcpConnectorLauncher,.dcu-root [data-mcp-connector-top-mount=true]{display:none!important}
@@ -517,7 +517,7 @@ html:has([data-dcu-official-turn-empty]) .dcu-turn-navigator.dcu-turn-navigator{
    （真宿主实测：收起时间距最大 107px，展开时最差 -25px，见 sidebar-width.ts 的判据注释）。
    用 translate 而不是 transform：宿主可能自己给 nav 挂 transform，独立属性可叠加不覆盖。
    时长与曲线必须与内容列、自绘索引栏完全一致，否则三者互相追赶。 */
-[data-dcu-codex-sidebar-initialized][data-dcu-sidebar-motion]:not([data-dragging]) [data-dcu-official-turn-navigator]{translate:var(--dcu-official-rail-shift,0px);transition:translate var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
+[data-dcu-official-turn-navigator][data-dcu-motion]{translate:var(--dcu-official-rail-shift,0px);transition:translate var(--dcu-motion-move-duration) var(--dcu-motion-move-ease)}
 /* 左移后的预览朝聊天内容区展开。 */
 /* ===== 浮层改为 ZCode 口径：320px 宽 / 左偏 56px / **顶对齐** =====
    2026-10-26 CDP 实测 ZCode（三条刻度，规律完全一致）：
