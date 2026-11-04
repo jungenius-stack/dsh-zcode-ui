@@ -161,15 +161,32 @@ export function TurnNavigator({ useChat, useSession, t }: TurnNavigatorProps) {
 
   useEffect(() => {
     const sidebar = document.querySelector<HTMLElement>('.dcu-root')
+    // 2026-11-04（用户报「开合一路掉帧，像幻灯片」）：ResizeObserver 直接监听 .dcu-root，
+    // 而侧栏开合就是 .dcu-root 宽度每帧变化 → 本回调每帧触发 → setRailLeft → React 重渲染，
+    // 与动画过渡抢同一帧预算（120Hz 下仅 8.33ms）。开合期间跳过，落定后由下面的
+    // MutationObserver 补跑一次；静止态行为不变。
+    const moving = (): boolean => document.querySelector('[data-dcu-sidebar-motion]') !== null
     const update = (): void => {
+      if (moving()) return
       const next = railLeftFromSidebar()
       setRailLeft(previous => previous === next ? previous : next)
     }
     const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(update)
     if (sidebar !== null) observer?.observe(sidebar)
     window.addEventListener('resize', update)
+    // 动画标记移除 = 落定，补跑一次拿到最终宽度对应的位置。
+    const settle = new MutationObserver(() => { if (!moving()) update() })
+    settle.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-dcu-sidebar-motion'],
+      subtree: true,
+    })
     update()
-    return () => { observer?.disconnect(); window.removeEventListener('resize', update) }
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', update)
+      settle.disconnect()
+    }
   }, [])
 
   useEffect(() => {

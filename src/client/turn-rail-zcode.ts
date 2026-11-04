@@ -401,6 +401,17 @@ export function observeZcodeTurnRail(): void {
        但 scan 里有「applied=false 后重量」的逻辑，足够让高亮跟上。
        2026-10-26 验收实测：只订阅 childList 时，滚到中段/底部后高亮钉在旧条
        （aria-current=32 而强调仍是 18），滚动到顶恰好碰上一次 childList 才碰巧对。 */
+    // 2026-11-04（用户报「开合一路掉帧」）：本观察器订阅 documentElement 的全部属性变更，
+    // 而侧栏开合会改 grid-template-columns 等 style → 每帧触发 → 对每条 rail 跑
+    // applyHover + keepActiveVisible（两者都读布局）。开合期间跳过，落定后补跑一次。
+    const motion = document.documentElement.hasAttribute('data-dcu-sidebar-motion')
+    if (motion) {
+      if (records.some((record) => record.type === 'attributes' && record.attributeName === 'data-dcu-sidebar-motion')) {
+        // 标记刚被移除 → 本次是落定，走正常 scan
+      } else {
+        return
+      }
+    }
     const hasAttributeChange = records.some((record) => record.type === 'attributes')
     if (hasAttributeChange) {
       document.querySelectorAll<HTMLElement>(NAV_SELECTOR).forEach((rail) => {
