@@ -394,6 +394,22 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
      --dsw-radius-lg = 8px，正好命中 ZCode 的按钮圆角。 */
   border-radius:var(--dsw-radius-lg);
 }
+/* night13 R3（2026-11-05）：权限 chip 的黄/蓝语义色。
+   ZCode 的访问模式有三档语义色（完全权限=黄、工作区内修改=蓝、只读=灰）；
+   DSH 侧无 data-* 状态属性，只有 aria-label 可锚（CDP 实测：'工作区内修改' 唯一命中 1，
+   另两个模式命中 0）。故用 aria-label 子串选择器。
+   图标与文字要一起染：chip 内部是 span + svg，只染按钮不影响子元素。 */
+/* 黄色档用 --dcu-state-warn-text（亮 #8a4b00 ≥4.5:1 / 暗 #ff8a30），不是填充档
+   --dsw-alias-state-warn-secondary(#e07b00) ——后者作文字色在亮色下不达 AA，
+   design-system 断言会拦（这条断言本身是对的，拦住了我的第一版）。 */
+[data-composer-card] button[class*="wXeviG_trigger"][aria-label*="完全权限"],
+[data-composer-card] button[class*="wXeviG_trigger"][aria-label*="完全权限"] *{
+  color:var(--dcu-state-warn-text);
+}
+[data-composer-card] button[class*="wXeviG_trigger"][aria-label*="工作区内修改"],
+[data-composer-card] button[class*="wXeviG_trigger"][aria-label*="工作区内修改"] *{
+  color:var(--dsw-alias-icon-blue);
+}
 /* 「优化」按钮（.dsh-po-btn，来自 @y1x1n/dsh-prompt-optimizer）的胶囊圆角是**JS 内联样式**，
    实测 style 属性里直接写着胶囊圆角值 —— 内联优先级高于任何选择器，
    普通 CSS 改不动它，所以这里必须用 !important 才能统一到 8px。

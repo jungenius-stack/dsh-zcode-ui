@@ -264,6 +264,10 @@ export const ZCODE_LIGHT: TokenMap = {
   // ── 组件补漏（消费点引用、原先未映射导致换肤静默失效）─────────────
   // ZCode: --color-icon-blue（focus 环）/ --color-input / --color-menu-hover
   '--dsw-focus-ring-color': '#0b7fff',
+  // ZCode --color-icon-blue：LIVE_CSS 亮色 = #0b7fff（与 focus-ring 同值）。
+  // 2026-11-05 night13 补映射：权限 chip 的「工作区内修改」档用这个蓝，此前只有注释没值，
+  // 导致只能写字面色（R3 需要）。
+  '--dsw-alias-icon-blue': '#0b7fff',
   '--dsw-specific-input-major': '#ffffff',
   '--dsw-specific-menu-item-hover': '#f0f0f0',
   // ZCode: --color-surface = color-mix(in oklab, --color-neutral-950 3%, transparent)
@@ -494,6 +498,8 @@ export const ZCODE_DARK: TokenMap = {
   // ── 组件补漏（消费点引用、原先未映射导致换肤静默失效）─────────────
   // ZCode: --color-icon-blue（focus 环）/ --color-input / --color-menu-hover
   '--dsw-focus-ring-color': '#4099ff',
+  // ZCode --color-icon-blue：LIVE_CSS 暗色 = #4099ff（与 focus-ring 同值）。
+  '--dsw-alias-icon-blue': '#4099ff',
   '--dsw-specific-input-major': '#2b2b2b',
   '--dsw-specific-menu-item-hover': '#363636',
   // ZCode: --color-surface = color-mix(in oklab, --color-white 5%, transparent)（深色）

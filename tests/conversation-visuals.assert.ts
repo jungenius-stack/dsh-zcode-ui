@@ -408,10 +408,18 @@ console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX �
   assert.match(rules('[class*="_ioCard"]') ?? '', /border-radius:var\(--dsw-radius-xl\)/, 'TC4 展开体圆角必须 xl(12)——ZCode ToolCallBody.tsx:109 rounded-xl（源码+编译产物双源）')
   assert.match(rules('[class*="_ioCard"]') ?? '', /border-width:1px/, 'TC4 展开体边必须 1px（ZCode border-border；DSH 宿主 0.5px 偏细）')
   assert.match(rules('[class*="_ioSection"]') ?? '', /padding:12px/, 'TC4 输出区内距必须 12/12（ZCode px-3 py-3）')
-  const g4 = rules('[class*="TXqvFW_body"]') ?? ''
-  assert.match(g4, /margin-left:8px/, 'G4 竖线块必须 ml 8px（reasoning.tsx ml-2 活体实测）')
+  // 2026-11-05 night13 更正（CODE-040）：这条此前锁的是派生物，挂错了节点。
+  // CDP 活体（DSH 9223）实测：TXqvFW = ChatGroupSeat（工具分组，30/30 个 body 全被加边），
+  // HiSsxa = ReasoningRow（真正的推理体，命中 0）。旧断言把"挂在工具组上"写成了契约。
+  // 现锁真实推理体，且不加 margin（DSH 推理体自带 padding-left:calc(22px + delta)），
+  // padding-left 取 21px：21 + 1px 边 = 原有 22px，文字左缘不动。
+  const g4 = rules('[class*="HiSsxa_thinkBody"]') ?? ''
+  assert.ok(g4 !== '', 'G4 规则必须挂在 HiSsxa_thinkBody（DSH ReasoningRow 推理体，非 TXqvFW 工具分组）')
+  assert.doesNotMatch(g4, /margin-left/, 'G4 不得给推理体加 margin——DSH 已自带 22px 缩进，再加会翻倍')
   assert.match(g4, /border-left:1px solid var\(--dsw-alias-border-l2/, 'G4 竖线必须 1px border-l2（reasoning.tsx border-border 值链）')
-  assert.match(g4, /padding-left:14px/, 'G4 竖线与内容间距必须 14px（pl-3.5）')
+  assert.match(g4, /padding-left:21px/, 'G4 竖线与内容间距 21px（21+1 边 = 原有 22px，文字左缘不动）')
+  assert.match(g4, /max-height:240px/, 'G4 推理展开体必须限高 240px（ZCode max-h-60）')
+  assert.match(g4, /overflow-y:auto/, 'G4 推理展开体必须内部滚动（ZCode max-h-60 + 滚动）')
   // 反向守卫：ioCard 底色不许落——ZCode bg-muted/15 是死类（主题无 --color-muted，编译产物
   // 0 命中，实际渲染透明），照抄透明=替宿主制造缺陷；等上游补色后由人裁决。
   assert.doesNotMatch(layoutStyle.match(/\[class\*="_ioCard"\]\{[^}]*\}/)?.[0] ?? '', /background/,

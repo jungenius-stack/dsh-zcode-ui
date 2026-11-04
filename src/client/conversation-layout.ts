@@ -501,14 +501,22 @@ export const CONVERSATION_LAYOUT_STYLE = `
 [data-conversation-scroll] [class*="_ioSection"]{
   padding:12px;
 }
-/* G4：ZCode reasoning 内容体 = ml-2(8px 实测) + border-l 1px border-border + pl-3.5(14px)
-   （reasoning.tsx + 编译 CSS）。DSH TXqvFW_body 与其同构（同为滚动容器包思考流），
-   竖线挂 body；折叠态 body 高 0，border 不显形，无需状态分支。
-   限高不落（body 400px/50vh 自适应是 DSH 自有设计，同②密度逻辑）。 */
-[data-conversation-scroll] [class*="TXqvFW_body"]{
-  margin-left:8px;
+/* G4：ZCode reasoning 内容体 = ml-2(8px) + border-l 1px border-border + pl-3.5(14px)。
+   ⚠️ 2026-11-05 night13 更正：此前挂的 TXqvFW_body **挂错了节点**。
+   CDP 活体实测（DSH 9223）：
+     · TXqvFW = ChatGroupSeat.module.css（工具分组）→ 30/30 个 body 全被加上 1px 左边，
+       展开工具组时会多出一条假竖线
+     · HiSsxa = ReasoningRow.module.css（推理行）→ 真正的推理体，命中 0
+   现改为挂 HiSsxa_thinkBody，且**不加 margin**：DSH 推理体自带
+   padding-left:calc(22px + delta)，再加 8+14 会把缩进翻倍。
+   padding-left 取 21px：21 + 1px 边 = 原有的 22px，文字左缘不动。
+   另补 R2：ZCode 展开体 max-h-60(240px) + 内部滚动；DSH 原来是 max-height:none
+   （实测展开高 2834px，整页被顶长）。 */
+[data-conversation-scroll] [class*="HiSsxa_thinkBody"]{
   border-left:1px solid var(--dsw-alias-border-l2);
-  padding-left:14px;
+  padding-left:21px;
+  max-height:240px;
+  overflow-y:auto;
 }
 `
 

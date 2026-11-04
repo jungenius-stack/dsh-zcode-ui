@@ -299,7 +299,11 @@ export const zh = {
   'errors.forbidden': '请求被安全检查拒绝，请从可信的 DSH 地址重试。',
   'errors.serviceUnavailable': '服务暂不可用，请稍后重试。',
   'workspace.preferencesLocalOnly': '项目偏好尚未同步，当前使用本地缓存。',
-  'errors.generic': '操作未完成，请重试。',
+  // 2026-11-05 night13 R5：兜底文案此前是「操作未完成，请重试。」——把「重试」当唯一出路，
+  // 而 19 处 role="alert" 共用同一层，整页崩溃与单字段非法长得一模一样。
+  // 改为「发生了什么 + 下一步能做什么」的引导型措辞（MISQ 2026 协作修复 / B&IT 2026
+  // 复合恢复三件套：解释 + 补救 + 选项）。结构分层不在本条范围（那是新组件层）。
+  'errors.generic': '这一步没有完成。可以重试一次；如果反复出现，把上面的提示发给我。',
   'errors.groupInvalid': '分组信息无效。',
   'errors.workspaceInvalid': '项目标识无效。',
   'errors.groupMissing': '目标分组不存在。',
@@ -609,7 +613,7 @@ export const en: Record<keyof typeof zh, string> = {
   'errors.forbidden': 'The security check rejected this request. Try again from a trusted DSH address.',
   'errors.serviceUnavailable': 'The service is unavailable. Try again later.',
   'workspace.preferencesLocalOnly': 'Workspace preferences are not synced. Using the local cache.',
-  'errors.generic': 'The action could not be completed. Try again.',
+  'errors.generic': 'This step did not finish. You can retry once; if it keeps happening, send me the message above.',
   'errors.groupInvalid': 'The group information is invalid.',
   'errors.workspaceInvalid': 'The project identifier is invalid.',
   'errors.groupMissing': 'The target group no longer exists.',

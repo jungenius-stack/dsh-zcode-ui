@@ -50,8 +50,15 @@ describe('用户错误本地化', () => {
   })
 
   test('未知底层错误不直接进入界面', () => {
-    expect(userErrorText(new Error('包含本地路径 D:\\secret 的底层错误'), translator(zh))).toBe('操作未完成，请重试。')
-    expect(userErrorText(new Error('host exploded'), translator(en))).toBe('The action could not be completed. Try again.')
+    // 2026-11-05 night13 R5：不再锁死字面量（那是 CODE-040）。
+    // 要守的是两件事：① 原始错误内容（路径/stack）不外泄；② 走的是兜底键而不是别的键。
+    // 直接读字典取值，不经过 translator（它的返回签名是 never，只用于传参）
+    const zhText = userErrorText(new Error('包含本地路径 D:\\secret 的底层错误'), translator(zh))
+    expect(zhText).not.toContain('secret')
+    expect(zhText).toBe(zh['errors.generic'])
+    const enText = userErrorText(new Error('host exploded'), translator(en))
+    expect(enText).not.toContain('host exploded')
+    expect(enText).toBe(en['errors.generic'])
   })
 
   test('保留已经本地化的明确业务提示', () => {

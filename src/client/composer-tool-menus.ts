@@ -51,6 +51,13 @@ export const COMPOSER_TOOL_MENU_STYLE = `
 [data-conversation-scroll] [data-trigger-menu]>[role=listbox]{box-sizing:border-box;width:100%;min-width:0;align-self:stretch;scrollbar-width:none}
 [data-conversation-scroll] [data-trigger-menu] [role=option]{box-sizing:border-box;width:100%;min-width:0;min-height:28px;padding:0 8px;gap:8px;border-radius:var(--dsw-radius-md);font-size:var(--dsw-font-size-base);line-height:21px}
 [data-conversation-scroll] [data-trigger-menu] [role=option][aria-selected=true]{background:var(--dsw-specific-menu-item-hover,var(--dcu-sidebar-hover))}
+/* night13 R4（2026-11-05）：权限模式菜单几何对齐 ZCode。
+   CDP 实测 DSH 现状：菜单 min-width 144px / padding 4px / 圆角 8px；项高 34px / 内距 6px 8px / 图标 14px。
+   ZCode 对应值：菜单 256px / 项高 52px。
+   必须用 :has 收窄——实测宿主其它菜单（模型选择等）复用同一 _item_4ub78_90 类名，
+   只写 [role=menu] ._item_4ub78_90 会误伤别处。 */
+[role="menu"]:has(._item_4ub78_90){min-width:256px}
+[role="menu"]:has(._item_4ub78_90) ._item_4ub78_90{min-height:52px}
 `
 
 export function observeComposerToolMenus(copy: { search: string; empty: string }): () => void {
