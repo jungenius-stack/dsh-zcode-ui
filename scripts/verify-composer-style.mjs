@@ -61,8 +61,13 @@ try {
     assert.equal(before.overflow, false)
     assert.equal(before.shadow, 'none', '2026-10-28：ZCode 输入卡无阴影（类名无 shadow-*，computed 为 none），两套主题都必须是 none')
     /* ── C5 边框：ZCode 类名是 border-input-border = 10% 前景。
-       2026-10-28 二次对齐：此前写 .15 是把 hover 态当默认，已改回 .1。 ── */
-    assert.equal(before.borderTop, '1px solid', 'C5：输入壳必须有 1px 实体边框（曾是 0px 被变量解析失败吃掉）')
+       2026-10-28 二次对齐：此前写 .15 是把 hover 态当默认，已改回 .1。
+       2026-11-04：宽度对齐 ZCode border-[0.5px]（主bundle styles-Dv5E6Odo.js@3186914，app 3.17.2）。
+       ⚠ getComputedStyle 会把 .5px 就近取整成 '1px'（本仓 playwright 夹具 DPR 1/2 实测均如此），
+         computed 值区分不出 0.5/1px —— 宽度真值只能在源码层断言，computed 这里只守「边框非 0」。 ── */
+    assert.match(skin, /border:\.5px solid var\(--dcu-composer-border\)/,
+      'C5：输入壳边框宽度必须是 .5px（ZCode border-[0.5px]，主bundle@3186914）；写 1px 会比 ZCode 粗一倍')
+    assert.equal(before.borderTop, '1px solid', 'C5：输入壳必须有实体边框（曾是 0px 被变量解析失败吃掉；computed 被取整，此处只守非 0）')
     assert.match(before.borderColor, dark ? /255,\s*255,\s*255,\s*0?\.1/ : /13,\s*13,\s*13,\s*0?\.1/,
       'C5：边框色应为 10% alpha（深色白 / 浅色黑，ZCode border-input-border）')
     /* ── C6/C7：ZCode 实测四边 12px、gap 12px ── */

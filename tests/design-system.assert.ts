@@ -845,8 +845,10 @@ const OFFSET_BASELINE: Record<string, number> = {
   'CodexWorkspaceBrowser.tsx:padding-right:112px': 1,
   // 光学非对称：左 30px 与图标列对齐，上 1-5px 补偿行高。
   'CodexWorkspaceBrowser.tsx:padding:1px 8px 5px 40px': 1,
-  // 子层缩进：空态文案与集合标题的图标列对齐。
-  'CodexWorkspaceBrowser.tsx:padding:8px 8px 8px 26px': 1,
+  // 子层缩进：空态文案与集合标题的图标列对齐。2026-11-04（night3 surface-5 M4）26→34px：
+  // ZCode 项目内空态 px-8.5=34px（css@145642，活体探针 paddingLeft 34px 双证）。
+  // 2026-11-04（night7 R1）右内距 8→34px 补齐对称：px-8.5=34px 双侧（js@2429957）。
+  'CodexWorkspaceBrowser.tsx:padding:8px 34px 8px 34px': 1,
   // 光学：1px 微调让次要文字与主文字的视觉基线对齐（不是节奏间隔）。
   'ConnectorsSection.tsx:margin-top:1px': 1,
   'settings-page-styles.ts:margin-top:1px': 1,
@@ -1101,7 +1103,9 @@ const durationOf = (name: string): string => {
 }
 assert.equal(durationOf('move'), '200ms', 'move 档（侧栏开合）必须 200ms —— ZCode duration-200')
 assert.equal(durationOf('collapse'), '300ms', 'collapse 档（分组折叠体）必须 300ms —— ZCode .3s')
-assert.equal(easeOf('collapse'), 'cubic-bezier(.4,0,.2,1)', 'collapse 档曲线必须 ease-in-out(.4,0,.2,1)')
+// 2026-11-04 night9 更正：ZCode 折叠动画原文是 CSS 关键字 ease-in-out（=.42,0,.58,1），
+// 不是 Tailwind 变量 --ease-in-out（=.4,0,.2,1）。两者在 ZCode 里并存且不等，旧断言取错了那一个。
+assert.equal(easeOf('collapse'), 'cubic-bezier(.42,0,.58,1)', 'collapse 档曲线必须是 CSS 关键字 ease-in-out 的值 (.42,0,.58,1)')
 
 // 反向守护：move 档（侧栏开合等单向位移）仍不得用回缓入缓出。
 // 2026-10-26：feedback 档已排除在本守护之外——CDP 实测 ZCode 的会话行悬停

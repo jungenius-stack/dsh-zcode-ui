@@ -29,12 +29,23 @@
  *    后实现移到 scroll-anim.ts（02-motion.md「实现副本已消灭」），:235-243 现为 scan()；
  *    机制本身成立，故按现状锁「直赋 + import + 调用 + 唯一实现」，并反向锁「不得再出现
  *    `.scrollTo(` 调用」。
- * 6. **official-turn-navigator.ts 宿主 nav 结构判定**：认 `.JXrxFq_marks` 即认宿主导航，
+ * 6. **official-turn-navigator.ts 宿主 nav 结构判定**：认 data-testid="v4-turn-navigator" 即认宿主导航，
  *    **不要求已有按钮** —— G11 要解决的正是"一个按钮都没有"的形态，若把"有按钮"当前置
  *    条件，接管逻辑永远不触发；marks 有高度但 children=0 时打 `data-dcu-official-turn-empty`
- *    交自绘接管，否则撤属性交还。该类名在宿主 asar 里实跑
- *    `grep -a -o JXrxFq_marks …app.asar` 得 2 命中（CSS `.JXrxFq_marks{position:relative}` 与
- *    类名映射 `"marks":"JXrxFq_marks"`），说明它是真实宿主锚点而非猜测（"0 命中"的说法已勘误）。
+ *    交自绘接管，否则撤属性交还。
+ *    锚点沿革（2026-11-04 night7 H3 对 3.17.2 装机 asar 重探，工具 asar-grep.py）：
+ *    JXrxFq_marks 与 JXrxFq 全族 0 命中——CSS-module 哈希类随构建换代，旧注
+ *    「asar 2 命中（CSS + 类名映射）」对 3.17.2 已死，作废。现行稳定锚 = testid 三件套
+ *    v4-turn-navigator / v4-turn-navigator-item / v4-turn-navigator-tooltip
+ *    （asar @358921594 常量定义；@362469140 nav 挂载 data-testid=gHe；
+ *    @362470759 item 挂载 data-testid=Fx(_He,key) 组合值）+ i18n 实证
+ *    chat.turnNavigator.label=「对话问题导航」、jumpToQuery=「跳转到第 N 条问题」
+ *    （@342540383）。刻度容器在 3.17.2 退为明文类 .relative.w-9 + 内联
+ *    style height=getTotalSize()px（@362469185 nav JSX 子树实证，nav 内唯一，
+ *    与 3.16.3 活体规格 ZCODE-INDEX-SPEC.md 结构一致）。主锚走 testid，
+ *    .JXrxFq_marks 保留为遗留回退（仍装 3.17.1 的宿主）。
+ *    G11 幻影态（容器高>0 且 children=0）在 3.17.2 是否复现需 9224/人工目检
+ *    （night4 已标注未验）；本断言只锁源码文本层，不背运行时行为。
  * 7. **official-turn-navigator.ts 侧栏动画期跳过**：开合动画期间每帧 style 写入 ⇒ 观察器每帧
  *    触发 ⇒ 全文档 querySelectorAll('nav') + marks.getBoundingClientRect() 强制同步布局
  *    （08-performance-audit.md §2 实测 Layout 33 次/232ms、getBoundingClientRect 249ms）。
@@ -205,8 +216,8 @@ assert.match(
 // ── 6. official-turn-navigator.ts：结构判定 + 空刻度接管/交还 ────────────────
 assert.match(
   official,
-  /const hasMarks = element\.querySelector\('\.JXrxFq_marks'\) !== null\n\s*if \(hasMarks\) return true/,
-  '宿主 nav 必须在"有 .JXrxFq_marks 容器"时就认下（该类名在宿主 asar 有 CSS + 类名映射两处命中）；不得等到出现按钮',
+  /if \(element\.matches\('\[data-testid="v4-turn-navigator"\]'\)\) return true\n\s*const hasMarks = element\.querySelector\('\.JXrxFq_marks'\) !== null\n\s*if \(hasMarks\) return true/,
+  '宿主 nav 必须在 data-testid=v4-turn-navigator（3.17.2 主锚，asar @362469140 实证）或遗留 .JXrxFq_marks 容器（3.17.1 回退）命中时就认下；不得等到出现按钮',
 )
 assert.match(
   official,
@@ -220,8 +231,8 @@ assert.match(
 )
 assert.match(
   official,
-  /function markEmptyMarks\(nav: HTMLElement\): void \{\n\s*const marks = nav\.querySelector<HTMLElement>\('\.JXrxFq_marks'\)\n\s*if \(marks === null\) \{\n\s*nav\.removeAttribute\(OFFICIAL_TURN_EMPTY_ATTRIBUTE\)/,
-  '找不到 marks 时必须撤接管标记（不能保持上一轮的 true），否则宿主重建 nav 后自绘仍被顶着',
+  /function markEmptyMarks\(nav: HTMLElement\): void \{\n\s*const marks = nav\.querySelector<HTMLElement>\('\.relative\.w-9, \.JXrxFq_marks'\)\n\s*if \(marks === null\) \{\n\s*nav\.removeAttribute\(OFFICIAL_TURN_EMPTY_ATTRIBUTE\)/,
+  '刻度容器必须先探 3.17.2 的 .relative.w-9 再退遗留 .JXrxFq_marks；找不到时必须撤接管标记（不能保持上一轮的 true），否则宿主重建 nav 后自绘仍被顶着',
 )
 assert.match(
   official,

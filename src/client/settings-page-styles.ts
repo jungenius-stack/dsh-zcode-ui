@@ -87,9 +87,12 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-link svg{flex:none;color:var(--sp-text);opacity:1}
 .dcu-settings-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dcu-settings-empty{padding:8px;color:var(--sp-muted);font-size:var(--dsw-font-size-caption)}
-/* night2 surface-6 M7：拆掉自设细滚动条（thin + --sp-border），回归宿主全局药丸基座
-   （已吃 M1-M3 对齐值：轨道 14/视觉 8、10%/30%/45%）；补 ZCode 设置 main 同款
-   [scrollbar-gutter:stable]（js@6457453）。 */
+/* night2 surface-6 M7 的**回退态**（2026-11-04 night9 更正注释；实现未变，此前注释与
+   实现矛盾——注释写「拆 thin + 补 gutter」，实现一直是 thin 且无 gutter）。
+   ZCode 设置 main 用 [scrollbar-gutter:stable]（js@6457453），但 DSH 宿主下照抄会
+   **永久预留 15px**，使 .dcu-settings-inner 恒比主栏窄（实测 1345 vs 1360），与
+   「Pro 设置页随主栏伸展」契约冲突。故保留 thin + scrollbar-color、不声明 gutter。
+   这是 HANDOFF 3.2 记录过的权衡后偏离，不是漏实现；若宿主滚动条占位模型变化可重估。 */
 .dcu-settings-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--sp-bg);scrollbar-width:thin;scrollbar-color:var(--sp-border) transparent}
 /* night2 surface-11 M10：内容列 = ZCode hR（px-4 pt-0 pb-8，lg:px-8 lg:pb-10 → 0/32/40）。 */
 .dcu-settings-inner{width:min(100%,864px);margin:0 auto;padding:0 32px 40px}

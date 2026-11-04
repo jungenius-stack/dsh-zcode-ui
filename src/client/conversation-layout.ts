@@ -187,6 +187,11 @@ export const CONVERSATION_LAYOUT_STYLE = `
   /* 21px = ZCode text-ui-base 的 1.5 倍行高；+ delta 保住宿主正文字号缩放 */
   line-height:calc(21px + var(--dsh-content-font-delta,0px));
 }
+/* 用户气泡字距归零（2026-11-04）：ZCode 气泡链（user-row→bubble 段）grep 无任何 tracking 类，
+   列级 0.025em（① :314）不应波及气泡文本；(0,3,0) 胜 :314 的 (0,2,0)。
+   气泡内容是 span(display:contents) 直挂正文（见 user-bubble-collapse.spec.ts），
+   无 p 后代，:315 的 0.35px 不会从气泡内再次命中。 */
+[data-conversation-scroll] .icaHSq_column .IzP3Va_bubble{letter-spacing:normal}
 
 /* ── G18 用户气泡长文本折叠（2026-10-28，ZCode asar + 9224 实测）──────
    ZCode 真实参数：内容 max-height 120（溢出阈 121）；展开 max(scrollHeight,120)；
@@ -454,6 +459,11 @@ export const CONVERSATION_LAYOUT_STYLE = `
    另：宿主有首元素顶距归零的最高优先级规则（_markdown_ 容器 > :first-child → margin-top:0），
    与 Tailwind prose first-child 语义一致，不是对 03n 标题规则的压制，不要「修」它。 */
 [data-conversation-scroll] .icaHSq_column [class*="_markdown_"] p{margin-bottom:16px}
+/* 嵌套引用块内段落（2026-11-04，ZCode lNt 逐字含 [&_p]:my-0 [&_p+p]:mt-2）：
+   块内 p 上下归零、相邻 p 间 8px。特异性 (0,3,2)/(0,3,3) 同时压住 ⑧ 的 (0,3,1)
+   与宿主 ._markdown_ p{margin:16px 0} 的 (0,1,1)；B8 断言锁的是 blockquote 本体块，不受影响。 */
+[data-conversation-scroll] .icaHSq_column [class*="_markdown_"] blockquote p{margin:0}
+[data-conversation-scroll] .icaHSq_column [class*="_markdown_"] blockquote p+p{margin-top:8px}
 [data-conversation-scroll] .icaHSq_column ol{padding-left:0;list-style-position:inside}
 [data-conversation-scroll] .icaHSq_column strong{font-weight:500}
 [data-conversation-scroll] .icaHSq_column hr{border:0;border-top:1px solid var(--dsw-alias-border-l2,rgba(255,255,255,.1));margin-top:24px;margin-bottom:24px}

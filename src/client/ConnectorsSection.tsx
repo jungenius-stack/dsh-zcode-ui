@@ -23,6 +23,18 @@ const PROMPT_RESULT_TYPE = 'mcp-connector:start-session-result'
 
 const stylesheet = `
 .dcu-connectors{color:var(--dsw-alias-label-primary)}.dcu-connectors h2{margin:0;font-size:var(--dsw-font-size-xl);font-weight:600}.dcu-connectors p{margin:6px 0 var(--dcu-space-4);color:var(--dsw-alias-label-secondary);font-size:var(--dsw-font-size-sm)}.dcu-connector-frame{display:block;width:100%;height:clamp(420px,calc(100vh - 160px),700px);border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-xl);background:var(--dsw-alias-bg-base);color-scheme:light dark}.dcu-connector-list{overflow:hidden;border:1px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-xl)}.dcu-connector{padding:12px;border-bottom:1px solid var(--dsw-alias-border-l2)}.dcu-connector:last-child{border-bottom:0}.dcu-connector-head{display:flex;align-items:center;gap:8px;font-weight:600}.dcu-connector-meta{margin:var(--dcu-space-1) 0 var(--dcu-space-2);color:var(--dsw-alias-label-tertiary);font-size:var(--dsw-font-size-sm)}.dcu-connector-tool{padding:var(--dcu-space-1) 0 0 24px;color:var(--dsw-alias-label-secondary);font-size:var(--dsw-font-size-sm)}.dcu-connector-tool span{display:block;margin-top:1px;color:var(--dsw-alias-label-tertiary);font-size:var(--dsw-font-size-sm)}.dcu-connector-empty{padding:20px 8px;color:var(--dsw-alias-label-secondary);text-align:center}
+/* 连接器加载态骨架（2026-11-04）：对齐宿主插件商店弹层加载骨架（asar@4845090：8 行 flex h-8 gap-3 px-3 +
+   size-5 rounded-md 图标块 + h-3 w-28 rounded-sm 线块，motion-safe:animate-pulse）。
+   填充 --dsw-alias-bg-skeleton（zcode-tokens 3%/5%，与 AboutSection 依赖骨架同制，night2 surface-8 §5）。
+   pulse 用 ZCode animate-pulse 原文（2s cubic-bezier(.4,0,.6,1)/50% 停 0.5）；keyframes 必须在本文件
+   自带一份 —— settings.section 各 tab 独立挂载、AboutSection 的 style 不保证在场，跨文件复用会静默失效，
+   与 AboutSection 的 dcu-about-pulse 同名同体，改动需两处同步。
+   宿主行原文另带 my-px（1px 行距）；1px 离 4px 标度会被间距棘轮拦截且视觉增量可忽略，未带。 */
+.dcu-connector-skeleton-row{display:flex;align-items:center;gap:12px;height:32px;padding:0 12px}
+.dcu-connector-skeleton-icon{flex:none;width:20px;height:20px;border-radius:var(--dsw-radius-md);background:var(--dsw-alias-bg-skeleton)}
+.dcu-connector-skeleton-line{flex:none;width:112px;height:12px;border-radius:var(--dsw-radius-sm);background:var(--dsw-alias-bg-skeleton)}
+@media (prefers-reduced-motion:no-preference){.dcu-connector-skeleton-row{animation:dcu-about-pulse 2s cubic-bezier(.4,0,.6,1) infinite}}
+@keyframes dcu-about-pulse{50%{opacity:.5}}
 `
 
 /**
@@ -135,9 +147,18 @@ function NativeConnectorList({ sessionStore, t }: Pick<ConnectorsSectionProps, '
     return () => { controller.abort() }
   }, [sessionId])
   if (sessionId === undefined) return <div className="dcu-connector-empty">{t('connectors.openSession')}</div>
-  if (state === 'loading') return <div className="dcu-connector-empty">{t('connectors.loading')}</div>
+  if (state === 'loading') return <ConnectorSkeleton t={t} />
   if (state === 'failed') return <div className="dcu-connector-empty" role="alert">{t(businessRequestErrorKey(failure) ?? 'connectors.failed')}</div>
   return <div className="dcu-connector-list">{connectors.map(connector => <article className="dcu-connector" key={connector.name}><div className="dcu-connector-head"><ZIconConnectors size={16} />{connector.name}</div><div className="dcu-connector-meta">{t('connectors.toolCount', { count: connector.tools.length })}</div>{connector.tools.map(tool => <div className="dcu-connector-tool" key={tool.name}>{tool.name}{tool.description !== '' && <span>{tool.description}</span>}</div>)}</article>)}{connectors.length === 0 && <div className="dcu-connector-empty">{t('connectors.empty')}</div>}</div>
+}
+
+/** 宿主式加载骨架（对齐 ZCode 插件商店弹层）：容器 role=status 播报加载态，占位行 aria-hidden。 */
+function ConnectorSkeleton({ t }: Pick<ConnectorsSectionProps, 't'>) {
+  return (
+    <div role="status" aria-label={t('connectors.loading')} className="dcu-connector-skeleton">
+      {Array.from({ length: 8 }, (_, index) => <div key={index} aria-hidden="true" className="dcu-connector-skeleton-row"><span className="dcu-connector-skeleton-icon" /><span className="dcu-connector-skeleton-line" /></div>)}
+    </div>
+  )
 }
 
 /** 安装 dsh-mcp-connector 时显示完整市场，否则回退到当前会话的 MCP 工具目录。 */
@@ -156,7 +177,7 @@ export function ConnectorsSection({ sessionStore, startPromptSession, t }: Conne
   return <section className="dcu-connectors" aria-label={t('connectors.title')}>
     <style>{stylesheet}</style>
     {marketAvailable === undefined
-      ? <div className="dcu-connector-empty">{t('connectors.loading')}</div>
+      ? <ConnectorSkeleton t={t} />
       : marketAvailable
         ? <ConnectorMarket startPromptSession={startPromptSession} t={t} />
         : <><h2>{t('connectors.title')}</h2><p>{t('connectors.description')}</p><NativeConnectorList sessionStore={sessionStore} t={t} /></>}

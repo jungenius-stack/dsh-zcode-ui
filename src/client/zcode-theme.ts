@@ -135,7 +135,7 @@ body[data-ds-dark-theme],.theme-zai-dark{
      · 折叠体（分组展开/收起）= ZCode animation .3s ease-in-out → 300ms
      两件事在 ZCode 里本来就是两个值，此前被我们并成 300ms 一档。 */
   --dcu-motion-move-duration:200ms;--dcu-motion-move-ease:cubic-bezier(0,0,.2,1);
-  --dcu-motion-collapse-duration:300ms;--dcu-motion-collapse-ease:cubic-bezier(.4,0,.2,1);
+  --dcu-motion-collapse-duration:300ms;--dcu-motion-collapse-ease:cubic-bezier(.42,0,.58,1);/* 2026-11-04 night9 更正：ZCode 折叠用 CSS 关键字 ease-in-out（.42,0,.58,1）；旧值 (.4,0,.2,1) 是 Tailwind 变量 --ease-in-out 的值，不是关键字值，两者在 ZCode 里并存且不等 */
   /* 2026-10-29 ZCode asar：--animate-in / --animate-out 的默认时长都是 .15s
      （enter 与 exit 同档），此前我们写 160/120 是估的。曲线保留意图分档
      （enter 减速收尾 / exit 加速离场），时长对齐 ZCode 的 150ms。 */
@@ -359,9 +359,13 @@ body[data-ds-dark-theme] .dcu-root,body[data-ds-dark-theme] .dcu-settings-page,b
    段内插行会让全部行号漂移；追加块零位移，语义等价（:root 级变量 + 独立规则，
    与 :245 --dcu-sidebar-background 的追加先例同款）。 */
 /* night2 surface-3 M9：对话框次级按钮底。ZCode 确认框取消钮 variant:secondary =
-   bg-secondary 实底无边（hover:bg-secondary/80）；--color-secondary 浅 #d4d4d4
-   （编译 CSS fallback 实测 #d4d4d4cc）/ 深 #363636。 */
-:root{--dcu-secondary-bg:#d4d4d4}
+   bg-secondary 实底无边（hover:bg-secondary/80）。
+   ⚠️ 取值更正（2026-11-04 night9，证据：night2/zcode-live-styles.css 原文）：
+   light 应为 #e6e6e6；旧值 #d4d4d4 只来自基础层 neutral-300，
+   现网被 theme-zai-light 的 --color-secondary 覆盖为 #e6e6e6（LIVE_CSS 原文）；
+   dark 侧 theme-zai-dark 明确 #363636，与基座 neutral-700 同值故一直未察觉。
+   这是 HANDOFF 3.1「tokens 基础层会撒谎」的又一实例：判语义值必须读主题覆盖层。 */
+:root{--dcu-secondary-bg:#e6e6e6}
 body[data-ds-dark-theme],.theme-zai-dark{--dcu-secondary-bg:#363636}
 /* night2 surface-1 #8 / surface-3 M12：ZCode tailwindcss-animate 默认档。右键菜单壳
    （duration-100 + fade + scale .95 + 8px 方向滑移）与确认框（fade + zoom-in-95，
@@ -389,6 +393,10 @@ body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [
    壳自身规则双写类名抬优先级，压过 .list/.submenu 的同名声明。 */
 @keyframes dcu-ctx-menu-in{from{opacity:0;transform:translateY(-8px) scale(.95)}}
 .dcu-ctx-menu.dcu-ctx-menu{min-width:176px;animation:dcu-ctx-menu-in var(--dcu-tw-anim-duration,100ms) ease}
+/* night3 surface-1 #6 补齐：会话（任务）菜单固定 w-56=224（XI className:'w-56' @2310097，复核 surface-1.md:116）；
+   挂在任务菜单三处（CodexWorkspaceBrowser 会话行/表头 + session-tree 共用行）。项目/分组头菜单
+   维持 min-width:176（context 默认档与分组头 w-44 同值）；子菜单 208/160/128 本仓无子菜单，无落点。 */
+.dcu-ctx-menu.dcu-ctx-menu-task{width:224px}
 .dcu-ctx-menu.dcu-ctx-menu>[role=presentation]{gap:2px}
 .dcu-ctx-menu [role=separator]{height:1px;margin:4px -4px}
 .dcu-ctx-menu button[role=menuitem]{gap:8px;padding:4px 8px;border-radius:var(--dsw-radius-md);font-size:var(--dsw-font-size-base);line-height:1.625}
@@ -432,8 +440,11 @@ html[data-dcu-scrollbar-autohide] [data-conversation-scroll] [data-dcu-scrollbar
    可聚焦非 treeitem 元素违反 tree-keyboard.ts 契约（focus-visible 段不落，另属 surface-7 #5
    deviation 域）；② hover 边框用宿主 border-l4 档（16%）近似 ZCode border-hover（15%），
    过渡走 feedback 令牌（同 duration-150 档，曲线用仓内 canonical hover 曲线，不另造档）。 */
-.dcu-wb-pinned-list>.dcu-wb-empty{display:flex;align-items:center;justify-content:center;box-sizing:border-box;width:100%;height:32px;border:1px dashed var(--dcu-sidebar-border);border-radius:var(--dsw-radius-lg);padding:8px;text-align:center;cursor:default;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),border-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
+.dcu-wb-pinned-list>.dcu-wb-empty{display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;width:100%;height:32px;border:1px dashed var(--dcu-sidebar-border);border-radius:var(--dsw-radius-lg);padding:8px;text-align:center;cursor:default;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),border-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease),color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
 .dcu-wb-pinned-list>.dcu-wb-empty:hover{border-color:var(--dsw-alias-border-l4);background:var(--dcu-sidebar-hover);color:var(--dcu-sidebar-primary)}
+/* night3 surface-5 M7 补齐：Jxt 结构里的图标（§1.2：Plus 系 size-3.5=14px + shrink-0 + gap-1.5=6px，
+   js@2353088），DOM 侧 CodexWorkspaceBrowser.tsx 置顶空态已内联 <Plus size={14}/>。 */
+.dcu-wb-pinned-list>.dcu-wb-empty svg{width:14px;height:14px;flex:none}
 @media (prefers-reduced-motion:reduce){.dcu-wb-pinned-list>.dcu-wb-empty{transition:none}}
 
 /* night2 surface-9 M1：待处理胶囊底。ZCode 注意徽章 = bg-success/14 dark:bg-success/18

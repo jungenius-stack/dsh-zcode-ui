@@ -107,6 +107,11 @@ test('会话行归档为模态确认：点击出弹窗、确认后执行一次�
     const { row } = view
     const archiveButton = () => row.querySelector<HTMLButtonElement>('.dcu-wb-quick-actions button')!
     const dialog = () => document.querySelector('.dcu-archive-dialog')
+    // night9 P0-3：关闭改为「先播 100ms 退场动画再卸载」（对齐 ZCode data-closed），
+    // 故关闭后需推进该延迟才能断言 DOM 消失。ARCHIVE_EXIT_MS=100，留 30ms 余量。
+    const settleClose = async (): Promise<void> => {
+      await act(async () => { await new Promise((r) => setTimeout(r, 130)) })
+    }
     // 首击：弹出确认框，不执行、不触发行打开。
     await act(async () => { archiveButton().click() })
     expect(archiveSession).not.toHaveBeenCalled()
@@ -116,6 +121,7 @@ test('会话行归档为模态确认：点击出弹窗、确认后执行一次�
     expect(dialog()!.querySelector('.dcu-archive-desc')).not.toBeNull()  // 测试环境的 t 是回显桩，不插值；参数插值由 locales 断言覆盖
     // Escape 取消后弹窗消失，不执行。
     await act(async () => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })) })
+    await settleClose()
     expect(dialog()).toBeNull()
     expect(archiveSession).not.toHaveBeenCalled()
     // 再开一次，点确认按钮：恰好执行一次，弹窗关闭。
@@ -123,6 +129,7 @@ test('会话行归档为模态确认：点击出弹窗、确认后执行一次�
     await act(async () => { dialog()!.querySelector<HTMLButtonElement>('.dcu-archive-confirm')!.click() })
     expect(archiveSession).toHaveBeenCalledTimes(1)
     expect(archiveSession).toHaveBeenCalledWith('row-confirm')
+    await settleClose()
     expect(dialog()).toBeNull()
   } finally {
     await view.dispose()
@@ -139,6 +146,8 @@ test('归档弹窗点击遮罩取消，不执行归档', async () => {
     expect(scrim).not.toBeNull()
     // 遮罩自身被点击（target === currentTarget）→ 取消。
     await act(async () => { scrim.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })) })
+    // night9 P0-3：与上一条同因，等 100ms 退场动画结束再断言卸载。
+    await act(async () => { await new Promise((r) => setTimeout(r, 130)) })
     expect(document.querySelector('.dcu-archive-dialog')).toBeNull()
     expect(archiveSession).not.toHaveBeenCalled()
   } finally {

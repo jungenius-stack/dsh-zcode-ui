@@ -94,7 +94,7 @@ const verify = async () => {
     const above = lineTop - host.querySelector('#empty-group>.dcu-wb-collection-head').getBoundingClientRect().bottom
     const below = host.querySelector('#next-group>.dcu-wb-collection-head').getBoundingClientRect().top - lineBottom
     if (Math.abs(above - below) > 0.1) throw new Error(`空分组未居中: ${above}/${below}`)
-    if (style.fontSize !== '13px' || style.lineHeight !== '18px' || style.fontSize !== chatStyle.fontSize || style.lineHeight !== chatStyle.lineHeight || style.color !== chatStyle.color) throw new Error('空状态字体不统一')
+    if (style.fontSize !== '14px' || style.lineHeight !== '21px' || style.fontSize !== chatStyle.fontSize || style.lineHeight !== chatStyle.lineHeight || style.color !== chatStyle.color) throw new Error('空状态字体不统一')
     const expectedColor = theme === 'dark' ? 'rgb(112, 120, 116)' : 'rgb(118, 126, 122)'
     if (style.color !== expectedColor || chatStyle.color !== expectedColor) throw new Error('空状态未使用三级灰 token')
     // 2026-10-18（P0-4）：左内距随会话行从 30 → 40px，空聊天行必须与它会话文字同列。

@@ -316,7 +316,8 @@ html[data-dsh-zcode-skin]:has(.dcu-root) [class*="_leadingSeat"]:has(button[aria
 .dcu-dependency-notice{margin:0 8px 8px;border:1px solid var(--dcu-sidebar-border);border-radius:var(--dsw-radius-lg);padding:8px;color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-sm);line-height:18px}
 /* ZCode 命令面板：rounded-2xl(16px) 壳、bg-menu、shadow-md、12px 分组标题 font-medium。 */
 .dcu-search-scrim{position:fixed;z-index:10020;inset:0;display:flex;justify-content:center;align-items:flex-start;padding:72px 20px;background:color-mix(in srgb,#000 48%,transparent);animation:dcu-search-scrim-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}.dcu-search-dialog{display:flex;flex-direction:column;gap:16px;width:min(512px,100%);max-height:min(640px,calc(100vh - 120px));overflow:auto;border:1px solid var(--dcu-tip-border);border-radius:var(--dsw-radius-2xl);padding:2px;background:var(--dcu-dialog-bg);box-shadow:var(--dcu-tip-shadow);
-/* 2026-10-28 03i：对齐 ZCode ⌘K 浮层——512 宽（实测）、无阴影（纯边框分隔，扁平）；
+/* 2026-10-28 03i：对齐 ZCode ⌘K 浮层——512 宽（实测）、影两层=var(--dcu-tip-shadow)
+   （03i 2026-10-28 阴影更正注：早期「无阴影」量的是内层，根节点实为 shadow-md，已活体复核同值）；
    圆角 2xl/bg/border 与 ZCode 逐值一致（card #2b2b2b/#fff + border 10%）维持原令牌。 */animation:dcu-search-dialog-in var(--dcu-motion-enter-duration) var(--dcu-motion-enter-ease)}@keyframes dcu-search-scrim-in{from{opacity:0}to{opacity:1}}@keyframes dcu-search-dialog-in{from{opacity:0;transform:translateY(-6px) scale(.985)}to{opacity:1}}.dcu-search-input{margin-bottom:0}.dcu-search-input>:first-child{box-sizing:border-box;width:100%;height:32px;border-radius:9999px;border:1px solid var(--dsw-alias-border-l3);padding:0 10px;background:var(--dcu-dialog-bg)}.dcu-search-input input{height:100%;border:0;padding:0;background:transparent}.dcu-search-section{padding:6px 0}.dcu-search-title{padding:0 8px 4px;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);font-weight:500}.dcu-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:35px;border:0;border-radius:var(--dsw-radius-xl);padding:6px 10px;background:transparent;color:var(--dcu-sidebar-primary);font:inherit;text-align:left;cursor:pointer;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}.dcu-search-row:hover,.dcu-search-row[data-active=true]{background:var(--dsw-alias-markdown-tag)}.dcu-search-main{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* 2026-10-18（设计审计 P1-4）：命中片段高亮 + 底部键位提示。
    高亮只加字重与 primary 色，不加背景：结果的 hover/active 底已经是 var(--dcu-sidebar-hover)，
@@ -347,14 +348,15 @@ html[data-dsh-zcode-skin]:has(.dcu-root) [class*="_leadingSeat"]:has(button[aria
    --dcu-composer-shadow:none;--dcu-composer-border:rgba(13,13,13,.1)}
 body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-alias-bg-layer-2,#242424);--dcu-composer-shadow:none;--dcu-composer-border:rgba(255,255,255,.1)}
 /* C5/C6/C7（2026-10-27）：卡片内外尺寸对齐 ZCode（03d 对照矩阵）。
-   - 边框 1px：ZCode 是 rgba(255,255,255,.15)；
+   - 边框 .5px：ZCode 类名 border-[0.5px]（主bundle styles-Dv5E6Odo.js@3186914，app 3.17.2 实测；
+     色=10% 前景 --color-border，本皮肤 --dcu-composer-border 同为 10% 前景）；
    - 内边距 12px（原 padding-top:8px）：ZCode 四边 12px；
    - gap 12px（原 4px）：ZCode 是 12px。
    ⚠ 布局外扩补偿：卡片 box-sizing 是 border-box，**加 1px 边框不会外扩**（宽高含 border 内），
      所以不需要再减 padding。实测确认：改前 w=672 改后仍 w=672。
    padding 从 8px 加到 12px 会让内容变窄 8px、卡片变高 —— 这是对齐 ZCode 的必要代价，
    已用截图复核（见 04 执行记录）。 */
-[data-conversation-scroll] [data-composer-card]{padding:12px;gap:12px;border:1px solid var(--dcu-composer-border);border-radius:var(--dsw-radius-2xl);background:var(--dcu-composer-bg);box-shadow:var(--dcu-composer-shadow)}
+[data-conversation-scroll] [data-composer-card]{padding:12px;gap:12px;border:.5px solid var(--dcu-composer-border);border-radius:var(--dsw-radius-2xl);background:var(--dcu-composer-bg);box-shadow:var(--dcu-composer-shadow)}
 /* 附件轨道到正文的目标间距是官方 6px。
    宿主设计是 12px 行间距 + 元件本身 -6px 抵消；本皮肤曾把 gap 压到 4px，用 +2px 补回 6。
    C7（2026-10-27）把 gap 对齐 ZCode 提回 12px 后，补偿值必须回到 **-6px** ——

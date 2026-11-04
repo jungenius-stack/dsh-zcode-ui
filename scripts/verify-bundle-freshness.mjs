@@ -16,12 +16,15 @@
  * 副作用：只读。不修改任何文件。
  */
 import { readFileSync, statSync, existsSync, lstatSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
 import { homedir } from 'node:os'
+import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
 
-const REPO = '/Users/m1/WorkBuddy AI/2026-10-12-11-04-56/dsh-zcode-ui'
+// 仓库根从脚本自身位置推导（scripts/ 的上一级），换机器/换目录不再失效；
+// 写法与 sync-dist.mjs 的 REPO 推导保持一致。
+const REPO = join(dirname(fileURLToPath(import.meta.url)), '..')
 const REPO_LIB = join(REPO, 'lib')
 const DIST = join(REPO, 'dist')
 const DEPLOY_ROOT = join(homedir(), '.dsh/profiles/desktop/node_modules/dsh-zcode-ui')
