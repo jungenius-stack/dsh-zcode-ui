@@ -4,6 +4,75 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.0 - 2026-11-04
+
+**Second ZCode deep sweep: 258 capability differences logged, four asset libraries, and one
+full forensic pass on what "smooth" actually means.**
+
+This round was about turning "looks like" into "traceable", and about clearing a long-standing
+misattribution — the sidebar jank is not the plugin's fault.
+
+### A correction the API forced
+
+The "300M free tokens" had been attributed to the offpeak pool. The `billing/balance` payload
+shows it is actually the start-plan `grant_units`. Wrong attribution means banging on the wrong
+pool forever.
+
+### Code block structure, settled (three contradictory records resolved)
+
+ZCode's code block is a **three-layer nest**, not a single `pre`:
+
+| layer | classes | values |
+|---|---|---|
+| shell | `my-4 … rounded-xl border bg-sidebar p-2` | margin 16 / radius 12 / pad 8 |
+| wrapper | `p-2 pt-0 pb-3` | 0 / 8 / 12 / 8 |
+| body | `… p-4 text-sm` + `bg-transparent` | pad 16 all sides |
+| pre | background classes only | no padding |
+
+surface-10 got the wrapper right, surface-14 got the body right — **each was right about one
+layer**. The old D1 record and the `6px 8px 12px` in our docs were both wrong. The plugin still
+ships a single-layer `6/8/12`.
+
+### Sidebar open/close jank: seven hypotheses, one verdict
+
+Measured on live DSH (CDP 9223 + CPU profile + Performance metrics):
+
+- frame gaps: idle 8.25ms (121fps) → 27–62ms (16–37fps) during the transition, four 50–68ms long tasks
+- profile: `getBoundingClientRect` self-time **165ms / 900ms**; all plugin JS together **4ms**
+- cause: sidebar width change → 5930-node chat reflow → the host's `use-scroll-follow` reads
+  O(log n) bounding boxes per frame
+
+Six approaches were disproved: `will-change: clip-path` (clip-path alone already holds 120fps),
+`contain: layout paint` (no effect), keeping the track fixed during the animation (104px jump at
+settle, blocked by a regression assertion), WAAPI instead of transition (effective in isolation,
+only 15% in situ), and the element-scoped flag alone (16%).
+
+**Shipped**: the animation flag moved from an ancestor prefix (`[data-dcu-sidebar-motion] X`) to
+element-scoped (`X[data-dcu-motion]`), shrinking the match set from a 5930-node subtree to six
+elements. 66fps → 80fps measured. The rest is host-side cost the plugin cannot remove.
+
+### Landed and logged
+
+- **Component geometry**: menu row 32→28px, command row 35→28px, kbd 20→16px, tabs 30px,
+  footer 12px, task card px8/py10, inline-code radius r4 — all against ZCode's **actual usage**,
+  not the component's default variant
+- **Copy**: `search.empty` back to the live key `commandCenter.noResults`
+- **Empty states**: tree empty 14/21px (9224 live), project indent 34px
+- **Interaction**: archive confirm gains Enter submit (except inside inputs) + 100ms exit
+  animation; rename input gains an IME composition guard
+- **Token**: `--dcu-secondary-bg` light `#d4d4d4` → `#e6e6e6` (theme override value, not the base)
+- **Host anchor**: `.JXrxFq_marks` has 0 hits in the current asar (3.17.2); switched to a testid anchor
+- **Assertions**: new `night7-gaps.assert.mjs` with 25 two-way assertions; four assertions that
+  pinned wrong values corrected together with their evidence
+
+### Three new asset libraries
+
+- `design-language/night6/`: tokens 1670 / components 1354 / motion 461 / structure 309 entries
+- `design-language/night3/TODO-LIST.md`: 255 differences merged into 227 rows, 48 immediately fixable
+- `design-language/night9/`: 1598-row comparison matrix / 245 mismatches + P0 landing record
+
+---
+
 ## 2.2.1 - 2026-11-03
 
 **A full night of measurement against the running ZCode, plus the code review that followed.**

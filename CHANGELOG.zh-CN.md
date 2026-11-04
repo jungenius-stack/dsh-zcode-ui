@@ -4,6 +4,68 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.0 - 2026-11-04
+
+**第二轮 ZCode 深挖：258 条差异登记、四份资产库、以及一次关于「丝滑」的完整取证。**
+
+这一轮的核心不是加功能，而是把「像不像」变成「可查证」。同时排掉了一个长期混在
+「性能问题」里的误判——侧栏开合卡顿的真因不在插件。
+
+### 一条被 API 纠正的认知
+
+免费额度那「3 个亿」曾被归到 offpeak 池，`billing/balance` 原文显示它其实是
+start-plan 的 `grant_units`。归因错了会一直在错误的池子里撞墙。
+
+### 码块结构终裁（解三份互相矛盾的记录）
+
+ZCode 的代码块是**三层嵌套**，不是单层 pre：
+
+| 层 | 类串 | 值 |
+|---|---|---|
+| 外壳 | `my-4 … rounded-xl border bg-sidebar p-2` | margin 16 / 圆角 12 / pad 8 |
+| 内容包装 | `p-2 pt-0 pb-3` | 0 / 8 / 12 / 8 |
+| 码块体 | `… p-4 text-sm` + `bg-transparent` | pad 16 四向 |
+| pre | 只有背景类 | 无 padding |
+
+surface-10 记对了包装层、surface-14 记对了体层——**两份各对一层**，旧 D1 与文档里的
+`6px 8px 12px` 都是抄错的。插件现为单层 `6/8/12`，结构上不是同一回事。
+
+### 侧栏开合「不丝滑」：七个假设，一个结论
+
+按「一格格走」逐层取证（DSH 9223 活体 + CPU profile + Performance metrics）：
+
+- 帧间隔：静止 8.25ms（121fps）→ 开合期间 27–62ms（16–37fps），4 个 50–68ms 长任务
+- profile：`getBoundingClientRect` 自耗 **165ms/900ms**，插件全部 JS 只占 **4ms**
+- 根因：侧栏改宽度 → 聊天区 5930 节点重排 → 宿主 `use-scroll-follow` 的滚跟随逐帧读
+  O(log n) 个 bounding box
+
+被否证的六个方案：`will-change: clip-path`（单跑 clip-path 本就 120fps）、
+`contain: layout paint`（完全无效）、动画期不改轨道（落定突跳 104px，被回归断言拒绝）、
+WAAPI 替代 transition（隔离实验有效，真实场景只提 15%）、标记改元素自身（提 16%）。
+
+**最终落地**：动画标记从祖先前缀 `[data-dcu-sidebar-motion] X` 改为元素自身
+`X[data-dcu-motion]`，匹配范围从 5930 节点子树缩到 6 个元素。实测 66fps → 80fps。
+剩余成本在宿主侧，插件层无法消除。
+
+### 落地与登记
+
+- **组件几何对齐**：菜单行 32→28px、command 行 35→28px、键帽 20→16px、tabs 30px、
+  页脚 12px、任务卡 px8/py10、行内码圆角 r4 —— 均按 ZCode **实际使用值**而非组件默认变体
+- **文案**：`search.empty` 回到活键 `commandCenter.noResults`「暂无相关结果」
+- **空态**：树空态 14/21px（9224 活体实测）、项目内左内距 34px
+- **交互**：归档确认补 Enter 提交（输入件内除外）+ 100ms 退场动画；重命名补 IME 组合期守卫
+- **令牌**：`--dcu-secondary-bg` 浅色 `#d4d4d4` → `#e6e6e6`（theme 覆盖层真值，非基座）
+- **宿主锚**：`.JXrxFq_marks` 在当前 asar（3.17.2）0 命中，切 testid 锚
+- **断言**：新增 `night7-gaps.assert.mjs` 25 条双向断言；4 处锁错值的断言连证据更正
+
+### 三份新资产
+
+- `design-language/night6/`：tokens 1670 条 / components 1354 条 / motion 461 条 / structure 309 条
+- `design-language/night3/TODO-LIST.md`：255 条差异合并为 227 行，48 条可立即修
+- `design-language/night9/`：1598 行对照矩阵 / 245 条不一致 + P0 落地记录
+
+---
+
 ## 2.2.1 - 2026-11-03
 
 **整夜对着运行中的 ZCode 实测，以及随后的一轮代码复核。**
