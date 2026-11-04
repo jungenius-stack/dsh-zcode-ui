@@ -1,8 +1,8 @@
 {
   "counts": {
-    "assertScripts": 65,
+    "assertScripts": 66,
     "assertScriptsTs": 40,
-    "assertScriptsMjs": 25,
+    "assertScriptsMjs": 26,
     "specFiles": 58,
     "layoutScripts": 22,
     "tokens": {

@@ -836,6 +836,9 @@ const OFFSET_BASELINE: Record<string, number> = {
   'CodexSidebar.tsx:gap:1px': 2,
   // 发丝级：把扩展项列表整体收紧 1px 并对齐 24px 图标列。
   'CodexSidebar.tsx:margin:1px 0 4px 24px': 1,
+  // 对齐型（2026-11-04 night9 P1-b）：tabs 容器内距 = ZCode tabs-list 原文 p-[3px]。
+  // 不是节奏间隔，是「同一胶囊内 3px 边」的光学量；改 4px 会让选中块显得比 ZCode 胖。
+  'CodexSidebar.tsx:padding:3px': 1,
   // 光学：未读圆点与 20px 行高的文字基线对齐（负值，故必须用完整值作 key）。
   'CodexWorkspaceBrowser.tsx:margin:-3px 0 0': 1,
   // 对齐：会话行文字与父级图标列（24px 图标 + 6px 间隙）对齐。改标度值会错位。
@@ -934,14 +937,20 @@ assert.deepEqual(
 
 // ── 2026-10-17 菜单行键帽（ZCode Kbd/KbdGroup 的等价物）─────────────────────────
 // 背景：本轮之前快捷键只有 aria-keyshortcuts，视觉上完全不可见，可发现性为零。
-// ZCode 侧栏的「新建任务」「命令中心」两行都在右侧常显键帽（NewTaskButtonGroup.tsx:42、
-// WorkspaceSidebar.tsx:1514），规格取自 components/ui/kbd.tsx：h-5(20px) / min-w-5 /
-// rounded-sm(4px) / bg-muted / text-ui-xs / font-medium / px-1 / gap-1。
+// ZCode 侧栏的「新建任务」「命令中心」两行都在右侧常显键帽。
+// 2026-11-04 night9 更正：真实规格取自 ZCode **实际使用的 kbd 变体**，不是 shadcn 默认
+// components/ui/kbd.tsx（那是 h-5/rounded-sm/px-1）。ZCode 原文（night6/components.md:228，
+// 出处 styles-Dv5E6Odo.js:901175 / asar 字节 358843709）：
+//   rounded-md h-4 inline-flex shrink-0 items-center bg-tooltip-tag px-1.5 text-ui-xs
+//   font-medium text-tooltip-tag-foreground
+// 即 h-4(16px) / rounded-md(6px) / px-1.5(6px)。旧断言锁的 h-5(20px)/r-sm(4px)/px-1 是错的。
+// min-width 是插件自设（ZCode 无 min-w 类），用于保证单符号键与字母键等宽，取值跟随高度。
 const kbdCss = sidebar.match(/\.dcu-menu-kbd\{([^}]*)\}/)?.[1]
 assert.ok(kbdCss, '必须定义 .dcu-menu-kbd（菜单行键帽）')
-assert.match(kbdCss, /height:20px/, '键帽高度必须是 ZCode 的 h-5（20px）')
-assert.match(kbdCss, /min-width:20px/, '键帽最小宽度必须是 ZCode 的 min-w-5（20px），保证单符号键与字母键等宽')
-assert.match(kbdCss, /border-radius:var\(--dsw-radius-sm\)/, '键帽圆角必须是 ZCode 的 rounded-sm（4px）')
+assert.match(kbdCss, /height:16px/, '键帽高度必须是 ZCode 实际 kbd 变体的 h-4（16px），非 shadcn 默认 h-5')
+assert.match(kbdCss, /min-width:16px/, '键帽最小宽度必须与高度同为 16px（插件自设，保证单符号键与字母键等宽）')
+// 2026-11-04 night9：ZCode 实际 kbd 变体是 rounded-md（6px），非 shadcn 默认 rounded-sm（4px）。
+assert.match(kbdCss, /border-radius:var\(--dsw-radius-md\)/, '键帽圆角必须是 ZCode 实际 kbd 变体的 rounded-md（6px）')
 assert.match(kbdCss, /font-size:var\(--dsw-font-size-xs\)/, '键帽字号必须走 ZCode 的 text-ui-xs 档（刻度，不得字面量）')
 assert.match(kbdCss, /color:var\(--dcu-kbd-foreground/, '键帽文字必须消费 --dcu-kbd-foreground（分档取色，保证两套主题都过 AA）')
 assert.match(kbdCss, /pointer-events:none/, '键帽是纯展示，不得抢走行点击')

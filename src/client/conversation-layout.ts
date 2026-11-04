@@ -291,7 +291,7 @@ export const CONVERSATION_LAYOUT_STYLE = `
 [data-conversation-scroll] .icaHSq_column :not(pre) > code{
   background:var(--dsw-alias-markdown-inline-code);
   border:0;
-  border-radius:var(--dsw-radius-md);
+  border-radius:var(--dsw-radius-sm);
   padding:2px 6px;
   /* night2 surface-10 M4：行内码外距对齐 ZCode mx-0.5（左右各 2px，js@2858100 code 分支）。
      宿主侧已静态核尽：DSH asar 全部 3 处 :not(pre)>code 规则（web-frontend index css ×2、

@@ -94,7 +94,10 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
    「Pro 设置页随主栏伸展」契约冲突。故保留 thin + scrollbar-color、不声明 gutter。
    这是 HANDOFF 3.2 记录过的权衡后偏离，不是漏实现；若宿主滚动条占位模型变化可重估。 */
 .dcu-settings-main{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;background:var(--sp-bg);scrollbar-width:thin;scrollbar-color:var(--sp-border) transparent}
-/* night2 surface-11 M10：内容列 = ZCode hR（px-4 pt-0 pb-8，lg:px-8 lg:pb-10 → 0/32/40）。 */
+/* night2 surface-11 M10：内容列 = ZCode hR（px-4 pt-0 pb-8，lg:px-8 lg:pb-10 → 0/32/40）。
+   宽度是有意偏离（2026-11-04 night9 登记）：ZCode 用 max-w-4xl=896px，本仓取 864px 的易读
+   宽度（约 65-70 字符/行），由 scripts/verify-settings-geometry.mjs 锁定并守护。
+   若要逐值同构，改 896 需同步改该布局脚本；当前按「可解释的偏离」保留。 */
 .dcu-settings-inner{width:min(100%,864px);margin:0 auto;padding:0 32px 40px}
 /* 模型 Pro 的多列表格按主栏宽度伸展；其他设置页仍保持易读的常规宽度。 */
 .dcu-settings-inner[data-settings-section=dsh-model-pro]{width:100%}
