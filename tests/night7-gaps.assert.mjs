@@ -40,26 +40,17 @@ const theme = readFileSync(resolve(root, 'src/client/zcode-theme.ts'), 'utf8')
 const browser = readFileSync(resolve(root, 'src/client/CodexWorkspaceBrowser.tsx'), 'utf8')
 const sidebar = readFileSync(resolve(root, 'src/client/CodexSidebar.tsx'), 'utf8')
 
-// ── G-① 任务菜单宽 224px（zcode-theme.ts:395）───────────────────────────────
-// 2026-11-05 修正（用户报「项目菜单超出屏幕」）：此前锁的是 `width:224px` **硬宽度**，
-// 但宿主按自身默认 156px 计算菜单位置，硬拉到 224 后右缘越出视口。
-// 改为锁**意图**：不得小于 224（保持 ZCode 档位），且必须有视口上限（防越界）。
-assert.match(
-  theme,
-  /\.dcu-ctx-menu\.dcu-ctx-menu-task\{min-width:224px;max-width:min\(224px,calc\(100vw - 24px\)\)\}/,
-  '任务菜单必须 min-width 224px + max-width 视口上限（硬 width 会让宿主定位越界）',
-)
-// 期望不是：不得回退到 176px 档位。
+// ── G-① 任务菜单宽度：**已整条回退**（2026-11-05，用户裁决 B）
+// 历史：night3 加过 width:224px（照 ZCode w-56），night13 我改成 min-width+视口上限，
+// 但 9223 实测四个菜单（会话管理/项目右键/任务右键/项目子菜单）**均未越界**，
+// 且用户反馈的错乱是「子菜单 y 坐标跳了 174px」的定位问题，与宽度无关。
+// 结论：这条宽度覆盖既无收益又反复引入问题，整条删除，回到 e2e69f8 的原始状态
+// （.dcu-ctx-menu 只有 min-width:176px）。
+// 守卫：不得再出现任何 dcu-ctx-menu-task 的宽度声明。
 assert.doesNotMatch(
   theme,
-  /\.dcu-ctx-menu\.dcu-ctx-menu-task\{min-width:176px/,
-  '任务菜单宽度出现 176px 旧值——不得回退',
-)
-// 期望不是：不得再出现无上限的硬 width（那是本次越界的根因）。
-assert.doesNotMatch(
-  theme,
-  /\.dcu-ctx-menu\.dcu-ctx-menu-task\{width:\d+px\}/,
-  '任务菜单不得用硬 width——宿主按自身宽度定位，硬宽度会越出视口',
+  /\.dcu-ctx-menu\.dcu-ctx-menu-task\{(min-)?width:/,
+  'dcu-ctx-menu-task 不得声明宽度——该覆盖已于 2026-11-05 整条回退（实测无越界，且会干扰宿主定位）',
 )
 
 // ── G-② 置顶空态 gap 6px（zcode-theme.ts:439）───────────────────────────────
