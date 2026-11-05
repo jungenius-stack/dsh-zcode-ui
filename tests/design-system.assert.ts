@@ -839,9 +839,6 @@ const OFFSET_BASELINE: Record<string, number> = {
   // 对齐型（2026-11-04 night9 P1-b）：tabs 容器内距 = ZCode tabs-list 原文 p-[3px]。
   // 不是节奏间隔，是「同一胶囊内 3px 边」的光学量；改 4px 会让选中块显得比 ZCode 胖。
   'CodexSidebar.tsx:padding:3px': 1,
-  // 对齐型（2026-11-05 night13 R1）：推理体左内距 21px = DSH 原有 22px 减去 1px 边宽，
-  // 目的是让文字左缘保持不动（不是节奏间隔）。改 20 或 24 都会让正文相对 ZCode 偏 1-2px。
-  'conversation-layout.ts:padding-left:21px': 1,
   // 光学：未读圆点与 20px 行高的文字基线对齐（负值，故必须用完整值作 key）。
   'CodexWorkspaceBrowser.tsx:margin:-3px 0 0': 1,
   // 对齐：会话行文字与父级图标列（24px 图标 + 6px 间隙）对齐。改标度值会错位。

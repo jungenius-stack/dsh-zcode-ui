@@ -417,7 +417,8 @@ console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX �
   assert.ok(g4 !== '', 'G4 规则必须挂在 HiSsxa_thinkBody（DSH ReasoningRow 推理体，非 TXqvFW 工具分组）')
   assert.doesNotMatch(g4, /margin-left/, 'G4 不得给推理体加 margin——DSH 已自带 22px 缩进，再加会翻倍')
   assert.match(g4, /border-left:1px solid var\(--dsw-alias-border-l2/, 'G4 竖线必须 1px border-l2（reasoning.tsx border-border 值链）')
-  assert.match(g4, /padding-left:21px/, 'G4 竖线与内容间距 21px（21+1 边 = 原有 22px，文字左缘不动）')
+  // 2026-11-05 二次更正：DSH 原文是 calc(22px + delta)，不能写死 21px（会吃掉字号缩放）
+  assert.match(g4, /padding-left:calc\(21px \+ var\(--dsh-content-font-delta,0px\)\)/, 'G4 竖线与内容间距 = 22px+delta−1px边（文字左缘不动，且跟随字号缩放）')
   assert.match(g4, /max-height:240px/, 'G4 推理展开体必须限高 240px（ZCode max-h-60）')
   assert.match(g4, /overflow-y:auto/, 'G4 推理展开体必须内部滚动（ZCode max-h-60 + 滚动）')
   // 反向守卫：ioCard 底色不许落——ZCode bg-muted/15 是死类（主题无 --color-muted，编译产物
