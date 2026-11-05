@@ -381,6 +381,27 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-secondary-bg:#363636}
 [data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]{--dsw-specific-menu:#fff}
 body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]),
 .theme-zai-dark :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [data-gitgraph-popover]){--dsw-specific-menu:#2b2b2b}
+/* night13 R6（2026-11-05，用户报「弹窗背景过淡、没层次感」）：
+   权限模式菜单（宿主 _surface_ri079_1）**不在这两个标记面上**，因此从未拿到
+   --dsw-specific-menu → 宿主菜单壳自身的 background 是 transparent（9223 实测
+   rgba(0,0,0,0)），全靠 3px/20px 的极淡阴影撑形，深色下几乎看不见边界。
+
+   ZCode 对应值（9224 实测）：底 #2b2b2b 实色 / 边框 1px rgba(255,255,255,.1) /
+   圆角 8px / 阴影 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1)。
+   DSH 阴影实测是 0.5px 环 + 3px 8px + 20px glow（比 ZCode 更散、更淡），
+   这里一并换成 ZCode 的两段式。
+
+   用 :has 收窄到「含菜单项且宿主 surface 类」的菜单，避免波及别的浮层。 */
+:is([role="menu"]:has(._item_4ub78_90),_surface_ri079_1){
+  background:var(--dsw-specific-menu,#fff);
+  border:1px solid var(--dcu-tip-border);
+  box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
+}
+body[data-ds-dark-theme] :is([role="menu"]:has(._item_4ub78_90),_surface_ri079_1),
+.theme-zai-dark :is([role="menu"]:has(._item_4ub78_90),_surface_ri079_1){
+  --dsw-specific-menu:#2b2b2b;
+  background:#2b2b2b;
+}
 /* night2 surface-1 #1-#6/#8/#9：树菜单（context menu）家族注入覆盖。四棵树菜单与
    共用会话行菜单经 Menu 的 listClassName 挂 dcu-ctx-menu，密度档从 compact 改保
    dense（primitives：行 30px/内距 4-8px，去掉 compact 的 11px 字、12px 图标、4px 项
