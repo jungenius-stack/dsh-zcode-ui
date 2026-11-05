@@ -1401,7 +1401,7 @@ const COLOR_LITERAL_ALLOW: Record<string, Record<string, string>> = {
     // 2026-11-05 night13 R3 双主题实测：ZCode 完全访问 chip 用 --color-warning（#e07b00/#ff8a30），
     // 但 #e07b00 对白底仅 3.0:1 不达 AA。浅色改用 ZCode 另一个正式令牌
     // --color-warning-surface-foreground(#914e00，6.38:1)；深色沿用 #ff8a30（7.7:1，与 ZCode 一致）。
-    '#914e00': 'ZCode --color-warning-surface-foreground（亮）：权限 chip 黄档，AA 达标',
+    '#e07b00': 'ZCode --color-warning（亮）：权限 chip 黄档，与 ZCode 逐值一致（上游本身 3.0:1，已登记为已知偏差）',
     '#ff8a30': 'ZCode --color-warning（暗）：权限 chip 黄档，与 ZCode 逐值一致',
   },
   'TurnNavigator.tsx': {

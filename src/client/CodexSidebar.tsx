@@ -399,17 +399,16 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
    DSH 侧无 data-* 状态属性，只有 aria-label 可锚（CDP 实测：'工作区内修改' 唯一命中 1，
    另两个模式命中 0）。故用 aria-label 子串选择器。
    图标与文字要一起染：chip 内部是 span + svg，只染按钮不影响子元素。 */
-/* 黄色档：深浅两套值，取自 ZCode 自己的令牌（2026-11-05 9224 双主题实测）。
-   ZCode 完全访问 chip 实测：
+/* 黄色档：**完全照抄 ZCode**（2026-11-05 用户裁决，此前我用 #914e00 折中导致偏深棕）。
+   ZCode 完全访问 chip 双主题实测（9224）：
+     浅色 = rgb(224,123,0)  = #e07b00 = --color-warning（亮）
      深色 = rgb(255,138,48) = #ff8a30 = --color-warning（暗）
-     浅色 = rgb(224,123,0)  = #e07b00 = --color-warning（亮）—— 但 #e07b00 对白底仅 3.0:1，不达 AA
-   故浅色改用 ZCode 另一个**正式令牌** --color-warning-surface-foreground(#914e00)，
-   语义正是「警告色表面上的前景文字」，对白底 6.38:1 达 AA。
-   深色沿用 #ff8a30（对 #161616 为 7.7:1，本就达标），与 ZCode 逐值一致。
-   该令牌未在 zcode-tokens.ts 映射，此处写字面值并注明出处。 */
+   ⚠️ 已知偏离：ZCode 的 #e07b00 对白底仅 3.0:1，不达 WCAG AA 正文档。
+   这是 ZCode 上游本身的设计选择，本皮肤以「忠实复刻」为最高目标，按用户明示保持一致，
+   并在 design-language 登记为已知偏差（非本仓疏漏）。 */
 [data-composer-card] button[class*="wXeviG_trigger"][aria-label*="完全权限"],
 [data-composer-card] button[class*="wXeviG_trigger"][aria-label*="完全权限"] *{
-  color:#914e00;
+  color:#e07b00;
 }
 /* 深色判定：DSH 用 body[data-ds-dark-theme]（**属性值为空**，存在即深色），
    所以必须用 [data-ds-dark-theme] 而非 [data-ds-dark-theme=true]，后者匹配不到。
