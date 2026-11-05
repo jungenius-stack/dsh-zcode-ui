@@ -51,14 +51,14 @@ export const COMPOSER_TOOL_MENU_STYLE = `
 [data-conversation-scroll] [data-trigger-menu]>[role=listbox]{box-sizing:border-box;width:100%;min-width:0;align-self:stretch;scrollbar-width:none}
 [data-conversation-scroll] [data-trigger-menu] [role=option]{box-sizing:border-box;width:100%;min-width:0;min-height:28px;padding:0 8px;gap:8px;border-radius:var(--dsw-radius-md);font-size:var(--dsw-font-size-base);line-height:21px}
 [data-conversation-scroll] [data-trigger-menu] [role=option][aria-selected=true]{background:var(--dsw-specific-menu-item-hover,var(--dcu-sidebar-hover))}
-/* night13 R4（2026-11-05）：权限模式菜单几何对齐 ZCode。
-   DSH 原值：菜单 min-width 144px / padding 4px / 圆角 8px；项高 34px。
-   ZCode 值（9224 活体实测，2026-11-05）：菜单 **256px** / 项高 **57px**
-     （审计阶段按 Tailwind 类名折算成 52px，实测是 57px，已按实测更正）
-   必须用 :has 收窄——实测宿主其它菜单（模型选择等）复用同一 _item_4ub78_90 类名，
-   只写 [role=menu] ._item_4ub78_90 会误伤别处。 */
-[role="menu"]:has(._item_4ub78_90){min-width:256px}
-[role="menu"]:has(._item_4ub78_90) ._item_4ub78_90{min-height:57px}
+/* night13 R4 已回退（2026-11-05 用户报「项目菜单超出屏幕」）。
+   原实现用 :has(._item_4ub78_90) 收窄，但该类名是宿主**通用菜单项**组件，
+   会话管理菜单、任务右键菜单、项目子菜单全都命中 → 全部被强制成 min-width:256px，
+   子菜单叠加父菜单宽度后溢出视口右侧。
+
+   教训：:has(通用组件类名) 不等于「锁定那个菜单」。要锁定特定菜单必须用
+   **该菜单独有的特征**（aria-label / 独有文案 / 独有父容器），不能用共享组件类。
+   R4 暂不重做——需要先确认权限菜单有独有锚点，否则宁可不改。 */
 `
 
 export function observeComposerToolMenus(copy: { search: string; empty: string }): () => void {

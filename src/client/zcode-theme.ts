@@ -391,14 +391,19 @@ body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [
    DSH 阴影实测是 0.5px 环 + 3px 8px + 20px glow（比 ZCode 更散、更淡），
    这里一并换成 ZCode 的两段式。
 
-   用 :has 收窄到「含菜单项且宿主 surface 类」的菜单，避免波及别的浮层。 */
-:is([role="menu"]:has(._item_4ub78_90),_surface_ri079_1){
+   ⚠️ 2026-11-05 修正（用户报「侧栏太丑 + 项目菜单超出屏幕」）：
+   首版用 [role=menu]:has(._item_4ub78_90) 收窄，但 _item_4ub78_90 是宿主**通用菜单项**
+   组件 → 会话管理菜单、任务右键菜单、项目子菜单**全部**被判中，一律套上 #2b2b2b 底，
+   视觉错乱。改用「菜单里文案含模式名」这个权限菜单独有的特征来锁定：
+   权限菜单的三项固定是「变更前确认 / 自主模式 / 完全访问」（deepseek 侧文案），
+   用 :has() 匹配任一即可，不影响其它菜单。 */
+:is([role="menu"]:has(._item_4ub78_90:is([aria-label*="模式"],[data-mode]))){
   background:var(--dsw-specific-menu,#fff);
   border:1px solid var(--dcu-tip-border);
   box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1);
 }
-body[data-ds-dark-theme] :is([role="menu"]:has(._item_4ub78_90),_surface_ri079_1),
-.theme-zai-dark :is([role="menu"]:has(._item_4ub78_90),_surface_ri079_1){
+body[data-ds-dark-theme] [role="menu"]:has(._item_4ub78_90:is([aria-label*="模式"],[data-mode])),
+.theme-zai-dark [role="menu"]:has(._item_4ub78_90:is([aria-label*="模式"],[data-mode])) {
   --dsw-specific-menu:#2b2b2b;
   background:#2b2b2b;
 }
