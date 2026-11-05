@@ -100,6 +100,7 @@ export const UNCHECKED_HOST_ANCHORS: readonly { readonly anchor: string; readonl
   { anchor: '_ioCard', why: '工具卡展开体卡片（_ioCard_<hash>，MessageItem.module）：只在工具卡展开时渲染——前置条件无法先验判定，不参与运行时自检。失效后果：圆角/边回落宿主 8px/0.5px（批次7 已对齐 xl/1px/l2）' },
   { anchor: '_ioSection', why: '工具卡展开体输出区（_ioSection_<hash>）：只在工具卡展开时渲染——同上不参与自检。失效后果：内距回落宿主 12/16（批次7 已对齐 12/12）' },
   { anchor: 'TXqvFW_body', why: '推理块内容体（TXqvFW_body_<hash>，ReasoningRow.module）：只在思考块展开时渲染——同上不参与自检。失效后果：竖线消失（批次7 已落 ml8+border-l1+pl14）' },
+  { anchor: '_surface', why: '浮层壳基元（_surface_<hash>，MenuSurface.module）：只在菜单/浮层打开时渲染——前置条件无法先验判定，不参与自检。night14 R7 用它把 elevation（1px 环 + shadow-md）收窄到浮层，不做全局替换。失效后果：浮层描边/阴影回落宿主 0.5px 6% + 4%/5%（层次变淡，目检可发现）' },
 ]
 
 /** 在给定根节点下审计锚点，返回缺失项。作用域不在场时跳过该组（不报）。 */

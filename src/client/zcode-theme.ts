@@ -391,6 +391,43 @@ body[data-ds-dark-theme] :is([data-dcu-tool-menu],[class*="_heroWorkspaceRow"] [
    primitives 类名是宿主 CSS Modules 哈希（_item_4ub78 等），item/icon/danger 用
    类名前缀子串锚定（composer-tool-menus 已验证的同款模式），结构槽用 role 锚定；
    壳自身规则双写类名抬优先级，压过 .list/.submenu 的同名声明。 */
+/* night14 R7（2026-11-05，用户报「弹窗背景过淡、没有层次感，设计语言也不行」）：
+   浮层底材质对齐 ZCode。宿主把**所有**浮层的底都收在一个令牌上：
+   --dsw-menu-surface-fill: #f8f9fa94（=rgba(248,249,250,.58)，58% 半透明）+
+   --dsw-menu-backdrop-filter: blur(40px) saturate(150%)，由 material 子层
+   铺满浮层（position:absolute;inset:0;z-index:-1）。--dsw-specific-menu 另有
+   独立硬编码值 #f8f9faf0（94%），不派生自上面那个。
+   实测（9223 活体，暗/亮两套）：浮层压在纯黑衬底上合成出 rgb(144,145,145)，
+   即被背后正文染成中灰；关掉半透明后同一位置为 rgb(255,255,255)。
+   这就是「过淡、没层次」的物理成因：40px 模糊把背后内容糊成灰雾透上来。
+   ZCode 对照（9224 活体）：菜单 bg 实测 rgb(255,255,255) **不透明**、
+   border:1px rgba(13,13,13,.1)、shadow-md（10%/10%），composer 同样不透明 ——
+   两侧均无毛玻璃。故此处整条对齐，并推翻 night2 surface-1 #10 的
+   「已裁决偏离，维持毛玻璃」——该裁决被用户 2026-11-05 截图否证。
+   范围界定：正文/composer/侧栏走 --dsw-specific-input-major / --dsw-alias-bg-*，
+   不消费本令牌（实测改后三者计算值不变），故只动浮层底，不波及内容区。
+   暗色侧用 ZCode --color-menu 实测值 #2b2b2b（不是宿主的 #43454a73）。 */
+html body{--dsw-menu-surface-fill:#fff;--dsw-menu-backdrop-filter:none}
+/* 暗色必须写在 **body 自己**身上，不能写 html .theme-zai-dark：后者把变量设在 html，
+   而 body 已由上面那条在自身声明了 #fff —— 子元素自声明优先于继承，深色会静默失效。
+   故三种暗色标记都映射到 html body 前缀（特异性 (0,1,2) 压过 (0,0,2)）：
+   ① body[data-ds-dark-theme] ← **DSH 的实际机制**（属性值无关、存在即暗）
+   ② body.theme-zai-dark     ← 兜底：主题类若挂在 body 上
+   ③ html.theme-zai-dark body← 兜底：主题类若挂在 html 上
+   实测（9223）：DSH 由宿主 JS 持续把 html 的 class 改写回 theme-zai-light/-dark，
+   外部无法维持 html.theme-zai-dark（设上去 150ms 内就被改回），故 ③ 在当前版本
+   不会命中；保留它零成本，宿主换实现时才用得上。真正生效的是 ①。 */
+html body[data-ds-dark-theme],
+html body.theme-zai-dark,
+html.theme-zai-dark body{--dsw-menu-surface-fill:#2b2b2b;--dsw-menu-backdrop-filter:none}
+/* 层次第二件：描边 + 阴影。宿主浮层用 --dsw-elevation-stroke（0.5px 环，6%）
+   拼 --dsw-elevation-prominent（4%/5% 两层）。ZCode 是 1px 环 10% + shadow-md。
+   只挂在浮层壳类（_surface_ri079，宿主浮层基元，实测仅菜单/浮层使用）上，
+   不改全局 —— 全局会把对话框、tooltip、图片预览的 elevation 一并换掉。 */
+[class*="_surface_ri079"]{
+  --dsw-elevation-stroke:0 0 0 1px var(--dcu-tip-border);
+  --dsw-elevation-prominent:var(--dsw-elevation-stroke),var(--dcu-tip-shadow);
+}
 @keyframes dcu-ctx-menu-in{from{opacity:0;transform:translateY(-8px) scale(.95)}}
 .dcu-ctx-menu.dcu-ctx-menu{min-width:176px;animation:dcu-ctx-menu-in var(--dcu-tw-anim-duration,100ms) ease}
 .dcu-ctx-menu.dcu-ctx-menu>[role=presentation]{gap:2px}

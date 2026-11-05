@@ -190,4 +190,38 @@ assert.doesNotMatch(
   '命令项选中底被改成 tag 令牌以外的值，必须唯一为 var(--dsw-alias-markdown-tag)',
 )
 
-console.log('night7-gaps: 25 条断言通过')
+// ── G-② 浮层底必须不透明（night14 R7，2026-11-05）
+// 用户报「弹窗背景过淡、没有层次感，设计语言也不行，要对照 ZCode」。
+// 9223 活体实测：浮层 material 子层计算值 rgba(248,249,250,.58)，压在纯黑衬底上
+// 合成出 rgb(144,145,145)（被背后正文染成中灰）；关掉半透明后同位置 rgb(255,255,255)。
+// 9224 对照：ZCode 菜单 bg 实测 rgb(255,255,255) 不透明、border 1px rgba(13,13,13,.1)、
+// shadow-md，composer 同样不透明——两侧都没有毛玻璃。
+// 这组断言锁三件事：① 底必须实色 ② 模糊必须关掉 ③ 两套主题各给对值。
+assert.match(
+  theme,
+  /html body\{--dsw-menu-surface-fill:#fff;--dsw-menu-backdrop-filter:none\}/,
+  '浮层底必须是不透明 #fff 且关掉毛玻璃——58% 半透明会被背后正文染色（实测黑底上合成成 rgb(144,145,145)），这正是「过淡没层次」的成因',
+)
+assert.match(
+  theme,
+  /html\.theme-zai-dark body\{--dsw-menu-surface-fill:#2b2b2b;--dsw-menu-backdrop-filter:none\}/,
+  '暗色浮层底必须写在 body 自己身上（html.theme-zai-dark body）：写成 html .theme-zai-dark 会把变量设在 html，被 body 自身声明的 #fff 覆盖而静默失效',
+)
+assert.doesNotMatch(
+  theme,
+  /--dsw-menu-surface-fill:[\s\S]{0,40}?(?:94|73|f0)\)?;/,
+  '浮层底不得回退成带 alpha 的值（94/73/f0 后缀）——半透明即会被背后内容染色',
+)
+// 阴影只许挂在浮层壳上，不得写成全局（全局会连带换掉对话框/tooltip/图片预览的 elevation）
+assert.match(
+  theme,
+  /\[class\*="_surface_ri079"\]\{\s*--dsw-elevation-stroke:0 0 0 1px var\(--dcu-tip-border\);\s*--dsw-elevation-prominent:var\(--dsw-elevation-stroke\),var\(--dcu-tip-shadow\);/,
+  '浮层 elevation 必须收窄到 _surface_ 壳上：1px 环（ZCode border 10%）+ shadow-md；写成全局会波及对话框与 tooltip',
+)
+assert.doesNotMatch(
+  theme,
+  /^:root\{--dsw-elevation-stroke:/m,
+  'elevation 不得挂到 :root（全局）：ZCode 只把 1px 环用在浮层，dialog/tooltip 走宿主自己的档位',
+)
+
+console.log('night7-gaps: 30 条断言通过')

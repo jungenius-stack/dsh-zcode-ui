@@ -52,6 +52,13 @@ const HOST_PROVIDED = new Set([
   // 只是失去半透明与模糊——这是「降级到可读」，不是「静默失效」。
   '--dsw-specific-menu',
   '--dsw-menu-backdrop-filter',
+  // night14 R7：浮层 elevation 两件（描边环 + 阴影栈）。宿主值 = 0.5px 6% 环 +
+  // 0 3px 8px #0000000a + 0 0 20px #0000000d。本仓在浮层壳（_surface_*）上**改写**
+  // 它们为 ZCode 的 1px 环 10% + shadow-md，值是「引用宿主令牌 + 自家 --dcu-tip-* 组合」，
+  // 不新造色值；缺宿主时这两条声明整体失效，浮层回落无描边无阴影
+  // （仍是实色块，可读，安全降级）。故不进换肤映射表——它是结构而不是配色。
+  '--dsw-elevation-stroke',
+  '--dsw-elevation-prominent',
 ])
 
 const missing = [...consumed.keys()].filter(name => !defined.has(name) && !HOST_PROVIDED.has(name)).sort()
