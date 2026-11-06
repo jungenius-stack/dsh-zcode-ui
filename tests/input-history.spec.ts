@@ -33,14 +33,20 @@ describe('输入历史', () => {
     expect(history.list('a')).toEqual(['新输入', '最新'])
     expect(history.list('b')).toEqual(['其他项目'])
   })
-  it('上下键到头不循环，向下到底恢复草稿', () => {
+  it('上下键到头不循环，向下到底恢复草稿；空草稿 ↓ 直接召回最后一条（ZCode cYt）', () => {
     const cursor = new HistoryCursor()
     expect(cursor.move(-1, '', ['旧', '新'])).toBe('新')
     expect(cursor.move(-1, '新', ['旧', '新'])).toBe('旧')
     expect(cursor.move(-1, '旧', ['旧', '新'])).toBe('旧')
     expect(cursor.move(1, '旧', ['旧', '新'])).toBe('新')
     expect(cursor.move(1, '新', ['旧', '新'])).toBe('')
-    expect(cursor.move(1, '', ['旧', '新'])).toBeUndefined()
+    // night15（夜3 surface-7 #3）：↓ 从空草稿不再 no-op——先召回最近一条，再 ↓ 清回草稿，可循环。
+    // 旧末行曾钉死 toBeUndefined（applied-night2 面7 登记不落的锚），随行为对齐同步改规格。
+    const fromEmpty = new HistoryCursor()
+    expect(fromEmpty.move(1, '', ['旧', '新'])).toBe('新')
+    expect(fromEmpty.move(1, '新', ['旧', '新'])).toBe('')
+    expect(fromEmpty.move(1, '', ['旧', '新'])).toBe('新')
+    expect(new HistoryCursor().move(1, '', ['唯一'])).toBe('唯一')
   })
   it('不覆盖正在编辑的内容，编辑召回内容后退出', () => {
     const cursor = new HistoryCursor()

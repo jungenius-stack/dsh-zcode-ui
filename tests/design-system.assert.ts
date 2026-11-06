@@ -281,8 +281,8 @@ assert.match(tokens, /'--dsw-focus-ring-color': '#4099ff'/, '暗色焦点环必�
 assert.match(reducedMotion, /animation:none/, '减少动态效果必须停掉无限装饰动画（时长归零对 infinite 无效）')
 assert.match(
   reducedMotion,
-  /\.dcu-about-progress-fill\[data-wave=true\]\{animation:none;width:28%\}/,
-  '进度波浪应停在静止帧（28%），保留「进行中」的可读性',
+  /\.dcu-about-progress-fill\[data-wave=true\]\{animation:none;transform:none;width:100%\}/,
+  '进度波浪 reduce 必须停满宽（ZCode 同款 width:100%，夜3 surface-8 #6），保留「进行中」的可读性',
 )
 // 加载转圈（2026-10-13 复刻）：节奏与曲线是 ZCode 的锁定量，直接钉在原值上——
 // 任何"再设计"（改时长、改曲线、改关键帧）都会在这里变红。定义收归主题层共享基元，
@@ -854,7 +854,7 @@ const OFFSET_BASELINE: Record<string, number> = {
   'CodexWorkspaceBrowser.tsx:padding:8px 34px 8px 34px': 1,
   // 光学：1px 微调让次要文字与主文字的视觉基线对齐（不是节奏间隔）。
   'ConnectorsSection.tsx:margin-top:1px': 1,
-  'settings-page-styles.ts:margin-top:1px': 1,
+  // （夜3 surface-11 M5）设置导航行距 1px 已对齐 ZCode space-y-1，改写 var(--dcu-space-1) 在标度上，基线条目随之移除。
   // 发丝级：菜单项底部 1px（与相邻行的分隔密度一致）。
   'composer-tool-menus.ts:margin:0 0 1px': 1,
   // ⚠ 几何耦合值，**不是**节奏：设置导航的 18px 上边距是「macOS 标题栏安全区」的组成部分——
@@ -1588,8 +1588,8 @@ assert.ok(
   '加号的圆形底必须只在 hover/focus-visible 出现（静止态透明）',
 )
 assert.ok(
-  composerVisuals.includes('var(--dsw-alias-interactive-bg-hover-solid)'),
-  '加号 hover 的圆形底必须走宿主语义令牌，不能硬编码颜色',
+  composerVisuals.includes('var(--dsw-alias-interactive-bg-hover)'),
+  '加号 hover 的圆形底必须走宿主语义 5% 混合令牌（ZCode hover:bg-hover，夜3 surface-13 二#1），不能硬编码颜色或用实底档',
 )
 assert.ok(
   composerVisuals.includes('justify-content:center'),

@@ -31,9 +31,11 @@ describe('侧栏拖拽：宽度跟随', () => {
     }
   })
 
-  it('宽度不得低于 MIN、不得高于 420', () => {
+  it('宽度不得低于 MIN、不得高于容器一半（ZCode c7 上限同构，夜3 surface-14 4#3）', () => {
     expect(sidebarWidthDuringDrag(264, 0, -999)).toBe(CODEX_SIDEBAR_MIN_PX)
-    expect(sidebarWidthDuringDrag(264, 0, 999)).toBe(420)
+    expect(sidebarWidthDuringDrag(264, 0, 999, 1600)).toBe(800)
+    // 上限永不低于 MIN：窄容器下 0.5×宽 被 MIN 托底，与 ZCode max(264,.5×宽) 同构。
+    expect(sidebarWidthDuringDrag(264, 0, 999, 300)).toBe(CODEX_SIDEBAR_MIN_PX)
   })
 })
 

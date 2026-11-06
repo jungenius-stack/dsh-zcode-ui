@@ -448,7 +448,7 @@ console.log('✓ 侧栏模板串：关键规则齐备、体积合理、无 JSX �
   const preBlock = layoutStyle.split('}').find(r => r.includes('.md-code-block pre{')) ?? ''
   assert.match(preBlock, /--shiki-background:var\(--dsw-alias-markdown-code-editor-bg\)/, 'B5 pre 必须重定义 shiki 背景变量（内联 style 优先级兜底）')
   assert.match(preBlock, /border:1px solid var\(--dsw-alias-border-l2/, 'B5 pre 边必须 1px border-l2')
-  assert.match(preBlock, /padding:6px 8px 12px/, 'B5 pre 内距必须 6/8/12（D1 活体）')
+  assert.match(preBlock, /padding:0 8px 12px/, 'B5 pre 内距必须 0/8/12（live-verdicts C-5 收口：体包 0/8/12/8，夜3 surface-14 4#2；旧 6/8/12 系 D1 活体已被翻案）')
   // B6 行内码
   const inline = blockOf('[data-conversation-scroll] .icaHSq_column :not(pre) > code{')
   assert.match(inline, /background:var\(--dsw-alias-markdown-inline-code\)/, 'B6 行内码底必须走 inline-code 令牌（color-mix tag 50% 值链）')

@@ -1,6 +1,16 @@
 import { CODEX_SIDEBAR_MIN_PX } from './sidebar-width.ts'
 
-const SIDEBAR_MAX_PX = 420
+/**
+ * 拖拽宽度上限，ZCode c7 同构（JS@5899560：round(max(264,min(e,max(264,.5×容器宽))))）：
+ * 容器的一半，但不低于最小宽；容器宽未知（缺省/非正数）时不设上限（ZCode t 缺省 = Infinity 同构）。
+ * 夜3 surface-14 4#3：原 420 定值上限与 ZCode 的宽度相对上限相斥（复核裁定真实差异即此处），
+ * 按 0.5×容器宽收口；下限 200 维持既有裁决不动（sidebar-width.ts 头注）。
+ */
+function sidebarMaxWidth(containerWidth: number | undefined): number {
+  return containerWidth !== undefined && containerWidth > 0
+    ? Math.max(CODEX_SIDEBAR_MIN_PX, containerWidth * 0.5)
+    : Number.POSITIVE_INFINITY
+}
 
 /**
  * 越过最小宽度后，还要再左拖这么多像素才收起。
@@ -27,9 +37,9 @@ export function shouldCollapseOnSidebarDrag(startWidth: number, startX: number, 
   return false
 }
 
-/** 直接按可见宽度计算拖拽结果，绕开宿主与 Codex 不一致的最小宽度。 */
-export function sidebarWidthDuringDrag(startWidth: number, startX: number, currentX: number): number {
-  return Math.min(SIDEBAR_MAX_PX, Math.max(CODEX_SIDEBAR_MIN_PX, startWidth + currentX - startX))
+/** 直接按可见宽度计算拖拽结果，绕开宿主与 Codex 不一致的最小宽度；containerWidth 取侧栏所在帧的宽度。 */
+export function sidebarWidthDuringDrag(startWidth: number, startX: number, currentX: number, containerWidth?: number): number {
+  return Math.min(sidebarMaxWidth(containerWidth), Math.max(CODEX_SIDEBAR_MIN_PX, startWidth + currentX - startX))
 }
 
 export function isSidebarDragHandle(target: EventTarget | null): boolean {

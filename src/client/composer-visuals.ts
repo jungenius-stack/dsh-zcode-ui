@@ -17,7 +17,9 @@
 export const COMPOSER_VISUALS_STYLE_ID = 'dcu-composer-visuals-style'
 
 export const COMPOSER_VISUALS_CSS = `
-/* 加号：静止态不画圆；悬停/键盘聚焦时才出现圆形底。 */
+/* 加号：静止态不画圆；悬停/键盘聚焦时才出现圆形底。
+   夜3 surface-13 二#1：hover 底对齐 ZCode hover:bg-hover = --color-hover 5% 混合
+   （浅 #0d0d0d0d / 深 #ffffff0d，静息透明）——换用全仓已对齐的 5% hover 令牌，不用实底档。 */
 [data-conversation-scroll] [data-composer-card] button[class*="_add"]{
   transition:background-color var(--dcu-motion-feedback-duration,150ms) var(--dcu-motion-feedback-ease,cubic-bezier(.4,0,.2,1));
 }
@@ -26,7 +28,7 @@ export const COMPOSER_VISUALS_CSS = `
 }
 [data-conversation-scroll] [data-composer-card] button[class*="_add"]:hover:not(:disabled),
 [data-conversation-scroll] [data-composer-card] button[class*="_add"]:focus-visible{
-  background:var(--dsw-alias-interactive-bg-hover-solid);
+  background:var(--dsw-alias-interactive-bg-hover);
 }
 
 /* 回到底部：宿主靠右（flex-end），改为会话区居中。

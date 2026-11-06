@@ -125,10 +125,11 @@ assert.equal(
 
 // hover（非 disabled）与 focus-visible 必须同时出圆底，且用语义令牌而非硬编码色值 ——
 // 键盘用户与鼠标用户必须看到同一状态，否则等于丢掉 focus 可见性。
+// 夜3 surface-13 二#1：令牌从实底档换成 5% 混合档（ZCode hover:bg-hover 原语义），锁意图不变。
 assert.match(
   visuals,
-  /button\[class\*="_add"\]:hover:not\(:disabled\),\n\[data-conversation-scroll\] \[data-composer-card\] button\[class\*="_add"\]:focus-visible\{\n {2}background:var\(--dsw-alias-interactive-bg-hover-solid\);\n\}/,
-  '加号圆底必须由 hover:not(:disabled) 与 focus-visible 共同触发，且取宿主语义令牌',
+  /button\[class\*="_add"\]:hover:not\(:disabled\),\n\[data-conversation-scroll\] \[data-composer-card\] button\[class\*="_add"\]:focus-visible\{\n {2}background:var\(--dsw-alias-interactive-bg-hover\);\n\}/,
+  '加号圆底必须由 hover:not(:disabled) 与 focus-visible 共同触发，且取宿主语义 5% 混合令牌',
 )
 
 // 每条加号选择器都必须带 [data-conversation-scroll] [data-composer-card] 前缀。

@@ -78,8 +78,9 @@ body[data-ds-dark-theme] .dcu-settings-nav{--sp-text:var(--dcu-sidebar-navigatio
 .dcu-settings-group{flex-shrink:0;margin:0 0 16px}
 .dcu-settings-group-label{margin:0 10px 4px;color:var(--dcu-settings-group-label,#595959);font-size:var(--dsw-font-size-sm);font-weight:500}
 .dcu-settings-link{display:flex;align-items:center;gap:8px;height:32px;min-height:32px;min-width:0;width:100%;padding:0 10px;border:0;border-radius:var(--dsw-radius-xl);overflow:hidden;background:transparent;color:var(--sp-text);text-align:left;font-size:var(--dcu-settings-nav-size,var(--dsw-font-size-base))!important;transition:background-color var(--dcu-motion-feedback-duration) var(--dcu-motion-feedback-ease)}
-/* Codex Desktop SidebarItem / SidebarSection：30px 行高、1px 行距、内收焦点圈。 */
-.dcu-settings-link+.dcu-settings-link{margin-top:1px}
+/* 行高 32 与内收焦点圈维持既有裁决；行距对齐 ZCode 组内 space-y-1=4px（夜3 surface-11 M5
+   复核 verified，renderer@6455081）。旧值 1px 引 Codex Desktop 行距体系，已废。 */
+.dcu-settings-link+.dcu-settings-link{margin-top:var(--dcu-space-1)}
 .dcu-settings-back:focus-visible,.dcu-settings-link:focus-visible{outline-offset:-2px}
 .dcu-settings-link[aria-current=page]{background:var(--sp-active)}
 /* night2 surface-11 M1：图标色 = 前景（ZCode 图标槽 text-foreground 同前景；复核更正：

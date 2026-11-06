@@ -219,9 +219,9 @@ html[data-document-hidden] *,html[data-document-hidden] *::before,html[data-docu
    所有消费方自动跟随。各处残留的 transition:none 块保留（它们同时覆盖未令牌化的宿主元素）。 */
 @media (prefers-reduced-motion:reduce){
   :root{--dcu-motion-feedback-duration:0ms;--dcu-motion-move-duration:0ms;--dcu-motion-collapse-duration:0ms;--dcu-motion-enter-duration:0ms;--dcu-motion-exit-duration:0ms;--dcu-motion-press-duration:0ms}
-  /* 时长归零管不到 infinite 动画——波浪与旋转会继续动。按 ZCode 的「停静止帧」处理：
-     动作归零，但保留「进行中」的可读性（进度停在当前进度，而不是变回 0；转圈停在原角度，图标不消失）。 */
-  :root:root .dcu-about-progress-fill[data-wave=true]{animation:none;width:28%}
+  /* 时长归零管不到 infinite 动画——波浪与旋转会继续动。按 ZCode 的「停静止帧」处理：动作归零，保留「进行中」的可读性。
+     夜3 surface-8 #6：不确定态进度 reduce 停满宽 width:100%（ZCode 真值 width:100%;animation:none;left:0，它动 left 本仓动 translateX，故复位 transform）。 */
+  :root:root .dcu-about-progress-fill[data-wave=true]{animation:none;transform:none;width:100%}
   :root:root .dcu-spin{animation:none}
 }
 /* Zai Light —— 默认浅色，全部语义角色取自 .theme-zai-light 覆盖层。

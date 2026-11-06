@@ -286,7 +286,10 @@ export const CONVERSATION_LAYOUT_STYLE = `
   color:var(--dsw-alias-markdown-code-editor-fg);
   border:1px solid var(--dsw-alias-border-l2);
   border-radius:var(--dsw-radius-md);
-  padding:6px 8px 12px;
+  /* 夜3 surface-14 4#2（live-verdicts C-5 收口翻案 D1）：ZCode 码块体包内距 = 0/8/12/8
+     （上/右/下/左，CDP 实测 p-2 pt-0 pb-3）；本仓 pre 即体包（无独立包装层），
+     右/下/左本就一致，仅上 6px → 0。 */
+  padding:0 8px 12px;
 }
 [data-conversation-scroll] .icaHSq_column :not(pre) > code{
   background:var(--dsw-alias-markdown-inline-code);

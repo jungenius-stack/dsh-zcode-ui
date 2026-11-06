@@ -42,7 +42,7 @@ export class InputHistory {
   }
 }
 
-/** 从空输入进入，编辑历史即退出，避免覆盖用户的新草稿。 */
+/** 从空输入进入（↑ 进「草稿位」再上移；↓ 按 ZCode cYt 直接召回最后一条），编辑历史即退出，避免覆盖用户的新草稿。 */
 export class HistoryCursor {
   private index: number | undefined
   private original = ''
@@ -53,9 +53,16 @@ export class HistoryCursor {
   move(direction: -1 | 1, draft: string, entries: readonly string[]): string | undefined {
     if (this.index !== undefined && draft !== this.displayed) this.reset()
     if (this.index === undefined) {
-      if (direction !== -1 || draft !== '' || entries.length === 0) return undefined
+      if (draft !== '' || entries.length === 0) return undefined
       this.original = draft
       this.entries = [...entries]
+      if (direction === 1) {
+        // 夜3 surface-7 #3：ZCode cYt 对空草稿按 ↓ 直接给 {len-1, e[len-1]}——无需先 ↑。
+        // 再 ↓ 走下方 index=len 分支清回草稿（original 即进店时的空草稿）。
+        this.index = this.entries.length - 1
+        this.displayed = this.entries[this.index] ?? ''
+        return this.displayed
+      }
       this.index = this.entries.length
     }
     this.index = Math.max(0, Math.min(this.entries.length, this.index + direction))

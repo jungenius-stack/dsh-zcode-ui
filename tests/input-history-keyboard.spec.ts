@@ -28,6 +28,11 @@ test('空输入召回、恢复草稿，菜单、输入法、修饰键和卸载�
   expect(editor.value).toBe('第一条')
   press('ArrowDown'); press('ArrowDown')
   expect(editor.value).toBe('')
+  // night15（夜3 surface-7 #3）：空草稿 ↓ 直接召回最后一条（ZCode cYt），再 ↓ 清回草稿。
+  expect(press('ArrowDown')).toBe(true)
+  expect(editor.value).toBe('第二条')
+  expect(press('ArrowDown')).toBe(true)
+  expect(editor.value).toBe('')
   blocked = true
   expect(press('ArrowUp')).toBe(false)
   blocked = false

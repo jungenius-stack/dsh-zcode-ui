@@ -894,12 +894,12 @@ export function CodexSidebar({ workspaceShortcuts, navigationHistory, globalPane
     const onMove = (event: PointerEvent): void => {
       if (!dragging || event.pointerId !== pointerId || frame === undefined) return
       stopHostDrag(event)
-      applySidebarWidth(frame, sidebarWidthDuringDrag(startWidth, startX, event.clientX))
+      applySidebarWidth(frame, sidebarWidthDuringDrag(startWidth, startX, event.clientX, frame.clientWidth))
     }
     const onUp = (event: PointerEvent): void => {
       if (!dragging || event.pointerId !== pointerId) return
       stopHostDrag(event)
-      if (frame !== undefined) applySidebarWidth(frame, sidebarWidthDuringDrag(startWidth, startX, event.clientX))
+      if (frame !== undefined) applySidebarWidth(frame, sidebarWidthDuringDrag(startWidth, startX, event.clientX, frame.clientWidth))
       const collapse = shouldCollapseOnSidebarDrag(startWidth, startX, event.clientX)
       finishDrag()
       if (collapse) window.requestAnimationFrame(() => { window.requestAnimationFrame(() => { toggleSidebarRef.current() }) })
