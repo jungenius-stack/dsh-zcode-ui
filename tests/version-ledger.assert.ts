@@ -45,6 +45,10 @@ const KNOWN_NO_TAG: Record<string, string> = {
   // 这是本断言第一次运行时抓出来的（2026-10-19 体检漏报了它）。不补 tag：事后补会伪造时间线；
   // 记在这里，让"有版本、无发布记录"这件事至少是可见的。
   '1.15.0': '漏打 tag：版本号与 CHANGELOG 都已写入，唯独没有对应的 tag',
+  // 2026-11-07 night15 门禁：B1 批的 package.json 元数据提交（6ce2d6f，icon + catalog）
+  // 顺带把版本 2.3.0→2.3.1，未发布、无 tag、CHANGELOG 也无章节。按本文件口径不事后补
+  // tag（伪造发布记录）；待该版本真正发布（补 tag + 补章节）时按 §6 卫生检查从本表删除。
+  '2.3.1': '未发布：night15 B1 元数据提交顺带 bump，无 tag 无 CHANGELOG 章节',
 }
 
 /** 登记在案、明确「CHANGELOG 里没有章节」的版本。 */
