@@ -1075,7 +1075,7 @@ function CodexWorkspaceTree({ wide, useSessions, useSessionPendingInteraction, u
   if (!wide) return <div className="dcu-wb dcu-wb-rail"><style>{stylesheet}</style></div>
   return <section className="dcu-wb" aria-label={t('workspace.label')}>
     <style>{stylesheet}{runningStyles}{typographyStyles}{collectionLayoutStyles}</style>
-    {preferencesFailure !== undefined && <div className="dcu-wb-error" role="status">{t('workspace.preferencesLocalOnly')}{businessRequestErrorKey(preferencesFailure) !== undefined && <> {userErrorText(preferencesFailure, t)}</>}</div>}
+    {preferencesFailure !== undefined && <div className="dcu-state" role="status">{t('workspace.preferencesLocalOnly')}{businessRequestErrorKey(preferencesFailure) !== undefined && <> {userErrorText(preferencesFailure, t)}</>}</div>}
     {error !== undefined && <div className="dcu-wb-error" role="alert">{error}</div>}
     {/* 无障碍树契约（2026-10-14，见 src/client/tree-keyboard.ts）：
         · tree 内只允许 treeitem 与 group，且 treeitem 必须由 tree/group **直接拥有**。

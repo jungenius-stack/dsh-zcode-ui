@@ -244,7 +244,10 @@ test.each([401, 403, 503])('偏好读取 HTTP %s 保留本地分组并提示尚�
   } as never))
   try {
     expect(view.container.querySelector('.dcu-wb-collection-title')?.textContent).toBe('本地分组')
-    const message = view.container.querySelector('.dcu-wb-error[role="status"]')?.textContent
+    // night15 B4（夜3 待修清单 surface-4 §2M1 收尾）：preferencesFailure 是 role="status" 的状态提示，
+    // 已改中性壳 .dcu-state，不再套 .dcu-wb-error（后者被 zcode-theme 主题段无条件染错误红）。
+    // 本断言锁的是文案内容（preferencesLocalOnly + 错误细节都在场），定位器随源码换等价壳类。
+    const message = view.container.querySelector('.dcu-state[role="status"]')?.textContent
     expect(message).toContain('workspace.preferencesLocalOnly')
     expect(message).toContain(status === 401 ? 'errors.unauthorized' : status === 403 ? 'errors.forbidden' : 'errors.serviceUnavailable')
   } finally { await view.dispose() }
