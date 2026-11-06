@@ -1,6 +1,6 @@
 {
   "name": "dsh-zcode-ui",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "DSH ZCode UI — 把 DeepSeek Harness Web 的界面换成 ZCode 风格：侧栏、工作区会话树、全局搜索与轮次导航 · A ZCode-styled sidebar, workspace session tree, global search, and turn navigation skin for DSH Web",
   "keywords": [
     "deepseek",
@@ -24,6 +24,7 @@
     "url": "https://github.com/jungenius-stack/dsh-zcode-ui/issues"
   },
   "homepage": "https://github.com/jungenius-stack/dsh-zcode-ui#readme",
+  "icon": "assets/icon.png",
   "type": "module",
   "packageManager": "pnpm@11.28.5",
   "engines": {
@@ -74,6 +75,17 @@
         "@deepseek-ai/dsh-client-connection"
       ],
       "platform": "web"
+    },
+    "catalog": {
+      "category": "theme",
+      "summary": {
+        "en": "ZCode-styled skin for DSH Web: Zai light/dark themes, sidebar workspace session tree, global search and turn navigation.",
+        "zh": "把 DSH Web 界面换成 ZCode 视觉语言的皮肤：Zai 明暗主题、侧栏工作区会话树、全局搜索与轮次导航。"
+      },
+      "capabilities": [
+        "fs",
+        "shell"
+      ]
     }
   },
   "scripts": {
