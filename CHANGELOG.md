@@ -4,6 +4,14 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.4 - 2026-11-07
+
+**Icon redesign: the official DeepSeek Harness whale × the official ZCode black & white.**
+
+- Keeps the whale artwork and cutout logic of the official DSH icon (the belly and eye reveal the tile beneath, exactly like the original), with both colors taken from measured values of the official ZCode icon: tile black gradient `#141617 → #010101`, glyph pure white `#ffffff`.
+- Implemented as a full-icon luminance remap (not a naive invert): tile white maps onto the ZCode black gradient, whale darks map to pure white, antialiasing bands interpolate by luminance — the edge band is clean (zero stray bright pixels within 12px of the edge, measured).
+- Supersedes the 2.3.3 brand-blue whale; the blue version remains in git history.
+
 ## 2.3.3 - 2026-11-07
 
 **Sidebar footer layout fixes when co-installed with the dsh-cost-meter plugin; npm and GitHub now fully aligned.**

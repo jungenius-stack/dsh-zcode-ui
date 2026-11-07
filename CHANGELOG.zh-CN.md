@@ -4,6 +4,14 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.4 - 2026-11-07
+
+**图标再设计：DeepSeek Harness 官方鲸鱼图形 × ZCode 官方黑白。**
+
+- 保留 DSH 官方图标的鲸鱼图形与镂空逻辑（鱼肚、眼睛透出底色，与原版一致），黑白两色完全取自 ZCode 官方图标的实测值：方块黑渐变 `#141617 → #010101`、Z 字纯白 `#ffffff`。
+- 实现方式为全图标亮度映射（非简单反色）：底白映射到 ZCode 黑渐变、鲸鱼暗部映射到纯白、抗锯齿过渡带按亮度插值，边缘带无杂色（实测边缘 12px 内零杂色像素）。
+- 上一版（2.3.3 蓝色品牌鲸）已被本版替代；蓝色版本保留在 git 历史。
+
 ## 2.3.3 - 2026-11-07
 
 **与第三方插件 dsh-cost-meter 同装时的页脚布局修复，npm 与 GitHub 全量对齐。**
