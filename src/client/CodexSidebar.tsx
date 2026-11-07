@@ -189,8 +189,12 @@ body[data-ds-dark-theme] .dcu-foot{box-shadow:0 -8px 12px -8px rgba(0,0,0,.18)}
    金额是数据，降级到 secondary 会让它读不出来。tabular-nums 保留（数字对齐不能丢）。 */
 .dcu-foot .cm-num{font-size:var(--dsw-font-size-caption);font-weight:400;font-variant-numeric:tabular-nums;color:var(--dcu-sidebar-primary)}
 .dcu-foot .cm-peak-classic{font-size:var(--dsw-font-size-sm);line-height:16px;color:var(--dcu-sidebar-tertiary)}
-/* 2026-11-07（night15，用户最终裁决）：恢复原版式——原字号 var(--dsw-font-size-sm)、单行不换行。
-   本次换行/缩字号两方案均被否；灰条治理（.cm-footer-stack 横向溢出隐藏）保留。 */
+/* 2026-11-07（night15，用户裁决「试字距微收」后定稿）：倒计时长态比容器宽 25px（CDP 活体实测），
+   字号与单行格式保持原样（换行/缩字号两方案此前均被否），改三处微调凑齐 25px：
+   字距 -.5px（24 字 ×0.5=12px）+ 去左右内距（8px，simple 变体本就无底色无边框）+ 左移 8px
+   （与色条左缘对齐，原缩进 8px 无语义）＝ 28px 余量。取 -.5 而非 -.35/.45：留 2px 浮动空间
+   覆盖数字宽度变化。选择器 (0,4,0) 需压过插件 simple 变体 (0,3,0) 的 padding:0 4px。 */
+.dcu-foot .cm-footer-stack.simple .cm-peak-classic-chip{letter-spacing:-.5px;padding-left:0;padding-right:0;margin-left:-8px}
 .dcu-foot .cm-peak-classic-chip{font-size:var(--dsw-font-size-sm);font-weight:400;color:var(--dcu-sidebar-secondary)}
 /* 峰值条**文字**的语义色收敛（契约第 1 条 + 第 4 条，2026-10-16 实机抓到漏管）。
    外来插件在三个状态给文字上了语义色：
