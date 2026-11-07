@@ -225,11 +225,10 @@ const RADIUS_LITERAL_BASELINE: Record<string, number> = {
   'conversation-layout.ts:0': 1,
   // 2026-10-28 启动徽标：96×96 / 圆角 24 —— ZCode 启动页原文值（startup-logo-shell），
   // 是启动层的独立标度，不属于应用内圆角标度管辖（该层在应用就绪前播放）。
-  // inherit = ::before 边框继承壳圆角（ZCode 原文）；12px = 官方 app icon 自带圆角的
-  // 兜底（图标位图自带圆角，此处仅在位图圆角被裁切时兜底）。
+  // 2026-11-07（2.3.5）：徽标内嵌图换成合体图标（DSH 鲸 × ZCode 黑白）并撑满壳——
+  // img 圆角走 inherit（继承壳 24px，与 ::before 同法）；12px 兜底随旧 56px 图标一起移除。
   'startup-splash.ts:24px': 1,
-  'startup-splash.ts:inherit': 1,
-  'startup-splash.ts:12px': 1,
+  'startup-splash.ts:inherit': 2,
 }
 const radiusLiterals = new Map<string, number>()
 for (const { name, text } of clientFiles) {

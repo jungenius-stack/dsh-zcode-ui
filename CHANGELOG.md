@@ -4,6 +4,14 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.5 - 2026-11-07
+
+**Icon design language now aligned with ZCode at the pixel level; the boot splash badge follows.**
+
+- The tile is now the official ZCode icon **kept pixel-exact** (vertical gradient `#141617→#020202`, continuous corner radius, edge antialiasing untouched — the previous build rebuilt the tile by luminance mapping and inherited the DSH tile's texture). Method: erase the Z glyph from the ZCode original, then paint the DSH whale in glyph pure white `#ffffff`; the DSH icon's outer drop shadow (alpha<200) is masked out — zero stray bright pixels within 12px of the edge, measured.
+- **The boot splash badge** (the icon shown while DSH loads) switches from "black shell with a 56px DSH icon inset" to the merged icon itself: a 192px @2x bitmap filling the 96px badge shell, radius inheriting the shell (24px). The ZCode splash language is unchanged (0.72s elastic pop, 1px white-10% border, dual shadows, frosted-glass overlay, the 3s hard-cap tri-guard). Live-verified: reload replay shows img 96px / radius 24px / 192×192 bitmap.
+- design-system radius-literal baseline updated (inherit ×2, reason inline).
+
 ## 2.3.4 - 2026-11-07
 
 **Icon redesign: the official DeepSeek Harness whale × the official ZCode black & white.**

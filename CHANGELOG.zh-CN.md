@@ -4,6 +4,14 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.5 - 2026-11-07
+
+**图标设计语言彻底对齐 ZCode，启动画面徽标同步换新。**
+
+- 图标底改为 **ZCode 官方方块像素级原样**（垂直渐变 `#141617→#020202`、连续圆角、边缘抗锯齿全部不动——上一版为亮度映射重建，渐变纹理继承了 DSH 原底白分布）。实现：ZCode 原图抹除 Z 字后，以 Z 字同款纯白 `#ffffff` 绘制 DSH 鲸鱼；DSH 原图标的外部投影（alpha<200 淡黑）经掩膜排除，边缘 12px 实测零杂色。
+- **启动画面徽标**（开机加载弹出的图标）从「黑壳内嵌 56px DSH 官方图标」改为合体图标本体：192px @2x 位图撑满 96px 徽标壳、圆角随壳（inherit 24px）；ZCode 启动语言原样保留（0.72s 弹性 pop、白 10% 边框、双层阴影、毛玻璃遮罩、3s 硬上限门控三保险）。活体验证：reload 重播 splash 实测 img 96px/radius 24px/位图 192×192。
+- design-system 圆角字面量基线同步登记（inherit ×2，理由随注）。
+
 ## 2.3.4 - 2026-11-07
 
 **图标再设计：DeepSeek Harness 官方鲸鱼图形 × ZCode 官方黑白。**
