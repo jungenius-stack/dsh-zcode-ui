@@ -189,7 +189,13 @@ body[data-ds-dark-theme] .dcu-foot{box-shadow:0 -8px 12px -8px rgba(0,0,0,.18)}
    金额是数据，降级到 secondary 会让它读不出来。tabular-nums 保留（数字对齐不能丢）。 */
 .dcu-foot .cm-num{font-size:var(--dsw-font-size-caption);font-weight:400;font-variant-numeric:tabular-nums;color:var(--dcu-sidebar-primary)}
 .dcu-foot .cm-peak-classic{font-size:var(--dsw-font-size-sm);line-height:16px;color:var(--dcu-sidebar-tertiary)}
-.dcu-foot .cm-peak-classic-chip{font-size:var(--dsw-font-size-sm);font-weight:400;color:var(--dcu-sidebar-secondary)}
+/* 2026-11-07（night15 晨间，用户裁决）：倒计时长文本（最长「47小时59分」态）在 12px 下达 256px，
+   撑破 232px 容器被视口裁尾（「峰」字丢失）。缩字号方案被否（用户：字号太小、布局不好看），
+   定稿为保持令牌字号 var(--dsw-font-size-sm) + 放开换行：短文本态与原版单行完全一致，
+   长文本态自动两行居中、全文本可读（CDP 截图确认）。横向溢出由 .cm-footer-stack 隐藏兜底，
+   换行后正常态不再产生溢出。本规则 (0,2,0) 恒胜插件基础档 (0,1,0) 的 white-space:nowrap；
+   插件 simple 变体 (0,3,0) 只管 padding/边框/底色，与换行无冲突。 */
+.dcu-foot .cm-peak-classic-chip{white-space:normal;text-align:center}
 /* 峰值条**文字**的语义色收敛（契约第 1 条 + 第 4 条，2026-10-16 实机抓到漏管）。
    外来插件在三个状态给文字上了语义色：
      .cm-peak-strip.peak .cm-peak-chip     → #ff9800（橙）
