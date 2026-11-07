@@ -4,6 +4,15 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.6 - 2026-11-08
+
+**活体验证收尾三件：消息区键帽、审批卡几何、轮次刻度垂直居中。**
+
+- **消息区 `<kbd>` 键帽化**（会话内渲染的 markdown）：DSH 宿主对 `kbd` 零样式（实测 11px、无边框、无圆角），容器也非 ZCode 的 `.prose`。按 ZCode tw-prose 规格（night2 活体样式表）落地：双层阴影（1px 描边 + 3px 键帽厚度）、圆角走 md 令牌、字号 `.875em`、字重 500；阴影色新令牌 `--dcu-kbd-shadow` 分主题（亮黑 10% / 暗白 10%，对应 ZCode `--tw-prose-kbd-shadows` 及 invert 值）。`pre`/`code` 拆出选择器组，代码块不受影响。
+- **工具审批卡**（宿主 css-module `.gOeFyG_card`，通过触发 danger-full-access 写操作活体挂载实测）：圆角 12→16（ZCode 弹层家族 rounded-2xl）、阴影 lv2→xs、内距 0→12——night13 裁决值，本版有活体数据背书。橙色警示边框（宿主语义）保留。
+- **轮次刻度条垂直居中**于会话视口：宿主原把刻度列中心对齐「避开输入框后的带中心」（比会话中心高 88px）；ZCode 实测刻度容器撑满滚动区（inset-y-0，midDelta=0）。现以 `top:calc(视口高/2)+translateY(-50%)` 对齐，活体终验 midDelta=0；实测滚动时宿主 top 不变，无打架。
+- night13 V 类活体项 9/9 全闭环；断言 64→69（batch-9）、12→13（batch-2）。
+
 ## 2.3.5 - 2026-11-07
 
 **图标设计语言彻底对齐 ZCode，启动画面徽标同步换新。**

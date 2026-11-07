@@ -4,6 +4,15 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.6 - 2026-11-08
+
+**Live-verification closure batch: message-area keycaps, approval-card geometry, and a vertically centered turn rail.**
+
+- **Message-area `<kbd>` keycaps** (markdown rendered in conversation): the DSH host ships zero styling for `kbd` (measured: 11px, no border, no radius), and its container is not ZCode's `.prose`. Styled per ZCode's tw-prose spec (night2 live stylesheet): dual box-shadow (1px outline + 3px keycap thickness), radius token md, `.875em`, weight 500; shadow color themed via the new `--dcu-kbd-shadow` token (light black-10% / dark white-10%, matching ZCode's `--tw-prose-kbd-shadows` / invert). `pre`/`code` split out of the group so code blocks stay untouched.
+- **Tool approval card** (host css-module `.gOeFyG_card`, mounted live by triggering a danger-full-access write): radius 12→16 (ZCode overlay family rounded-2xl), shadow lv2→xs, padding 0→12 — the night13 verdict, now backed by live measurements. The orange warning border (host semantics) is preserved.
+- **Turn rail vertically centered** on the conversation viewport: the host centers the tick column on the composer-free band center (88px above the conversation center); ZCode's rail spans the full scroll area (`inset-y-0`, midDelta=0). Now `top:calc(viewport/2) + translateY(-50%)` — live-verified midDelta=0. Position measured stable across scrolling (no fight with the host).
+- night13's V-class live items fully closed out (9/9); assertions 64→69 (batch-9) and 12→13 (batch-2).
+
 ## 2.3.5 - 2026-11-07
 
 **Icon design language now aligned with ZCode at the pixel level; the boot splash badge follows.**
