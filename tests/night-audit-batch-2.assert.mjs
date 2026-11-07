@@ -86,10 +86,11 @@ assert.match(
   /\.dcu-extensions-toggle\[aria-expanded=true\] \.dcu-extension-state-arrow\{transform:rotate\(90deg\)\}/,
   '展开态箭头必须旋转 90°（旋转是状态语义，不是装饰）',
 )
+// 裁决闭环：此内距曾标「待裁决」——定档 ZCode 原值 10px，源码与正则已一致；旧消息写 8px 系改版化石，2026-11-07 修正。
 assert.match(
   sidebar,
   /\.dcu-extension-items button\{grid-template-columns:16px minmax\(0,1fr\);min-height:28px;padding:0 10px;border-radius:var\(--dsw-radius-lg\)/,
-  '扩展子项必须 16px 图标列 + 28px 最小高 + r-lg + 0 8px 内距',
+  '扩展子项必须 16px 图标列 + 28px 最小高 + r-lg + 0 10px 内距（ZCode 原值）',
 )
 
 // ── 6. reduced-motion 全关 ─────────────────────────────────────────────────
