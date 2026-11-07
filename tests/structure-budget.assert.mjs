@@ -57,7 +57,13 @@ const BUDGET = {
     var(--dsw-alias-label-tertiary)（50%），宿主自己的钮是 100% —— 浅色下前者发灰、
     后者纯黑，肉眼读成「图标粗细不一致」。内联优先级只能用重要级覆盖压过，
     且只此一条、只作用于操作行按钮颜色。无更轻的合法手段（这些按钮不归插件所有）。 */
-  importantOccurrences: 60,
+
+    /* 2026-11-07 +1（60 → 61）：cost-meter 页脚横向滚动条关掉（CodexSidebar.tsx）。
+    第三方插件 dsh-cost-meter 的 cm-footer-stack 被倒计时 chip 撑出横向溢出（用户所见
+    可拖动灰条，裁决移除），其样式表注入顺序在皮肤之后，普通同优先级声明被压回 auto
+    （CDP computed 实证）——重要级是唯一能保证生效的手段。overflow-x:hidden 无信息损失
+    （倒计时尾部本就被视口裁掉）。只此一条、只作用于该页脚容器。 */
+  importantOccurrences: 61,
   todoMarkers: 0,
 }
 

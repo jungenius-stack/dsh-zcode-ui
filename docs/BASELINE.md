@@ -24,14 +24,12 @@
 | 指标 | 值 | 棘轮 |
 | --- | --- | --- |
 | `src/client/CodexWorkspaceBrowser.tsx` | 1136 行 | 只降不升（`tests/structure-budget.assert.mjs`） |
-| `!important` 出现次数 | 60 | 只降不升 |
+| `!important` 出现次数 | 61 | 只降不升 |
 | `TODO/FIXME/HACK` 标记 | 0 | 保持为 0 |
 
 ## 实跑快照
 
-| 项 | 结果 | 退出码 |
-| --- | --- | --- |
-| 断言套件 | 62 通过 / 3 跳过 / 1 失败（共 66 个脚本） | 1 |
-| vitest | 426 passed \| 1 skipped (427) | 0 |
+尚未采集。运行 `node --import tsx scripts/baseline.mjs --run` 采集一次。
 
-采集于 2026-11-04T18:12:11.775Z。
+注意：这一节是**观察值**，会随工作树变化，因此不被任何断言锁定；
+把它写成固定数字就是 CODE-040（把当时的实现值写成契约）。
