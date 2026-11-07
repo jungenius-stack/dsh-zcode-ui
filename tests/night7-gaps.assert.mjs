@@ -53,37 +53,34 @@ assert.doesNotMatch(
   'dcu-ctx-menu-task 不得声明宽度——该覆盖已于 2026-11-05 整条回退（实测无越界，且会干扰宿主定位）',
 )
 
-// ── G-② 置顶空态 gap 6px（zcode-theme.ts:439）───────────────────────────────
-// 期望是：规则体内含 gap:6px。
+// ── G-② 置顶空态 gap（zcode-theme.ts:439）──────────────────────────────────
+// 2026-11-07（night15 P1-b 裁决）：6px 无独立出处（Codex 原件无此规则，账本无记录），
+// 按 CODE-040 放开值；night7 的回归意图（间距规则整条被删）靠「gap 声明存在且唯一」守护。
 assert.match(
   theme,
-  /\.dcu-wb-pinned-list>\.dcu-wb-empty\{[^}]*gap:6px/,
-  '置顶空态占位槽必须 gap:6px（图标与文案的间距被删了）',
+  /\.dcu-wb-pinned-list>\.dcu-wb-empty\{[^}]*gap:\d+px/,
+  '置顶空态占位槽必须有 gap 声明（night7 回归：图标与文案的间距曾整条被删）',
 )
-// 期望不是：同一规则体内不得出现 6px 之外的任何其他 gap 值。
+// 期望不是：同一规则体内不得出现第二个 gap 声明（双声明=书写事故）。
 assert.doesNotMatch(
   theme,
-  /\.dcu-wb-pinned-list>\.dcu-wb-empty\{[^}]*gap:(?!6px)\d+px/,
-  '置顶空态占位槽的 gap 被改成 6px 以外的值（或追加了覆盖），必须唯一为 6px',
+  /\.dcu-wb-pinned-list>\.dcu-wb-empty\{[^}]*gap:\d+px[^}]*gap:/,
+  '置顶空态占位槽的规则体内出现两个 gap 声明（书写事故）',
 )
 
-// ── G-③ 空态图标 14×14（zcode-theme.ts:443）─────────────────────────────────
-// 期望是：svg 规则 width/height 均为 14px。
+// ── G-③ 空态图标尺寸（zcode-theme.ts:443）─────────────────────────────────
+// 2026-11-07（night15 P1-b 裁决）：14×14 无独立出处（账本无图标尺寸记录），放开值；
+// night7 的回归意图（svg 尺寸规则整条被删）靠「尺寸声明存在且唯一」守护。
 assert.match(
   theme,
-  /\.dcu-wb-pinned-list>\.dcu-wb-empty svg\{width:14px;height:14px/,
-  '置顶空态加号图标必须 14×14（zcode-theme.ts 的 svg 尺寸规则被删了）',
+  /\.dcu-wb-pinned-list>\.dcu-wb-empty svg\{width:\d+px;height:\d+px/,
+  '置顶空态加号图标必须有尺寸声明（night7 回归：svg 尺寸规则曾整条被删）',
 )
-// 期望不是：svg 宽或高不得是 14px 之外的任何其他值。
+// 期望不是：同一规则体内不得出现第二个 width 声明（双声明=书写事故）。
 assert.doesNotMatch(
   theme,
-  /\.dcu-wb-pinned-list>\.dcu-wb-empty svg\{width:(?!14px)\d+px/,
-  '置顶空态加号图标的 width 被改成 14px 以外的值，必须为 14px',
-)
-assert.doesNotMatch(
-  theme,
-  /\.dcu-wb-pinned-list>\.dcu-wb-empty svg\{width:14px;height:(?!14px)\d+px/,
-  '置顶空态加号图标的 height 被改成 14px 以外的值，必须为 14px',
+  /\.dcu-wb-pinned-list>\.dcu-wb-empty svg\{width:\d+px[^}]*width:/,
+  '置顶空态加号图标的规则体内出现两个 width 声明（书写事故）',
 )
 
 // ── G-④ 空态排版 14px/21px（CodexWorkspaceBrowser.tsx:288/:317/:339）─────────

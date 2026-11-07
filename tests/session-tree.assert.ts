@@ -181,7 +181,7 @@ assert.match(workspace, /\.dcu-wb-running svg\{display:block;width:14px;height:1
 // 2026-10-18（P0-4）：平铺行不参与树缩进，但带状态因子时必须让出行首槽（同树内会话行）。
 // 槽位偏移改由 --dcu-wb-slot-left / --dcu-wb-dot-left 下发，两者必须与 padding-left 同步，
 // 否则 absolute 定位的状态槽不会跟着移动，会漂在行中间（实测间隙 11px → 21px）。
-assert.match(workspace, /\.dcu-wb-session-flat\[data-pinned=true\]:not\(:has\(\.dcu-wb-pending\)\),[^]*?\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{--dcu-wb-slot-left:18px;--dcu-wb-dot-left:23px;padding-left:40px\}/, '无项目缩进的会话必须为行首槽（置顶常显、转圈或未读点）让出与会话标题对齐的位置，且槽位偏移同步')
+assert.match(workspace, /\.dcu-wb-session-flat\[data-pinned=true\]:not\(:has\(\.dcu-wb-pending\)\),[^]*?\.dcu-wb-session-top:has\(\.dcu-wb-running,.dcu-wb-unread\)\{--dcu-wb-slot-left:\d+px;--dcu-wb-dot-left:\d+px;padding-left:40px\}/, '无项目缩进的会话必须为行首槽（置顶常显、转圈或未读点）让出与会话标题对齐的位置，且槽位偏移同步（night15 P1-b：18/23px 无出处放开值锁结构，40px 维持）')
 assert.match(workspace, /\.dcu-wb-pin\{position:absolute;left:var\(--dcu-wb-slot-left\);top:50%;[^}]*width:16px;height:20px;margin-top:-10px/, '置顶按钮必须占运行转圈同一 16×20 行首格，且槽位随行内距下发（P0-4）')
 assert.match(workspace, /\.dcu-wb-session\[data-pinned=true\]:not\(:has\(\.dcu-wb-unread\)\):not\(:has\(\.dcu-wb-running\)\):not\(:has\(\.dcu-wb-pending\)\) \.dcu-wb-pin\{display:grid\}/, '已置顶且行首槽空闲时常显图钉（ZCode showPinnedState 语义）')
 assert.match(workspace, /:not\(\.dcu-wb-session-flat\):not\(\.dcu-wb-session-top\):hover \.dcu-wb-pin[^}]*display:grid/, '常规行悬停时置顶按钮接管行首槽（ZCode pinAction 语义）')
