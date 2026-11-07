@@ -4,6 +4,16 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.3 - 2026-11-07
+
+**Sidebar footer layout fixes when co-installed with the dsh-cost-meter plugin; npm and GitHub now fully aligned.**
+
+- Fixed the draggable horizontal scrollbar in the cost-meter footer: its long countdown text overflows the container by 25px. The skin clamps it with `overflow-x:hidden` (important-level — the plugin's stylesheet injects after the skin's, and a plain declaration measurably loses).
+- Fixed the clipped countdown tail (「峰」): the original font size and single-line layout are preserved; letter-spacing tightened by 0.5px, dead side padding removed, and the line aligned to the track's left edge — 28px recovered. A wrapped layout and a smaller font were both tested and rejected.
+- New `cost-meter-footer` guard assertion locks these rules in; deleting them turns the gate red. Without cost-meter installed the selectors match nothing — zero effect.
+- Lands the night15 assertion reform: six literals without design provenance (4px/32px/6px/14px/18px/23px) unlocked from value-lock to intent-lock.
+- npm's 2.3.2 was a mid-flight transitional build (black icon, stale README); from this version npm and GitHub ship identical content: the brand-blue icon and the npm-first install docs included.
+
 ## 2.3.2 - 2026-11-07
 
 **Icon recolored to the ZCode brand blue — the last piece of the store listing.**

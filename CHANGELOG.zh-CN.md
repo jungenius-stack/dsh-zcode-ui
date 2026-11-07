@@ -4,6 +4,16 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.3 - 2026-11-07
+
+**与第三方插件 dsh-cost-meter 同装时的页脚布局修复，npm 与 GitHub 全量对齐。**
+
+- 修复页脚横向滚动条灰条：cost-meter 倒计时长文本比容器宽 25px，产生可拖动的横向滚动条；皮肤侧以 `overflow-x:hidden` 兜底（重要级——插件样式注入顺序在皮肤之后，普通声明实测被压回）。
+- 修复倒计时「进入高峰」尾字被裁：原字号原单行格式不变，字距微收 0.5px + 去多余内距 + 与色条左缘对齐，凑 28px 余量；换行与缩字号两方案实测后否决。
+- 新增 `cost-meter-footer` 护栏断言锁死上述设定，三条覆盖规则被误删即门禁红；未安装 cost-meter 时相关选择器空匹配、零影响。
+- 同步落账 night15 断言改造：6 个无设计出处的字面量（4px/32px/6px/14px/18px/23px）放开值锁结构，测试改为锁设计意图。
+- npm 侧 2.3.2 为中途发布的过渡版（黑图标、旧 README）；本版起 npm 与 GitHub 内容全量对齐：品牌蓝图标、npm 优先安装文档一并随包。
+
 ## 2.3.2 - 2026-11-07
 
 **图标换上 ZCode 品牌蓝，补齐上架形态的最后一块。**

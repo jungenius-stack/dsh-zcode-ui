@@ -8,9 +8,9 @@
 
 | 指标 | 值 | 口径 |
 | --- | --- | --- |
-| 断言脚本 | 66 | `tests/*.assert.{ts,mjs}` |
+| 断言脚本 | 67 | `tests/*.assert.{ts,mjs}` |
 | ├ TypeScript | 40 | `tests/*.assert.ts` |
-| └ ES Module | 26 | `tests/*.assert.mjs` |
+| └ ES Module | 27 | `tests/*.assert.mjs` |
 | vitest 文件 | 58 | `tests/*.spec.ts` |
 | 真机布局脚本 | 22 | `scripts/gate.mjs` 的 LAYOUT（与 package.json test:layout 交叉校验） |
 | 令牌 · 明 | 178 | `ZCODE_LIGHT` 键数 |
