@@ -496,8 +496,10 @@ html:has([data-dcu-official-turn-empty]) .dcu-turn-navigator.dcu-turn-navigator{
      宿主原值：刻度 20x2、opacity .6、pitch 10、scaleX .4（静息）/ .9（激活）
      ZCode 值：scaleX 1（静息）→ 2.6/1.7/1.25（hover 递进）
    ZCode 的 hover 递进需要 JS 逐条算距离，宿主只给当前条一个状态；
-   因此这里先把**几何与静息态**对齐（12px 宽 / .58 透明 / 2px 高），
-   hover 递进留给后续（需要接管它的指针逻辑）。
+   因此这里先把**几何与静息态**对齐（12px 宽 / .58 透明 / 2px 高）。
+   hover 递进**已由 turn-rail-zcode.ts 实现**（指针/键盘/点击波 + 平滑滚动，
+   batch-14 断言锁档位表；2026-11-08 勘误：本注释旧版写「留给后续」，
+   属化石表述——曾误导一轮优化方向排查，勿再引用）。
    实测规格见 优化UI插件区/ZCODE-INDEX-SPEC.md */
 /* 宿主轮次导航的悬停提示框（.JXrxFq_preview）只有一条 top 0.14s 过渡：
    鼠标每换一条，它就从旧位置滑动到新位置，用 0.14 秒。快速上下扫动时实测
