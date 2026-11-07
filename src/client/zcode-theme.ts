@@ -64,7 +64,7 @@ body[data-ds-dark-theme],.theme-zai-dark{--dcu-primary:#ffffff;--dcu-primary-for
   /* 键帽文字：ZCode Kbd 用 text-tooltip-tag-foreground（night2 surface-2 #5 更正注释：原写
      text-muted-foreground 在 ZCode 编译 CSS 中不存在，Kbd 实际消费 --color-tooltip-tag-foreground，
      浅 #5c5c5c / 深 #adadad），本仓按侧栏底重取。实测（底 = #f0f0f0 叠 3% 中性 = #e9e9e9）：#5c5c5c = 5.51:1 ✅ AA。tertiary #686868 只有 4.59:1 余量太小，暗色档掉到 4.14:1，故不用。 */
-  --dcu-kbd-foreground:#5c5c5c;
+  --dcu-kbd-foreground:#5c5c5c;--dcu-kbd-shadow:rgba(0,0,0,.1);
   /* 选中行内的次要文字：选中底 #e5e5e5 上 tertiary #686868 只有 4.42:1（<AA），
      提到 secondary #5c5c5c = 5.31:1 ✅。只影响选中行，普通底色下的取值不变。
      2026-10-18（红队复核）：删掉 --dcu-selected-tertiary —— 它零消费（全仓唯一命中是定义
@@ -84,7 +84,7 @@ body[data-ds-dark-theme],.theme-zai-dark{
   --dcu-tip-primary:#f8f8f8;--dcu-tip-secondary:#9a9a9a;--dcu-tip-tertiary:#a3a3a3;
   /* 暗色档实测（底 = #161616 叠 5% 白 = #222222）：
      secondary #888888 = 4.49:1（差 0.01 掉线，不能用）、#9a9a9a = 5.65:1 ✅ AA。 */
-  --dcu-kbd-foreground:#9a9a9a;
+  --dcu-kbd-foreground:#9a9a9a;--dcu-kbd-shadow:rgba(255,255,255,.1);
   /* 选中底 #2d2d2d 上 tertiary #828282 只有 3.58:1（<AA），secondary #888888 也只有 3.89:1，
      两者都掉线，故统一提到 #9a9a9a = 4.89:1 ✅。同上，只保留有消费点的 secondary。 */
   --dcu-selected-secondary:#9a9a9a;

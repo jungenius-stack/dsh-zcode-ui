@@ -321,9 +321,15 @@ export const CONVERSATION_LAYOUT_STYLE = `
    仅把「正文 14px」这一档钉成绝对值 0.35px 以对齐实测。 */
 [data-conversation-scroll] .icaHSq_column{letter-spacing:0.025em}
 [data-conversation-scroll] .icaHSq_column p{letter-spacing:0.35px}
+/* 消息区 kbd 键帽（2026-11-08 活体收尾）：DSH 消息区容器实测非 .prose（markdown 类），
+   宿主对 kbd 零样式（⌘, 样本：11px/无边框/无圆角裸奔）。ZCode 参照 = tw-prose 立体键帽
+   （night2 活体样式表）：双层 box-shadow（1px 描边 + 3px 键帽厚度）、radius .3125rem、
+   padding .1875em/.375em、字号 .875em、字重 500。取舍：5px 不在圆角标度（2/4/6/8/12/16），
+   令牌化取 md 6px（差 1px，保圆角棘轮）；阴影色走 --dcu-kbd-shadow 令牌（亮黑10%/暗白10%，
+   对应 ZCode 亮 oklab(21%/.1) / 暗 #ffffff1a）；文字色复用菜单键帽 --dcu-kbd-foreground。 */
 [data-conversation-scroll] .icaHSq_column pre,
-[data-conversation-scroll] .icaHSq_column code,
-[data-conversation-scroll] .icaHSq_column kbd{letter-spacing:normal}
+[data-conversation-scroll] .icaHSq_column code{letter-spacing:normal}
+[data-conversation-scroll] .icaHSq_column kbd{letter-spacing:normal;box-shadow:0 0 0 1px var(--dcu-kbd-shadow),0 3px 0 var(--dcu-kbd-shadow);border-radius:var(--dsw-radius-md);padding:.1875em .375em;font-size:.875em;font-weight:500;color:var(--dcu-kbd-foreground,var(--dcu-sidebar-secondary))}
 
 /* ② 标题层级：h3 起与正文同字号，克制靠字重。 */
 [data-conversation-scroll] .icaHSq_column h1{font-size:var(--dsw-font-size-xl,18px);line-height:31.5px;font-weight:600;margin:24px 0 16px}
@@ -525,6 +531,13 @@ export const CONVERSATION_LAYOUT_STYLE = `
   max-height:240px;
   overflow-y:auto;
 }
+
+/* 工具审批卡对齐（2026-11-08 活体实测挂载）：宿主 css-module .gOeFyG_card，触发条件 =
+   danger-full-access 类操作（写家目录/读敏感路径），常用目录读不弹。实测现状：radius 12 /
+   外层 pad 0 / 阴影已是 lv2 形态 / 橙色警示边框（宿主语义，保留不动）。
+   night13 1.3 项裁决目标：圆角 16（ZCode 弹层家族 rounded-2xl = --dsw-radius-2xl）、
+   阴影 xs 档（= --dsw-shadow-lv1）、内边距统一 12。特异性 html+属性 (0,1,1) 压宿主 (0,1,0)。 */
+html [class*="gOeFyG_card"]{border-radius:var(--dsw-radius-2xl);box-shadow:var(--dsw-shadow-lv1);padding:12px}
 `
 
 const STYLE_ID = 'dcu-conversation-layout'

@@ -264,8 +264,13 @@ assert.match(
 )
 assert.match(
   layout,
-  /\.icaHSq_column kbd\{letter-spacing:normal\}/,
-  'pre/code/kbd 字距必须显式归零：等宽代码加字距会破坏对齐',
+  /\.icaHSq_column pre,\n\[data-conversation-scroll\] \.icaHSq_column code\{letter-spacing:normal\}/,
+  'pre/code 字距必须显式归零：等宽代码加字距会破坏对齐（2026-11-08 起 kbd 拆出单独键帽化，不再与本组共用声明）',
+)
+assert.match(
+  layout,
+  /\.icaHSq_column kbd\{letter-spacing:normal;box-shadow:0 0 0 1px var\(--dcu-kbd-shadow\),0 3px 0 var\(--dcu-kbd-shadow\)/,
+  '消息区 kbd 字距归零且必须键帽化：双层阴影（1px 描边 + 3px 键帽厚度，ZCode tw-prose 规格，night2 活体样式表）',
 )
 assert.match(
   layout,
@@ -421,4 +426,32 @@ assert.match(
   '拖拽结束必须把宽度写回 localStorage 偏好键（写读闭环的写侧）',
 )
 
-console.log('night-audit-batch-9：8 个对齐点、64 条断言全部通过（conversation-layout ×7 + composer-width ×1）')
+// ── 9. 活体收尾批次（2026-11-08）：消息区 kbd 键帽 + 工具审批卡对齐 ──────────
+// 数据出处：本机 9223 CDP 活体实测（审批卡 .gOeFyG_card 挂载窗口量取；kbd 裸奔样本 ⌘, 11px 无样式）。
+assert.match(
+  layout,
+  /\.icaHSq_column kbd\{[^}]*border-radius:var\(--dsw-radius-md\)/,
+  'kbd 键帽圆角必须走令牌 md（ZCode .3125rem=5px 不在圆角标度，取 6px 保圆角棘轮）',
+)
+assert.match(
+  layout,
+  /\.icaHSq_column kbd\{[^}]*font-size:\.875em;font-weight:500;/,
+  'kbd 键帽字号 .875em + 字重 500（ZCode tw-prose 规格）',
+)
+assert.match(
+  layout,
+  /html \[class\*="gOeFyG_card"\]\{border-radius:var\(--dsw-radius-2xl\);box-shadow:var\(--dsw-shadow-lv1\);padding:12px\}/,
+  '审批卡必须 16 圆角（ZCode 弹层家族 rounded-2xl）+ xs 阴影 + 12 内距（night13 1.3 项裁决；实测现状 12/0/lv2）',
+)
+assert.match(
+  theme,
+  /--dcu-kbd-shadow:rgba\(0,0,0,\.1\)/,
+  '亮色 kbd 阴影令牌 = 黑 10%（ZCode --tw-prose-kbd-shadows oklab(21%/.1)）',
+)
+assert.match(
+  theme,
+  /--dcu-kbd-shadow:rgba\(255,255,255,\.1\)/,
+  '暗色 kbd 阴影令牌 = 白 10%（ZCode --tw-prose-invert-kbd-shadows #ffffff1a）',
+)
+
+console.log('night-audit-batch-9：9 个对齐点、69 条断言全部通过（conversation-layout ×8 含活体收尾批次 + composer-width ×1）')
