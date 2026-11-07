@@ -140,7 +140,13 @@ DSH ZCode UI 把 DSH Web 的界面重新绘制成 ZCode（智谱 Zai）的视觉
 
 ## 安装
 
-本包**未发布到 npm 仓库**，直接从 GitHub 安装即可——`dsh plugin` 会把参数原样转发给 `pnpm`，
+本包已发布到 npm 仓库，按包名安装即可（推荐）：
+
+```text
+dsh plugin --profile web add dsh-zcode-ui
+```
+
+从 GitHub 安装也可用——`dsh plugin` 会把参数原样转发给 `pnpm`，
 而 pnpm 原生支持 `github:<owner>/<repo>` 这种写法：
 
 ```text

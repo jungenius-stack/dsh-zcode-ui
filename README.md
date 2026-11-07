@@ -142,8 +142,14 @@ Everything in the lower four rows is **inherited from [`dsh-codex-ui`](https://g
 
 ## Install
 
-The package is **not published to the npm registry**. Install it straight from GitHub instead —
-`dsh plugin` forwards its arguments to `pnpm`, which resolves `github:<owner>/<repo>` natively:
+The package is published on the npm registry — install it by name (preferred):
+
+```text
+dsh plugin --profile web add dsh-zcode-ui
+```
+
+A GitHub install also works — `dsh plugin` forwards its arguments to `pnpm`, which resolves
+`github:<owner>/<repo>` natively:
 
 ```text
 dsh plugin --profile web add github:jungenius-stack/dsh-zcode-ui

@@ -4,6 +4,20 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.2 - 2026-11-07
+
+**Icon recolored to the ZCode brand blue — the last piece of the store listing.**
+
+- The icon keeps the original glyph and off-white background untouched; only a pixel-level recolor maps the glyph from pure black to ZCode brand blue sky-600 `#0284c7` (from the upstream `packages/ui/src/styles.css` token source). 512×512 at 7KB, inside the plugin shop's 32KB icon bound. The black icon was an asset inherited from dsh-codex-ui — a brand mismatch on a ZCode skin, fixed here.
+
+## 2.3.1 - 2026-11-07
+
+**Published to npm, with plugin-shop catalog metadata.**
+
+- The package is now on the npm registry (first published as 2.3.0; install with `dsh plugin --profile web add dsh-zcode-ui`); the GitHub install path keeps working.
+- `package.json` now declares `"icon"` and a `dsh.catalog` section (category `theme`, bilingual summary, capabilities `fs`/`shell` — matching the README's "Scope and permissions" disclosure, neither overstated nor hidden).
+- Both READMEs now lead with the npm install and drop the outdated "not published to npm" wording.
+
 ## 2.3.0 - 2026-11-04
 
 **Second ZCode deep sweep: 258 capability differences logged, four asset libraries, and one

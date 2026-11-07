@@ -4,6 +4,20 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.2 - 2026-11-07
+
+**图标换上 ZCode 品牌蓝，补齐上架形态的最后一块。**
+
+- 图标保留原版字形与米白底（一字未动），仅做像素级换色：字形由纯黑改为 ZCode 品牌蓝 sky-600 `#0284c7`（取自上游 `packages/ui/src/styles.css` 色板真值）。512×512、7KB，满足插件商店 32KB 图标上限。原黑色图标系 fork 自 dsh-codex-ui 的继承资产，贴在 ZCode 皮肤上品牌错位，本版修正。
+
+## 2.3.1 - 2026-11-07
+
+**上架 npm，并补齐插件商店卡片元数据。**
+
+- 本包现已在 npm 仓库发布（首发 2.3.0；安装命令 `dsh plugin --profile web add dsh-zcode-ui`），GitHub 安装路径保留可用。
+- `package.json` 新增 `"icon"` 与 `dsh.catalog`（分类 `theme`、双语 summary、capabilities 声明 `fs`/`shell`——与 README「范围与权限」一节的披露一致，不虚报不隐瞒）。
+- 双语 README 安装节改为 npm 优先，删除「本包未发布到 npm」的过时表述。
+
 ## 2.3.0 - 2026-11-04
 
 **第二轮 ZCode 深挖：258 条差异登记、四份资产库、以及一次关于「丝滑」的完整取证。**
