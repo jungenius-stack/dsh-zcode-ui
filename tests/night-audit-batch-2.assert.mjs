@@ -100,4 +100,11 @@ assert.match(
   'reduced-motion 下侧栏位移过渡必须关闭（02-motion §4）',
 )
 
-console.log('night-audit-batch-2: 12 条断言通过')
+// ── 7. 轮次刻度条垂直居中（2026-11-08 活体裁决：用户反馈不居中）──
+assert.match(
+  sidebar,
+  /\[data-dcu-official-turn-navigator\]\[data-dcu-official-turn-navigator\]\{top:calc\(var\(--dsh-conversation-viewport-height, 100dvh\)\/2\);transform:translateY\(-50%\)\}/,
+  '轮次刻度条必须垂直居中于聊天滚动区（ZCode 9224 实测 midDelta=0；宿主原 band 中心偏上 88px）',
+)
+
+console.log('night-audit-batch-2: 13 条断言通过')
