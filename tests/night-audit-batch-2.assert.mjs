@@ -107,4 +107,16 @@ assert.match(
   '轮次刻度条必须垂直居中于聊天滚动区（ZCode 9224 实测 midDelta=0；宿主原 band 中心偏上 88px）',
 )
 
-console.log('night-audit-batch-2: 13 条断言通过')
+// ── 8. 用户行设置齿轮（2026-11-08 用户需求，对齐 ZCode 右下角齿轮）──
+assert.match(
+  sidebar,
+  /<button type="button" className="dcu-user-gear" data-slot="settings\.trigger" aria-label=\{t\('search\.settings'\)\} onClick=\{\(\) => \{ openSettingsRoot\(settingsSeat\.current\) \}\}><ZIconSettings size=\{16\} \/><\/button>/,
+  'seat 必须渲染自有齿轮按钮（data-slot=settings.trigger 走既有配色钩子，onClick=openSettings 与 ⌘K 设置入口同一合约）',
+)
+assert.match(
+  sidebar,
+  /\.dcu-settings-seat\{display:flex;align-items:center;gap:4px;margin-top:2px\}\.dcu-settings-seat>:first-child\{flex:1;min-width:0\}/,
+  'seat 必须 flex 行布局：宿主账号内容占主轴、齿轮右置（ZCode 用户行同构）',
+)
+
+console.log('night-audit-batch-2: 15 条断言通过')

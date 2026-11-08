@@ -179,9 +179,9 @@ assert.deepEqual(
   '不超过 5 条时必须全部显示，且不出现展开按钮',
 )
 assert.deepEqual(
-  projectSessionWindow(twenty.slice(0, 6), { expanded: false, page: 1 }),
-  { ids: ['s1', 's2', 's3', 's4', 's5'], showMore: true },
-  '未展开时只显示前 5 条，并提供展开显示',
+  projectSessionWindow(twenty.slice(0, 9), { expanded: false, page: 1 }),
+  { ids: ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'], showMore: true },
+  '未展开时只显示前 8 条（2026-11-08 预览上限 5→8，Feature 2b），并提供展开显示',
 )
 assert.deepEqual(
   projectSessionWindow(twenty.slice(0, 6), { expanded: false, page: 1 }, 's6'),
@@ -191,8 +191,8 @@ assert.deepEqual(
 assert.deepEqual(nextProjectSessionWindow(undefined), { expanded: true, page: 1 }, '第一次展开显示把页码设为 1')
 assert.deepEqual(
   projectSessionWindow(twenty, nextProjectSessionWindow(undefined)),
-  { ids: twenty.slice(0, 15), showMore: true },
-  '第一次展开显示 15 条，后面还有会话时按钮仍是展开显示',
+  { ids: twenty.slice(0, 18), showMore: true },
+  '第一次展开显示 18 条（预览 8 + 每页 10×1，2026-11-08 上限 5→8 联动），后面还有会话时按钮仍是展开显示',
 )
 const secondPage = nextProjectSessionWindow(nextProjectSessionWindow(undefined))
 assert.deepEqual(secondPage, { expanded: true, page: 2 }, '再次展开显示必须再加一页')
@@ -203,8 +203,8 @@ assert.deepEqual(
 )
 assert.deepEqual(
   projectSessionWindow(twenty, collapseProjectSessionWindow()),
-  { ids: twenty.slice(0, 5), showMore: true },
-  '折叠项目文件夹后必须回到前 5 条和展开显示',
+  { ids: twenty.slice(0, 8), showMore: true },
+  '折叠项目文件夹后必须回到预览上限 8 条（2026-11-08 联动 5→8）和展开显示',
 )
 const visibleWindow = twenty.slice(0, 5)
 assert.equal(sessionDropAfterRowId({ hoveredId: 's5', beforeId: 's6' }, visibleWindow), 's5', '下一行被折起时，蓝线必须画在当前悬停行下方')
@@ -222,4 +222,4 @@ assert.deepEqual(
   '当前会话被追加到末尾且下一行被折起时，蓝线只能出现在悬停行',
 )
 assert.equal(sessionDropAfterRowId({ hoveredId: 'f', beforeId: 'g' }, renderedWithCurrentSession), undefined, '悬停行不在可见窗口时不得画会话行蓝线')
-assert.equal(sessionDropAfterRowId({ beforeId: 's6' }, visibleWindow), undefined, '项目级拖放由容器高亮承担，不画会话行蓝线')
+assert.equal(sessionDropAfterRowId({ beforeId: 's10' }, visibleWindow), undefined, '项目级拖放由容器高亮承担，不画会话行蓝线')

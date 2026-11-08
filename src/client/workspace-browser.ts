@@ -17,7 +17,7 @@ export function isTaskSession(session: SessionSummary): boolean {
 }
 
 /** 安装包里项目会话列表的 maxItems，常量 rNc。 */
-export const PROJECT_SESSION_PREVIEW_LIMIT = 5
+export const PROJECT_SESSION_PREVIEW_LIMIT = 8
 /** 安装包里展开后每次追加的条数：maxItems + 10 * page。 */
 export const PROJECT_SESSION_PAGE_SIZE = 10
 
@@ -63,7 +63,7 @@ export function collapseProjectSessionWindow(): ProjectSessionWindowState {
   return { expanded: false, page: 1 }
 }
 
-/** 第一次展开把页码设为 1（可见 15 条），之后每点一次页码加 1。 */
+/** 第一次展开把页码设为 1（可见 18 条），之后每点一次页码加 1。2026-11-08 预览上限 5→8（Feature 2b 稳健版：同高度多显 3 条）。 */
 export function nextProjectSessionWindow(state: ProjectSessionWindowState | undefined): ProjectSessionWindowState {
   const current = state ?? { expanded: false, page: 1 }
   if (!current.expanded) return { expanded: true, page: 1 }
