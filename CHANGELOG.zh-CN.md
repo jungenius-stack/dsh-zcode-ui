@@ -4,6 +4,12 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.7 - 2026-11-08
+
+**图标瘦身以过商店图标上限。**
+
+- 原 512px 图标 PNG（64.1 KiB）超出 dsh-plugin-shop 目录 32 KiB 图标上限，商店卡片一直回落到默认占位图（icon-state.json 实测 outcome: "refused"）。改为 256px RGBA 不量化重存：**25.9 KiB**，真实显示尺寸下像素级无损（24/48px 实测差 0.0%/0.1%）。2.3.7 后的下一次日构建起，鲸鱼图标正式上卡。
+
 ## 2.3.6 - 2026-11-08
 
 **活体验证收尾三件：消息区键帽、审批卡几何、轮次刻度垂直居中。**

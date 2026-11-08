@@ -4,6 +4,12 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.7 - 2026-11-08
+
+**Icon slimmed to fit the plugin-shop icon cap.**
+
+- The 512px icon PNG (64.1 KiB) exceeded the dsh-plugin-shop catalog's 32 KiB icon cap, so the shop card fell back to its default placeholder (icon-state.json outcome: "refused"). Resized to 256px RGBA with no palette quantization: **25.9 KiB**, and pixel-identical at real display sizes (24px/48px measured diff = 0.0%/0.1%). The icon reaches the shop card with the next daily build after 2.3.7.
+
 ## 2.3.6 - 2026-11-08
 
 **Live-verification closure batch: message-area keycaps, approval-card geometry, and a vertically centered turn rail.**
