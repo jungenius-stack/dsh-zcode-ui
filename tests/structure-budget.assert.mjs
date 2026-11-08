@@ -20,7 +20,11 @@ import { computeBaseline } from '../scripts/baseline.mjs'
  * 「改一行数字就绿了」与「没有人改」之间的差别，就是这道门存在的全部意义。
  */
 const BUDGET = {
-  largestClientFileLines: 1136,
+  /* 2026-11-08 +5（1136 → 1141）：CodexWorkspaceBrowser.tsx 两段登记注释——
+     ① night16 G12 勘误（旧注释 46/56 为化石绝对值，活体实测 34→44）；
+     ② flat/top 8px 行首变体「运行时未触发非死代码」登记（三断言+布局检查在用，不删）。
+     纯注释行，零逻辑变更；注释即账——防止第四次被化石账本误导。 */
+  largestClientFileLines: 1141,
   /* 2026-10-26 +2（48 → 50）：
      CodexSidebar.tsx 的 `html[data-dcu-codex-sidebar-initialized] [data-...]{background-color:...!important}`
      用于切断侧栏开合动画期间的壁纸穿透链。实测去掉后 computed 立刻回到 rgba(0,0,0,0)，

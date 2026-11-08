@@ -226,7 +226,9 @@ const stylesheet = `
    为什么是 40px 而不是审计原文的 42px：42 不在 4px 标度上，会额外触发
    design-system.assert 的间距棘轮（报「未登记的离刻度值」）；40 在标度内
    （SPACING_SCALE 含 40），只清一行基线即可，门禁改动量减半。
-   实测缩进：项目文字 46px → 会话文字 56px（+10px 视觉缩进）。
+   实测缩进：项目文字 34px → 会话文字 44px（+10px 视觉缩进）。
+   （2026-11-08 night16 勘误：旧注释的 46/56 是化石绝对值——只在 collection-body 12px
+   生效的旧几何下自洽；活体实测级联为 34→44，相对缩进 +10 结论不变。）
    标题宽度 240px 夹具下 146 → 136px（中文等宽近似 10 字 → 10 字，未减少可见字数）。
 
    ⚠ 行首状态槽（图钉 / 转圈 / 未读点）是 absolute 定位，**不会**跟着 padding 走。
@@ -234,7 +236,10 @@ const stylesheet = `
    所以槽位偏移跟着内距一起 +10px，用局部变量下发；平铺行（flat/top，见下方规则）
    不参与树缩进，覆盖回原值 8/13px。 */
 .dcu-wb-session{--dcu-wb-slot-left:18px;--dcu-wb-dot-left:23px;position:relative;min-width:0;min-height:32px;gap:0;overflow:hidden;padding-left:40px;padding-right:28px}
-.dcu-wb-session-title{flex:1;margin-left:0}.dcu-wb-session-title-text{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dcu-wb-session-time{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-sm);line-height:18px;font-weight:400;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}.dcu-wb-session:has(.dcu-wb-session-time){padding-right:64px}.dcu-wb-session-copy{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}.dcu-wb-session-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);line-height:16px}.dcu-wb-session-flat,.dcu-wb-session-top{--dcu-wb-slot-left:8px;--dcu-wb-dot-left:13px;padding-left:8px}.dcu-wb-session-flat[data-pinned=true]:not(:has(.dcu-wb-pending)),.dcu-wb-session-top[data-pinned=true]:not(:has(.dcu-wb-pending)),.dcu-wb-session-flat:has(.dcu-wb-running,.dcu-wb-unread),.dcu-wb-session-top:has(.dcu-wb-running,.dcu-wb-unread){--dcu-wb-slot-left:18px;--dcu-wb-dot-left:23px;padding-left:40px}
+.dcu-wb-session-title{flex:1;margin-left:0}.dcu-wb-session-title-text{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dcu-wb-session-time{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--dcu-sidebar-secondary);font-size:var(--dsw-font-size-sm);line-height:18px;font-weight:400;font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}.dcu-wb-session:has(.dcu-wb-session-time){padding-right:64px}.dcu-wb-session-copy{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}.dcu-wb-session-sub{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dcu-sidebar-tertiary);font-size:var(--dsw-font-size-sm);line-height:16px}/* night16 G12 登记（2026-11-08）：flat/top 的 8px 行首变体在当前数据流下运行时不命中
+   （最近区实吃下方 40px 那条），但渲染路径存在（session-tree.tsx flat=true 时挂类）、
+   三条断言与布局检查在用——属「未触发」非「死代码」，保留不删。 */
+.dcu-wb-session-flat,.dcu-wb-session-top{--dcu-wb-slot-left:8px;--dcu-wb-dot-left:13px;padding-left:8px}.dcu-wb-session-flat[data-pinned=true]:not(:has(.dcu-wb-pending)),.dcu-wb-session-top[data-pinned=true]:not(:has(.dcu-wb-pending)),.dcu-wb-session-flat:has(.dcu-wb-running,.dcu-wb-unread),.dcu-wb-session-top:has(.dcu-wb-running,.dcu-wb-unread){--dcu-wb-slot-left:18px;--dcu-wb-dot-left:23px;padding-left:40px}
 .dcu-wb-actions{display:none;align-items:center;gap:8px;flex:none}
 .dcu-wb-quick-actions{position:absolute;right:8px;top:50%;display:none;align-items:center;gap:2px;pointer-events:none;transform:translateY(-50%);background:var(--dcu-sidebar-hover);border-radius:var(--dsw-radius-md)}
 .dcu-wb-project-head:hover .dcu-wb-actions,.dcu-wb-project-head:focus-within .dcu-wb-actions,.dcu-wb-project-head.dcu-wb-menu-open .dcu-wb-actions,.dcu-wb-session.dcu-wb-menu-open .dcu-wb-actions{display:flex}

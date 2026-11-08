@@ -16,7 +16,7 @@
   },
   "structure": {
     "largestClientFile": "src/client/CodexWorkspaceBrowser.tsx",
-    "largestClientFileLines": 1136,
+    "largestClientFileLines": 1141,
     "importantOccurrences": 61,
     "todoMarkers": 0,
     "zcodeAsarStyles": {
