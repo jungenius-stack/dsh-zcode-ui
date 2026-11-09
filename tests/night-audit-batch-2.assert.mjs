@@ -103,8 +103,8 @@ assert.match(
 // ── 7. 轮次刻度条垂直居中（2026-11-08 活体裁决：用户反馈不居中）──
 assert.match(
   sidebar,
-  /\[data-dcu-official-turn-navigator\]\[data-dcu-official-turn-navigator\]\{top:calc\(var\(--dsh-conversation-viewport-height, 100dvh\)\/2\);transform:translateY\(-50%\)\}/,
-  '轮次刻度条必须垂直居中于聊天滚动区（ZCode 9224 实测 midDelta=0；宿主原 band 中心偏上 88px）',
+  /\[data-dcu-official-turn-navigator\]\[data-dcu-official-turn-navigator\]\{top:calc\(\(var\(--dsh-conversation-viewport-height, 100dvh\) - var\(--dsh-composer-height, 152px\)\)\/2\);transform:translateY\(-50%\)\}/,
+  '轮次刻度条必须垂直居中于视觉内容区（视口高−输入框高）/2——2026-11-09 修正：居中於滚动区会视觉偏下 68px',
 )
 
 console.log('night-audit-batch-2: 13 条断言通过')
