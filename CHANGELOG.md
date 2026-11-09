@@ -4,6 +4,14 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## 2.3.8 - 2026-11-09
+
+**Cost-meter countdown now centered under the bar, and its compensation is conditional.**
+
+- The countdown text under the quota bar is horizontally centered (measured: chip center = track center, delta 0). It previously sat left-aligned with an `-8px` pull that only made sense for the weekend long string.
+- That `-8px` / tighter letter-spacing / zero-padding trio (added in 2.3.3 for the long weekend label) is now conditional: `cost-meter-chip.ts` tags the chip with `data-dcu-cm-compact` only when the text actually overflows (`scrollWidth > clientWidth`). Short weekday labels no longer get over-compensated; the long weekend label still gets the full 28px it needs.
+- Custom scrollbar/sidebar experiments from 2.3.7+1 were reverted; the build artifacts are back to the shipped feature set.
+
 ## 2.3.7 - 2026-11-08
 
 **Icon slimmed to fit the plugin-shop icon cap.**

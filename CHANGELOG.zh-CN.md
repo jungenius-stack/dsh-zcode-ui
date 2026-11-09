@@ -4,6 +4,14 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## 2.3.8 - 2026-11-09
+
+**用量条倒计时改为居中，紧凑补偿改为按需触发。**
+
+- 进度条下方的倒计时文本改为水平居中（实测：chip 中心 = 进度条中心，偏差 0）。此前它与左侧对齐，靠 `-8px` 左拉对齐——那个补偿只对周末长文案成立。
+- 2.3.3 为周末长文案加入的三件套（字距收紧 / 去内距 / 左移 8px）改为**条件补偿**：`cost-meter-chip.ts` 仅在文本真的溢出（`scrollWidth > clientWidth`）时给 chip 打 `data-dcu-cm-compact`。工作日的短文案不再被过度补偿拉出 8px 错位；周末长文案仍拿到完整 28px 余量。
+- 2.3.7 之后试做的侧栏实验已回退，构建产物回到已发布的特性集。
+
 ## 2.3.7 - 2026-11-08
 
 **图标瘦身以过商店图标上限。**
