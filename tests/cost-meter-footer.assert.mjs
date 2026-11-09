@@ -53,8 +53,13 @@ assert.match(
 // ── 3. 字号必须留在令牌上：防止未来以裸 px 重引（design-system 刻度棘轮同口径）──
 assert.match(
   sidebar,
-  /\.dcu-foot \.cm-peak-classic-chip\{font-size:var\(--dsw-font-size-sm\)/,
+  /\.dcu-foot \.cm-peak-classic-chip\{[^}]*font-size:var\(--dsw-font-size-sm\)/,
   'cost-meter 倒计时字号必须走 var(--dsw-font-size-sm) 令牌——缩字号方案已被用户否决，不得以裸 px 回归',
+)
+assert.match(
+  sidebar,
+  /\.dcu-foot \.cm-peak-classic-chip\{[^}]*margin-left:auto;margin-right:auto/,
+  '倒计时文本必须水平居中于进度条下方（2026-11-09 用户裁决「要尽量居中」，实测 centerDelta=0）',
 )
 assert.doesNotMatch(
   sidebar,
