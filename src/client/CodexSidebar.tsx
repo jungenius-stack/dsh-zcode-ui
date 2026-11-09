@@ -194,7 +194,11 @@ body[data-ds-dark-theme] .dcu-foot{box-shadow:0 -8px 12px -8px rgba(0,0,0,.18)}
    字距 -.5px（24 字 ×0.5=12px）+ 去左右内距（8px，simple 变体本就无底色无边框）+ 左移 8px
    （与色条左缘对齐，原缩进 8px 无语义）＝ 28px 余量。取 -.5 而非 -.35/.45：留 2px 浮动空间
    覆盖数字宽度变化。选择器 (0,4,0) 需压过插件 simple 变体 (0,3,0) 的 padding:0 4px。 */
-.dcu-foot .cm-footer-stack.simple .cm-peak-classic-chip{letter-spacing:-.5px;padding-left:0;padding-right:0;margin-left:-8px}
+/* 2026-11-09：上面三段补偿改为**条件补偿**——只有文本真的溢出时 cost-meter-chip.ts 才给
+   chip 打 [data-dcu-cm-compact]，短文本（工作日）不再被过度补偿拉出 8px 错位。
+   实测病象：工作日「峰时 · 1小时19分后进入平价」chip 左缘 16px，而今日/余额行同为 16px、
+   进度条起点 24px——chip 被 -8px 拉到与进度条错位，且字距 -0.5px 让字变得过挤。 */
+.dcu-foot .cm-footer-stack.simple .cm-peak-classic-chip[data-dcu-cm-compact]{letter-spacing:-.5px;padding-left:0;padding-right:0;margin-left:-8px}
 .dcu-foot .cm-peak-classic-chip{font-size:var(--dsw-font-size-sm);font-weight:400;color:var(--dcu-sidebar-secondary)}
 /* 峰值条**文字**的语义色收敛（契约第 1 条 + 第 4 条，2026-10-16 实机抓到漏管）。
    外来插件在三个状态给文字上了语义色：

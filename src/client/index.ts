@@ -69,6 +69,7 @@ import { installVirtualSkip } from './virtual-skip.ts'
 import { installDocumentHiddenMotionPause } from './document-hidden-motion-pause.ts'
 import { observeHostAnchors } from './host-anchor-contract.ts'
 import { observeForeignSurfaces } from './foreign-surface-discovery.ts'
+import { observeCostMeterFooter } from './cost-meter-chip.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {
@@ -184,6 +185,8 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => observeHostAnchors(), 'zcode-ui-for-dsh: host anchor sentinel')
   // 外来表面发现哨兵：新插件装进来若不达标，控制台报警并给出处置建议（不自动改别人）。
   ctx.effect(() => observeForeignSurfaces(), 'zcode-ui-for-dsh: foreign surface sentinel')
+  // cost-meter 峰时 chip 自适应补偿：长文本才做 2.3.3 那套缩距/左移，短文本不补。
+  ctx.effect(() => observeCostMeterFooter(), 'zcode-ui-for-dsh: cost-meter chip adaptive')
   ctx.logger.info('dsh-zcode-ui: ZCode skin v%s installed', SKIN_VERSION)
   const t = ctx.locale.bind(NS)
   ctx.effect(() => observeHeroWidthHandles(t('home.resizeInput')), 'zcode-ui-for-dsh: hero width handles')

@@ -37,10 +37,17 @@ assert.match(
 )
 
 // ── 2. 倒计时全文本三件套：字距 + 去内距 + 左移，缺一即裁尾复发 ──────────────
+// 2026-11-09：三件套改为**条件补偿**（挂 [data-dcu-cm-compact]，由 cost-meter-chip.ts
+// 按实际溢出打标）——长文本仍拿到全部 28px 余量，短文本不再被过度补偿拉出 8px 错位。
 assert.match(
   sidebar,
-  /\.dcu-foot \.cm-footer-stack\.simple \.cm-peak-classic-chip\{letter-spacing:-\.5px;padding-left:0;padding-right:0;margin-left:-8px\}/,
-  'cost-meter 倒计时全文本三件套（字距 -.5px / 去内距 / 左移 8px）被改——长态「进入高峰」会再次裁尾（25px 缺口的分配方案是定稿意图）',
+  /\.dcu-foot \.cm-footer-stack\.simple \.cm-peak-classic-chip\[data-dcu-cm-compact\]\{letter-spacing:-\.5px;padding-left:0;padding-right:0;margin-left:-8px\}/,
+  'cost-meter 倒计时全文本三件套（字距 -.5px / 去内距 / 左移 8px）被改或丢了条件门——长态「进入高峰」会再次裁尾，短态会重新错位',
+)
+assert.match(
+  readFileSync(new URL('../src/client/cost-meter-chip.ts', import.meta.url), 'utf8'),
+  /const overflowing = chip\.scrollWidth > chip\.clientWidth \+ OVERFLOW_TOLERANCE/,
+  'chip 自适应必须按真实溢出（scrollWidth > clientWidth）判定，不允许无条件补偿',
 )
 
 // ── 3. 字号必须留在令牌上：防止未来以裸 px 重引（design-system 刻度棘轮同口径）──
@@ -55,4 +62,4 @@ assert.doesNotMatch(
   'cost-meter 倒计时出现了裸 px 字号（刻度外）——换行/缩字号均非定稿，走令牌',
 )
 
-console.log('✓ cost-meter-footer: 灰条兜底 + 倒计时全文本三件套 + 令牌字号，三项护栏在位')
+console.log('✓ cost-meter-footer: 灰条兜底 + 条件化全文本三件套（自适应）+ 令牌字号，四项护栏在位')
