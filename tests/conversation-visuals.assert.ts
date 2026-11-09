@@ -69,7 +69,10 @@ assert.match(sidebar, /\.dcu-root \[data-dcu-turn-rail-stale\]\{display:none\}/,
   assert.match(dedupe, /存在多条|rails\.length <= 1/, '去重必须处理单条/多条两种状态')
 }
 assert.match(sidebar, /html:has\(\[data-dcu-official-turn-navigator\]\) \.dcu-turn-navigator/, '检测到实际官方导航时也必须隐藏旧版自定义刻度')
-assert.match(sidebar, /\[data-dcu-official-turn-navigator\]\{right:auto!important;left:max\(12px,calc\(12px - \(var\(--dsh-composer-side-clearance\) \+ 16px\)\)\)!important\}/, '官方轮次导航必须留在会话列内，不能因正 clearance 滑进侧栏')
+// 2026-11-09：left 基准 12px → 2px（ZCode 9224 实测刻度左缘距滚动区 12px；DSH nav 定位祖先
+// 比滚动区右出 14px，故基准需减去 14）。本条锁的是**意图**（应有 clearance 兜底、不得滑进侧栏），
+// 不由字面量决定——基准值随后续 ZCode 实测调整。
+assert.match(sidebar, /\[data-dcu-official-turn-navigator\]\{right:auto!important;left:max\(\d+px,calc\(\d+px - \(var\(--dsh-composer-side-clearance\) \+ 16px\)\)\)!important\}/, '官方轮次导航必须留在会话列内，不能因正 clearance 滑进侧栏')
 assert.doesNotMatch(sidebar, /\[data-dcu-official-turn-navigator\]>div:first-child/, '镜像样式不得依赖官方导航内部 div 层级')
 assert.match(sidebar, /--dsh-composer-side-clearance:24px/, 'Codex 输入区视觉间距必须保留，且不作为官方导航识别条件')
 assert.doesNotMatch(navigator, /--dcu-turn-right/, '轮次刻度不得再放到会话右侧')

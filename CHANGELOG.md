@@ -12,6 +12,7 @@ Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://g
 - That `-8px` / tighter letter-spacing / zero-padding trio (added in 2.3.3 for the long weekend label) is now conditional: `cost-meter-chip.ts` tags the chip with `data-dcu-cm-compact` only when the text actually overflows (`scrollWidth > clientWidth`). Short weekday labels no longer get over-compensated; the long weekend label still gets the full 28px it needs.
 - Custom scrollbar/sidebar experiments from 2.3.7+1 were reverted; the build artifacts are back to the shipped feature set.
 - **Turn rail now centered on the visible content area.** The first centering attempt used the scroll container center (mathematically exact) but read as "too low" — the scroll area center sits 434px down while the area the eye sees (scroll top → composer top) centers at 367px, a 68px gap. Now `(viewport height − composer height)/2`; measured delta vs the visual area = 0. Composer height comes from the host `--dsh-composer-height` variable, no hardcoding.
+- **Turn rail moved left to match ZCode's measured inset.** ZCode places its rail 12px from the scroll container's left edge (measured 9224: nav 269 + 12 = first tick at 281). On DSH the rail's positioning ancestor sits 14px right of the scroll container, so the offset baseline went 12px → 2px. Measured after: nav left 281, pixel scan of the first tick column 280–281 — identical to ZCode.
 
 ## 2.3.7 - 2026-11-08
 
