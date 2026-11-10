@@ -50,8 +50,24 @@ export const CONVERSATION_LAYOUT_STYLE = `
    （asar 全文唯一 both-edges 用点，全程挂）。插件此前只有 hero 阶段有 both-edges
    （new-conversation-style.ts），非 hero 吃宿主单边 stable——右侧内容宽度会在滚动条
    出现与否之间跳。用 :not(:has(overlay)) 守卫避开宿主 overlay 态：宿主对
-   :has([data-conversation-composer-overlay]) 显式声明 gutter:auto 是宿主自有意图。 */
+   :has([data-conversation-composer-overlay]) 显式声明 gutter:auto 是宿主自有意图。
+   ⚠ 2026-11-10 实测更正：本条「双边预留不花钱」的旧理解不成立——宿主滚动条是
+   14px 经典式（非覆盖式），both-edges 每边各吃 14px。降级见紧随其后的 X2b。 */
 [data-conversation-scroll]:not(:has([data-conversation-composer-overlay])){scrollbar-gutter:stable both-edges}
+/* ── X2b 经典滚动条平台收回单边（2026-11-10）─────────────────────────
+   ⚠ 事实更正（2026-11-10 活体实测，此前记录有误）：
+   X2 的注释原本假设 both-edges 不花钱，理由是「覆盖式滚动条宽度 0（macOS 实测）」。
+   **那个前提是错的**：DSH 宿主自带一条全局 ::-webkit-scrollbar 宽度规则
+   （width:var(--dsh-scrollbar-width)，=14px，见 zcode-tokens.ts:581），
+   所以**在 macOS 上滚动条也是真占位的经典式**。
+   活体探针实测 [data-conversation-scroll] 的 offsetWidth−clientWidth = 14px。
+   于是 both-edges 在**所有平台**每边各留 14px、合计 28px——这不是 Windows 专属问题，
+   而是一直存在的跨平台宽度损失，只是 Windows（15–17px/边，125% 缩放约 20px）更重，
+   把「848 主列够不到 1280 断点」推到了肉眼可见的程度。
+   修法：classic-scrollbar.ts 实测滚动条宽度 >0 就把属性写到 html，这里降级为单边 stable。
+   降级后仍保留单边 stable——滚动条出现/消失时右侧不跳（both-edges 原本要解决的主问题），
+   只把左边那半 14–20px 还给内容宽度。 */
+html[data-dcu-classic-scrollbar] [data-conversation-scroll]:not(:has([data-conversation-composer-overlay])){scrollbar-gutter:stable}
 
 /* ── C1 内容列宽 640 → 924 ──────────────────────────────────────────
    宿主用 .icaHSq_column{max-width:640px} 限宽，宽度由 max-width 决定、

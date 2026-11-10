@@ -4,6 +4,22 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
+## Unreleased
+
+**`virtual-skip` 默认值改回关闭——因为复算发现它从来没生效过。**
+
+- 用 `docs/KNOWN-ISSUES.md` §50.1 记录的真实会话结构重算 `findMessageLayer`：消息层（`chat.flow`）在第 **7** 层、只有 **19** 个直接子元素，而探测器最多下探 **4** 层、要求子元素 **≥ 300**。两道闸门同时关死，它每次返回 `null`，什么都不做。而 9 组契约断言一直是绿的——那些断言锁的是代码意图，不是功能有没有在跑。
+- 默认改为 opt-in（`localStorage['dcu-virtual-skip'] = '1'`），`catch` 兜底从 `true` 改 `false`：隐私模式下不再静默拿到另一套行为。这不是性能修复——空转的 `installIfNeeded` 实测 **0.0026ms**（Blink 缓存了 `getElementsByTagName('*').length`），按 120 次 mutation/s 也只占帧预算 1.9%——是**诚实性**修复。
+- **没有**去修探测器强行激活：按真实结构精确施加实测只有 **1.13×**（§51.5，13.8ms → 12.2ms），而 §48.6 明确记录图片 / 代码块 / 折叠块的间距**未验证**。1.6ms 买不动这个风险；而且够到真实消息层就得写死宿主哈希类名。
+- 新增 `scripts/perf-virtual-skip-idle.mjs`，用已入库的结构数据复现上述结论。两个 README 都加了「长会话的性能开关」小节。
+
+**Windows 渲染修复：gutter 不再白吃 28px，半像素边框在 1x 屏不再消失。**
+
+- `scrollbar-gutter:stable both-edges` 当初是照「滚动条是覆盖式、宽 0」的假设立的。**那个假设是错的**：宿主带一条全局 `::-webkit-scrollbar{width:var(--dsh-scrollbar-width)}`，值 **14px**，所以滚动条在**所有平台**都真占布局宽度。both-edges 于是把 14px 留了两次——永久损失 28px，848 主列和 864 输入卡因此够不到 1280 容器断点；而侧栏与轮次刻度条按完整视口定位、内容区却缩窄了，相对关系错位就表现为「刻度漂浮」。新增 `classic-scrollbar.ts` 在运行时**实测**滚动条宽度，非零才降级为单边 `stable`——活体会话实测内容宽度 **+14px**。用实测而不是平台名，是因为 Electron 可强制 overlay、Win11 的 overlay 是系统开关、Linux 各家不同、Chrome 也可能把 overlay 推回 Windows。
+- 输入卡的 `border:.5px` 是在 Retina（DPR 2）上校准的：半像素正好落在真实设备像素上。DPR 1 / 1.25（Windows 100% / 125% 缩放）时它没有像素可落——Chromium 要么丢掉这条边（卡片失去轮廓、与背景糊在一起，观感即「发灰」），要么吸附成整 1px（比设计粗一倍）。新增 `@media (max-resolution:1.5dppx)` 补回 1px；判据用 DPR 而非平台名，所以 Windows 外接 2x 屏仍保持 0.5px 原设计。
+- 通过 `scripts/probe-classic-scrollbar.mjs` 活体验证（CDP 注入 17px 滚动条 + 强制 `deviceScaleFactor:1`）：gutter 降为 `stable`、内容宽度 +14px、卡片边框在 DPR 1 变 1px、DPR 2 复原为 0.5px。`tests/windows-classic-scrollbar.assert.ts` 新增 11 条断言。
+- **未**在真实 Windows 机器上验证。Windows 11 ARM 虚拟机已完整装好（含用 `ms-cxh:localonly` 绕过微软账户强制登录），但 QEMU 的 ARM 虚拟机没有 `virtio-win` 网卡驱动——官方 `virtio-win.iso` 只发布 `amd64` 和 `i386` 两种架构——因此在其中装不上 DSH。两处修复的依据是确定性事实（实测滚动条宽度、DPR 算术），不依赖那台虚拟机。
+
 ## 2.3.8 - 2026-11-09
 
 **用量条倒计时改为居中，紧凑补偿改为按需触发。**

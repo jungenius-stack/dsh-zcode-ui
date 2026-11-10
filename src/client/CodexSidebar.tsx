@@ -378,6 +378,15 @@ body[data-ds-dark-theme] [data-conversation-scroll]{--dcu-composer-bg:var(--dsw-
    padding 从 8px 加到 12px 会让内容变窄 8px、卡片变高 —— 这是对齐 ZCode 的必要代价，
    已用截图复核（见 04 执行记录）。 */
 [data-conversation-scroll] [data-composer-card]{padding:12px;gap:12px;border:.5px solid var(--dcu-composer-border);border-radius:var(--dsw-radius-2xl);background:var(--dcu-composer-bg);box-shadow:var(--dcu-composer-shadow)}
+/* C8（2026-11-10）：半像素边框在 1x 屏上没有落点，补 1px。
+   ZCode 的 border-[0.5px] 是在 Retina（devicePixelRatio 2）上量的——1 个 CSS px 对
+   2 个物理像素，0.5px 正好落在整像素边界，细而不虚。
+   Windows 常见 100%/125% 缩放对应 DPR 1 / 1.25：0.5px 落不到物理像素上，Chromium 要么
+   直接丢掉这条边（输入卡失去轮廓，与背景糊在一起→「发灰」），要么吸附成 1px 硬线（比设计粗
+   一倍→「发虚、显脏」）。两种结果都不对，且随缩放档在不同元素上表现不一致。
+   判据用 devicePixelRatio 而不是平台名：外接 2x 屏的 Windows 应当保持 0.5px 的原设计，
+   而 1x 的 macOS（极少）同样需要 1px。 */
+@media (max-resolution: 1.5dppx){[data-conversation-scroll] [data-composer-card]{border-width:1px}}
 /* 附件轨道到正文的目标间距是官方 6px。
    宿主设计是 12px 行间距 + 元件本身 -6px 抵消；本皮肤曾把 gap 压到 4px，用 +2px 补回 6。
    C7（2026-10-27）把 gap 对齐 ZCode 提回 12px 后，补偿值必须回到 **-6px** ——

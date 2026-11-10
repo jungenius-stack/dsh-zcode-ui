@@ -70,6 +70,7 @@ import { installDocumentHiddenMotionPause } from './document-hidden-motion-pause
 import { observeHostAnchors } from './host-anchor-contract.ts'
 import { observeForeignSurfaces } from './foreign-surface-discovery.ts'
 import { observeCostMeterFooter } from './cost-meter-chip.ts'
+import { observeClassicScrollbar } from './classic-scrollbar.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface SlotMap {
@@ -174,8 +175,11 @@ export function apply(ctx: ClientContext): void {
   // 写宿主 --dsh-scrollbar-thumb 变量；CSS 侧总闸见 zcode-theme.ts 滚动条段。
   ctx.effect(() => installScrollbarAutohide(), 'zcode-ui-for-dsh: scrollbar autohide')
   // 实验性：消息离屏跳过。**默认关闭**（需 localStorage dcu-virtual-skip=1）。
-  // 它改变宿主消息区的渲染行为，故不走常驻路径；结构不符时自身空转，不做任何写入。
-  // 依据与风险见 src/client/virtual-skip.ts 头部注释与 docs/KNOWN-ISSUES.md §43。
+  // ⚠️ 2026-11-10 复算：本模块在真实宿主结构下**从不激活**——真实消息层在第 7 层、
+  // 只有 19 个直接子元素，而探测器上限 4 层、判据 ≥300。显式打开也大概率空转；
+  // 且按 §50.1 真实结构正确施加实测只有 1.13×（§51.5）。故保持 opt-in：
+  // 不是为了省性能（空转 0.0026ms/次），是为了不让读者以为它在工作。
+  // 依据与风险见 src/client/virtual-skip.ts 头部注释与 docs/KNOWN-ISSUES.md §43/§48/§50。
   ctx.effect(() => installVirtualSkip(), 'zcode-ui-for-dsh: virtual skip (experimental)')
   // 文档隐藏时暂停动效（移植自 ZCode）。同样必须是**应用级**：它要覆盖的不只是插件自己的
   // 动画，还有宿主与第三方插件的——正是它们的动画对象在后台流式输出期间被 DocumentTimeline
@@ -187,6 +191,9 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => observeForeignSurfaces(), 'zcode-ui-for-dsh: foreign surface sentinel')
   // cost-meter 峰时 chip 自适应补偿：长文本才做 2.3.3 那套缩距/左移，短文本不补。
   ctx.effect(() => observeCostMeterFooter(), 'zcode-ui-for-dsh: cost-meter chip adaptive')
+  // 经典滚动条平台 gutter 降级：实测滚动条宽度 >0 就把 both-edges 收回单边，
+  // 还给内容 15–17px（Windows/Linux 的「刻度漂浮 + 发虚」根因之一）。
+  ctx.effect(() => observeClassicScrollbar(), 'zcode-ui-for-dsh: classic scrollbar gutter')
   ctx.logger.info('dsh-zcode-ui: ZCode skin v%s installed', SKIN_VERSION)
   const t = ctx.locale.bind(NS)
   ctx.effect(() => observeHeroWidthHandles(t('home.resizeInput')), 'zcode-ui-for-dsh: hero width handles')

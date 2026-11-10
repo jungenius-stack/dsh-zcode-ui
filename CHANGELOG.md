@@ -4,6 +4,29 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
+## Unreleased
+
+**`virtual-skip` defaulted back to off, because it turned out never to activate.**
+
+- Recomputed `findMessageLayer` against the real conversation structure recorded in KNOWN-ISSUES §50.1: the message layer (`chat.flow`) sits at **depth 7** with only **19** direct children, while the probe descends at most **4** levels and requires **≥ 300**. Both gates are shut, so it returned `null` every time and did nothing. The 9 contract assertions were green throughout — they lock code intent, not whether the feature runs.
+- Default flipped to opt-in (`localStorage['dcu-virtual-skip'] = '1'`); the `catch` fallback changed from `true` to `false` so private-mode users no longer silently get different behaviour. This is not a performance fix — an idle `installIfNeeded` measures **0.0026ms** (Blink caches `getElementsByTagName('*').length`), i.e. 1.9% of a frame budget at 120 mutations/s — it is a truthfulness fix.
+- Not repaired to actually activate: applied correctly against the real structure it measures **1.13×** (§51.5, 13.8ms → 12.2ms), and §48.6 records that image/code-block/collapsed-block spacing was never verified. 1.6ms does not buy that risk, and reaching the real layer would mean hard-coding host hash class names.
+- New `scripts/perf-virtual-skip-idle.mjs` reproduces the finding from the recorded structure. Both READMEs gained a "long-session performance switch" section.
+
+**Windows rendering fixes: gutter no longer costs 28px, and half-pixel borders survive 1x displays.**
+
+- `scrollbar-gutter:stable both-edges` was adopted on the assumption that the scrollbar is an overlay (0px wide). That assumption was wrong: the host ships a global `::-webkit-scrollbar{width:var(--dsh-scrollbar-width)}` of **14px**, so the scrollbar occupies real layout width on **every** platform. Both-edges therefore reserved 14px twice — a permanent 28px loss that kept the 848px column and 864px card from reaching the 1280px container breakpoint, and made the turn rail look misaligned because the sidebar and rail position off the full viewport while the content shrank. A new `classic-scrollbar.ts` measures the real scrollbar width at runtime and downgrades to single-edge `stable` only when it is non-zero — measured **+14px** of content width on a live DSH session. Judging by measurement rather than OS name matters because Electron can force overlays, the Win11 overlay setting is a system toggle, Linux desktops differ, and Chrome may move overlays back to Windows.
+- The composer card's `border:.5px` was calibrated on Retina (DPR 2), where a half-pixel lands on a real device pixel. At DPR 1 / 1.25 (Windows 100% / 125% scaling) it has no pixel to land on: Chromium either drops the edge — the card loses its outline and blends into the background, reading as "washed out" — or snaps it to a full 1px line, twice the intended weight. `@media (max-resolution:1.5dppx)` now restores 1px, judged by DPR rather than platform so a 2x external display on Windows keeps the original 0.5px.
+- Verified live via `scripts/probe-classic-scrollbar.mjs` (injects a 17px scrollbar and forces `deviceScaleFactor:1` through CDP): gutter drops to `stable`, content width +14px, card border 0.5px → 1px at DPR 1 and back at DPR 2. 11 new assertions in `tests/windows-classic-scrollbar.assert.ts`.
+- **Not** verified on a real Windows machine. A Windows 11 ARM VM was installed end-to-end (including bypassing the Microsoft-account requirement via `ms-cxh:localonly`), but QEMU's ARM guests have no `virtio-win` network driver — the published `virtio-win.iso` ships `amd64` and `i386` only — so DSH could not be installed inside it. Both fixes rest on deterministic facts (measured scrollbar width, DPR arithmetic) rather than on that VM.
+
+## 2.3.8 - 2026-11-09
+
+- Recomputed `findMessageLayer` against the real conversation structure recorded in KNOWN-ISSUES §50.1: the message layer (`chat.flow`) sits at **depth 7** with only **19** direct children, while the probe descends at most **4** levels and requires **≥ 300**. Both gates are shut, so it returned `null` every time and did nothing. The 9 contract assertions were green throughout — they lock code intent, not whether the feature runs.
+- Default flipped to opt-in (`localStorage['dcu-virtual-skip'] = '1'`); the `catch` fallback changed from `true` to `false` so private-mode users no longer silently get different behaviour. This is not a performance fix — an idle `installIfNeeded` measures **0.0026ms** (Blink caches `getElementsByTagName('*').length`), i.e. 1.9% of a frame budget at 120 mutations/s — it is a truthfulness fix.
+- Not repaired to actually activate: applied correctly against the real structure it measures **1.13×** (§51.5, 13.8ms → 12.2ms), and §48.6 records that image/code-block/collapsed-block spacing was never verified. 1.6ms does not buy that risk, and reaching the real layer would mean hard-coding host hash class names.
+- New `scripts/perf-virtual-skip-idle.mjs` reproduces the finding from the recorded structure. Both READMEs gained a "long-session performance switch" section.
+
 ## 2.3.8 - 2026-11-09
 
 **Cost-meter countdown now centered under the bar, and its compensation is conditional.**
