@@ -4,7 +4,7 @@
 
 **dsh-zcode-ui** 的发布日志。本包 fork 自 [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34，上游在该版本之前的完整历史见 [docs/UPSTREAM-CHANGELOG.zh-CN.md](docs/UPSTREAM-CHANGELOG.zh-CN.md)。
 
-## Unreleased
+## 2.3.9 - 2026-11-10
 
 **`virtual-skip` 默认值改回关闭——因为复算发现它从来没生效过。**
 

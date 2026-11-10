@@ -1,5 +1,31 @@
 /**
- * 会话消息的离屏跳过（CSS-only，默认开启，可一行命令关闭）。
+ * 会话消息的离屏跳过（CSS-only，**默认关闭**，需显式 opt-in）。
+ *
+ * ## ⚠️ 2026-11-10：本模块在真实宿主结构下**从不激活**，默认已改为关闭
+ *
+ * 用 §50.1 记录的真实结构（23231 节点 / `conversation.session` 内 21815 元素）复算：
+ *
+ * | 层级 | 元素 | 子元素数 | 状况 |
+ * | --- | --- | --- | --- |
+ * | 0 `conversation.session` | — | 2 | < 300 |
+ * | 1–3 `viewArea` / `view` / `frame` | — | 各 1 | < 300 |
+ * | 4 `root` | — | 1 | **探测循环在此结束**（上限 4 层） |
+ * | 7 `chat.flow` | — | **19** | 真实消息层在这里，但**深度超限且只有 19 个子元素** |
+ *
+ * 两道闸门同时关死：深度到不了，数量也永远不满足 `>= 300`。
+ * 每次 mutation 都落到 `layer === null` → `uninstall()` → 什么都不做。
+ * 也就是说：**历史版本里它一直是空转的**，9 组契约断言锁的是一个不运行的分支。
+ *
+ * 为什么不去修探测器把它打开：§51.5 已在真实结构上精确施加过
+ * （`session` + `chat.flow` 改 block，686 单元加 CV），
+ * 实测 13.8ms → 12.2ms，**只有 1.13×**；而 §48.6 明确记录
+ * 「真实会话的消息类型（图片、代码块、折叠块）可能带来间距或对齐差异」未验证。
+ * 1.6ms 的收益配不上这个风险，故保持 opt-in。
+ *
+ * 空转本身不贵：同规模的 22850 节点合成页实测 `installIfNeeded` 每次 **0.0026ms**
+ * （Blink 缓存了 `getElementsByTagName('*').length`），
+ * 按 120 次 mutation/s 推算也只占帧预算 1.9%。见 `scripts/perf-virtual-skip-idle.mjs`。
+ * 所以它不是性能问题，是**诚实性问题**：代码说开着，实际没开。
  *
  * ## 问题
  *
@@ -53,7 +79,7 @@
  *
  * ## 安全网
  *
- * 1. **回滚口极小**：`localStorage['dcu-virtual-skip'] = '0'` 即关闭；
+ * 1. **默认不跑**：`localStorage['dcu-virtual-skip'] = '1'` 才启用（见文件头的空转说明）；
  * 2. **只在超长会话启用**：消息数 < `ACTIVATE_ABOVE_UNITS` 时不注入任何样式
  *    （短会话本来就不卡，没必要承担任何风险）；
  * 3. **幂等**：样式标签按 id 管理，重复调用不会叠加；
@@ -62,14 +88,17 @@
  *
  * ## 已知限制
  *
+ * - **探测器与真实结构不匹配**：`findMessageLayer` 上限 4 层、判据 `>= 300`，
+ *   而真实消息层在第 7 层且只有 19 个直接子元素 ⇒ 即使显式打开也大概率不激活。
+ *   要真正启用它，需要先按 §50.1 的结构改探测器，并重做 §48.6 的验证；
  * - `contain-intrinsic-size` 是单一固定值（见 `VIRTUAL_SKIP_UNIT_PX` 的校准说明）；
  *   宿主换字号或消息类型分布变化后需要重新校准；
  * - 若宿主将来自己引入虚拟滚动，本模块应停用（届时 `display:block` 覆盖无意义）；
  * - **未在用户真实超长会话上直接验证**（隔离环境读不到该会话），
- *   所有数据来自同规模注入测量。若出现异常，设 `'0'` 即完全还原。
+ *   所有数据来自同规模注入测量。
  */
 
-/** 开关的 localStorage 键。默认开启；设为 '0' 关闭。 */
+/** 开关的 localStorage 键。**默认关闭**；设为 '1' 才启用。 */
 export const VIRTUAL_SKIP_FLAG = 'dcu-virtual-skip'
 
 /**
@@ -106,11 +135,14 @@ const SESSION_SELECTOR = '[data-conversation-scroll] [data-slot="conversation.se
 
 function enabled(): boolean {
   try {
-    return window.localStorage.getItem(VIRTUAL_SKIP_FLAG) !== '0'
+    // 2026-11-10：改为 opt-in。本模块在真实宿主结构下从不激活（见文件头），
+    // 默认开着只是让读者以为它在工作。显式设 '1' 才跑，保留给愿意承担
+    // §48.6 未验证项（图片/代码块/折叠块间距）的人手验证。
+    return window.localStorage.getItem(VIRTUAL_SKIP_FLAG) === '1'
   } catch {
-    // localStorage 不可用（隐私模式等）时保持启用：样式只在超长会话生效，
-    // 且随时可被 DOM 检查发现。宁可让长会话不卡。
-    return true
+    // localStorage 不可用（隐私模式等）时**不启用**：
+    // 默认值必须与 enabled() 的常态一致，否则隐私模式用户会静默拿到另一套行为。
+    return false
   }
 }
 
@@ -135,6 +167,16 @@ function enabled(): boolean {
  * 1. 若当前层子元素 ≥ `ACTIVATE_ABOVE_UNITS` → 就是消息层；
  * 2. 否则选「子元素最多的那个孩子」继续下探（跳过装饰性的单子元素包裹）；
  * 3. 探不到就返回 null，**什么都不做**（宁可不动，也不能乱动）。
+ *
+ * ## ⚠️ 这两条规则在真实宿主上永远不成立（2026-11-10 复算）
+ *
+ * 真实结构里 session 到消息是一条**单链**，消息层 `chat.flow` 在第 **7** 层、
+ * 直接子元素只有 **19** 个。深度上限 4 到不了它，数量判据 `>= 300` 也永不满足。
+ *
+ * 保留本函数原样而不再加深度：放开深度也不会有用（19 < 300），
+ * 而把它改成「认 `chat.flow` 类名」等于把自己焊死在宿主哈希类名上。
+ * 正确的改法是按 §50.1 的结构重写判据，并重做 §48.6 的视觉验证——
+ * 那是 1.13× 收益（§51.5）换不确定性，暂不做。
  */
 function findMessageLayer(session: HTMLElement): HTMLElement | null {
   let layer: HTMLElement = session

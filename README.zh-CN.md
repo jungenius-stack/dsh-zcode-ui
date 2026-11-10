@@ -206,6 +206,29 @@ dsh --profile web --dump-config
 | 复用历史输入 | 空输入框按上/下键，召回本工作区提交过的内容 |
 | 在轮次间跳转 | 用当前会话左侧的轮次标记 |
 
+### 长会话的性能开关
+
+本插件提供一个**默认关闭**的实验性开关，供你自己在超长会话里做 A/B：
+
+```js
+// 在浏览器控制台执行，然后重载 DSH Web
+localStorage.setItem('dcu-virtual-skip', '1')   // 打开：离屏跳过消息渲染
+localStorage.removeItem('dcu-virtual-skip')      // 关掉（回到默认）
+```
+
+打开后会对超长会话的消息区施加 CSS `content-visibility`（不插 DOM 节点、不改 React 树）。
+
+**先说清楚它的现状，免得你白试**：用真实会话结构复算，这个功能的探测器
+（最多下探 4 层、要求子元素 ≥ 300）与宿主的实际结构对不上——真实消息层在第 7 层，
+且只有 19 个直接子元素，**两道闸门同时关死，即使打开也大概率不激活**。
+而按真实结构精确施加时，实测收益也只有 **1.13×**（13.8ms → 12.2ms）。
+所以它是默认关闭的：不是省性能，是不想让你以为它在工作。完整数据见
+[`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) 的 §48（方案）、§50（真实结构）、§51.5（实测收益）。
+
+长会话卡顿的主因不在本插件：宿主对消息是**全量渲染、没有虚拟化**（`entries.map`），
+真实会话里 23231 个节点 × 6072 条 CSS 规则，样式匹配占交互成本的 98.9%，
+其中本插件只占 27%（3.6ms），插件侧可优化上限 8%（§51.4）。根治需要宿主做消息级虚拟化。
+
 ## 常见问题
 
 **装完了，界面没变化？**
@@ -233,7 +256,7 @@ dsh --profile web --dump-config
 | --- | --- | --- |
 | 类型 | `npm run typecheck` | `tsc --noEmit`，覆盖 `src` 与 `tests` |
 | 单元 / 集成 | `npm run test:unit` | 58 个文件（用例数见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
-| 契约断言 | `node tests/run-assertions.mjs` | 67 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
+| 契约断言 | `node tests/run-assertions.mjs` | 68 个脚本（通过 / 跳过见 [`docs/BASELINE.md`](docs/BASELINE.md)） |
 | 真机布局 | `npm run test:layout` | 22 个 Chromium 脚本，量真实几何、交互、对比度与溢出 |
 
 `npm run gate:host` 是重型档：把插件打包、装进一个隔离的 `DSH_HOME`、起真实的 `dsh web`，再跑三个活宿主脚本（约 1–2 分钟）。改动插槽、注入或安装流程时用它。

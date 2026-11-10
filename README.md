@@ -208,6 +208,22 @@ Once DSH Web is reloaded, the left navigation is rendered by this plugin.
 | Reuse earlier input | Press Up/Down in an empty composer to recall input from this workspace |
 | Jump between turns | The turn marks to the left of the current conversation |
 
+### The long-session performance switch
+
+There is one experimental switch, **off by default**, for A/B testing on very long conversations:
+
+```js
+// Run in the browser console, then reload DSH Web
+localStorage.setItem('dcu-virtual-skip', '1')   // on: skip offscreen message rendering
+localStorage.removeItem('dcu-virtual-skip')      // back to default
+```
+
+When on, it applies CSS `content-visibility` to the message area of long conversations. It inserts no DOM nodes and does not touch the React tree.
+
+**Its current state, stated plainly so you don't waste a test on it**: measured against the real conversation structure, its probe (descends at most 4 levels, requires ≥ 300 child elements) does not match what the host actually builds — the real message layer sits at depth 7 with only 19 direct children, so **both gates are shut and it most likely will not activate even when on**. Applied correctly against the real structure, the measured gain is only **1.13×** (13.8ms → 12.2ms). Hence off by default: not to save cycles, but so you are not misled into thinking it works. Full data in [`docs/KNOWN-ISSUES.md`](docs/KNOWN-ISSUES.md) §48 (approach), §50 (real structure), §51.5 (measured gain).
+
+The main cause of long-session lag is not this plugin: the host **renders every message with no virtualisation** (`entries.map`). A real session carries 23,231 nodes against 6,072 CSS rules; style matching accounts for 98.9% of interaction cost, of which this plugin is 27% (3.6ms) and the plugin-side optimisation ceiling is 8% (§51.4). Fixing it properly requires message-level virtualisation in the host.
+
 ## FAQ
 
 **Nothing changed after installing.**
@@ -235,7 +251,7 @@ Four layers, all runnable locally. `npm run gate` chains them and the `pre-push`
 | --- | --- | --- |
 | Types | `npm run typecheck` | `tsc --noEmit` over `src` and `tests` |
 | Unit / integration | `npm run test:unit` | 58 files (test count: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
-| Contract assertions | `node tests/run-assertions.mjs` | 67 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
+| Contract assertions | `node tests/run-assertions.mjs` | 68 scripts (pass/skip: see [`docs/BASELINE.md`](docs/BASELINE.md)) |
 | Real-browser layout | `npm run test:layout` | 22 Chromium scripts measuring real geometry, interaction, contrast and overflow |
 
 `npm run gate:host` is the heavy tier: it packs the plugin, installs it into an isolated `DSH_HOME`, starts a real `dsh web`, and runs three live-host scripts (about 1–2 minutes). Use it when you touch slots, injection, or the install flow.

@@ -14,7 +14,7 @@
 运行 `node tests/run-assertions.mjs` 的基线结果：
 
 ```
-67 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
+68 个脚本；通过 / 跳过 / 失败数与跳过清单以实跑为准
   采集方式：node --import tsx scripts/baseline.mjs --run（结果写进 docs/BASELINE.md）
   固定清单（有意跳过）：codex-suite-installer.assert.mjs、codex-suite.assert.ts、release-pipeline.assert.mjs
   2026-10-31 实跑（v2.2.0）：62 通过 / 3 跳过 / 0 失败；本轮新增工具卡守卫 6 条（见 CHANGELOG 2.2.0）
@@ -3376,9 +3376,13 @@ localStorage.setItem('dcu-virtual-skip', '0')
 
 | 项 | 状态 |
 | --- | --- |
-| `virtual-skip` 默认开启 | **已回退为显式 opt-in**（`=== '1'` 才启用） |
+| `virtual-skip` 默认开启 | **已回退为显式 opt-in**（`=== '1'` 才启用）|
 | hero 布局改动（`min-height:100%` → `justify-content:flex-end`） | **已回退**，文件恢复原样 |
 | 门禁 | 四项全绿 |
+
+> ⚠️ **本表已被后续轮次覆盖，勿按此执行。** 2026-10-17 晚 §48 重写为 CSS-only 实现并把默认值
+> 改成「开」，2026-11-10 §67 又改回「关」（`=== '1'` 才启用，与本表一致，但理由完全不同）。
+> 当前有效值请以 `src/client/virtual-skip.ts` 的 `enabled()` 为准。
 
 **我此前的「2.0× 提速」结论不可信。** 它测的是「改输入框内容 + 强制布局」的成本，
 不是用户实际感知的流畅度。**成本下降 ≠ 体验改善**。
@@ -3742,12 +3746,17 @@ size containment → `content-visibility` 的高度无处累积 → 崩塌。
 | --- | --- |
 | `src/client/virtual-skip.ts` | **重写**为 CSS-only 实现（移除 wrapper 逻辑） |
 | `tests/virtual-skip.assert.ts` | **重写** 9 组契约断言，新增「禁止插节点」硬约束 |
-| 默认状态 | **默认开启**，`localStorage['dcu-virtual-skip']='0'` 关闭 |
+| 默认状态 | ~~**默认开启**，`localStorage['dcu-virtual-skip']='0'` 关闭~~ → **2026-11-10 改回默认关闭**，`='1'` 才开启（详见 §67） |
 
 ### 48.5 三层安全网
 
+> ⚠️ 本节写于「默认开启」时期。2026-11-10 起**默认关闭**，因此第 2 条的语义反过来：
+> 现在是 `localStorage.setItem('dcu-virtual-skip','1')` 才启用，
+> `removeItem` 即回到默认。第 1、3 条仍然有效。
+
 1. **只在超长会话启用**：消息数 < 300 时**不注入任何样式**（短会话不卡，不承担风险）；
-2. **回滚口一行命令**：`localStorage.setItem('dcu-virtual-skip','0')`；
+2. ~~**回滚口一行命令**：`localStorage.setItem('dcu-virtual-skip','0')`~~
+   → **现行**：`localStorage.setItem('dcu-virtual-skip','1')` 启用，`removeItem` 关闭；
 3. **卸载只移除自己的样式标签**：内联 `display:contents` 从头到尾没被修改
    （靠 CSS 覆盖，不写内联），所以卸载后必然完整复原。
 
@@ -5299,3 +5308,82 @@ reduced-motion 点击瞬跳、TCP-02 等待窗口让位。
 注意：若把「在视口内」这条去掉，会多出 29 个虚拟列表预渲染的行标题按钮（`TXqvFW_title`，
 y 坐标 -5917 / -3467 等）——它们在视口外数屏，属虚拟化的正常产物，不计入。口径必须写死，
 否则这条清单每次测都不一样。
+
+---
+
+## 67. 2026-11-10 复算：`virtual-skip` 在真实结构下**从不激活**，默认值改回关闭
+
+**触发**：上游 Discussion #10033（macOS 桌面端 0.2.2-rc.1 长会话输入卡顿）被转进邮箱。
+该贴标题里的「style matching is 98.9% of cost」正是本仓 §40.3 的测量，
+但被用来解释一个本仓不在场的瓶颈（Electron `ValueSerializer` 跨进程序列化，
+宿主主线程仅 2–4% 忙）。趁复核口径时，顺手用 §50.1 已入库的真实结构数据重算了
+`virtual-skip` 的探测逻辑——发现它**从来没有生效过**。
+
+### 67.1 两道闸门同时关死
+
+`findMessageLayer` 的判据是「逐层下探，某层直接子元素 ≥ 300 即为消息层」，下探上限 4 层。
+拿 §50.1 实测结构逐层对：
+
+| 层级 | 元素 | 直接子元素 | 闸门 |
+| --- | --- | --- | --- |
+| 0 | `conversation.session` | 2 | 数量 < 300 |
+| 1–3 | `viewArea` / `view` / `frame` | 各 1 | 数量 < 300 |
+| 4 | `root` | 1 | **循环在此结束（上限 4 层）** |
+| 5–6 | `inner` / `column` | 2 / 1 | 深度超限 |
+| 7 | `chat.flow` | **19** | 深度超限 **且** 数量 < 300 |
+
+两道闸门**同时**关死：深度到不了第 7 层，而就算放开深度，`chat.flow` 只有 19 个直接子元素。
+所以 `layer === null` 恒成立 → 每次都走 `uninstall()` → **什么都不做**。
+
+复算脚本：`node scripts/perf-virtual-skip-idle.mjs`（用 §50.1 结构造 22850 节点页面，
+逐字复制源码的 `findMessageLayer` / `installIfNeeded`），输出：
+`真实结构下的走法是: findMessageLayer 返回 null ← 空转`。
+
+### 67.2 空转本身不贵——所以这不是性能问题
+
+同一次测量里把 `installIfNeeded` 跑 2000 次：
+
+| 项 | 每次耗时 |
+| --- | --- |
+| `installIfNeeded` 全程 | **0.0026 ms** |
+| 其中 `uninstall()` | 0.0002 ms |
+| 其中 `querySelectorAll([data-dcu-viskip])` | 0.0001 ms |
+
+`getElementsByTagName('*').length` 在 Blink 里是**缓存过的 O(1)**（首次遍历后节点数被记忆），
+所以「每次 mutation 遍历 23000 节点」这个担心不成立。按子代理推流 30 / 60 / 120 次 mutation/s 推算，
+分别占帧预算 **0.5% / 0.9% / 1.9%**。
+
+> 本条修正 §58.6 与 §58.7 里「`getElementsByTagName('*').length` 每次变更都会被调用」的隐含担忧：
+> 调用是真的，成本不是。
+
+### 67.3 为什么不去修探测器把它打开
+
+§51.5 已经在真实结构上**精确施加**过（`session` + `chat.flow` 改 block、686 单元加 CV）：
+13.8ms → 12.2ms，**1.13×**，`scrollHeight` 偏差 0%。技术上可行，但——
+
+- 收益 1.6ms，而 §51.4 已证明插件侧优化上限 8%，这条吃不到多少；
+- §48.6 自己写着「真实会话的消息类型（图片、代码块、折叠块）可能带来间距或对齐差异」**未验证**；
+- 要修探测器就得认 `chat.flow` 这类**宿主哈希类名**，等于把补丁焊死在一个会变的锚点上。
+
+**1.6ms 换一个未验证的布局风险，不划算。** 所以保留探测器原样、不强行激活。
+
+### 67.4 处置：默认值改回关闭，并把真话写进代码
+
+| 文件 | 改动 |
+| --- | --- |
+| `src/client/virtual-skip.ts` | `enabled()` 改 `=== '1'`；`catch` fallback 由 `true` 改 `false`（与常态一致，隐私模式不再静默拿到另一套行为）|
+| 同上 | 文件头新增「从不激活」小节（含两层闸门表 + 1.13× 实测 + 空转成本）；安全网/已知限制段落同步 |
+| `src/client/index.ts` | 那句「需 `dcu-virtual-skip=1`」的注释补上「打开也大概率空转」与 1.13× 依据 |
+| `tests/virtual-skip.assert.ts` | 默认值断言 `!== '0'` → `=== '1'`；新增 catch fallback 断言；文件头加「本文件全绿 ≠ 功能生效」警示 |
+| `README.md` / `README.zh-CN.md` | 新增「长会话的性能开关」小节：怎么开、现状、为什么默认关、卡顿的真实归属 |
+| `docs/KNOWN-ISSUES.md` §44.1 / §48.4 / §48.5 | 各加覆盖提示，避免读者按旧记录执行 |
+
+### 67.5 留在这里的教训
+
+**「断言全绿」和「功能在运行」是两件事。** 9 组契约断言锁的是代码意图
+（改 CSS、不插节点、有幂等守卫……），没有一条能发现「这个函数永远返回 null」。
+判断一个优化是否生效，唯一可靠的口径是**在活宿主里数它写下的痕迹**
+（`document.querySelectorAll('[data-dcu-viskip]').length`），而不是跑它的单元测试。
+
+同类缺口检查过一遍：本仓其余「探测器 + 阈值」结构（`sidebar-width` / `composer-width` /
+`official-turn-navigator`）都有活宿主实测记录（§51）或运行时自检，唯独这一处是纯合成页验证。

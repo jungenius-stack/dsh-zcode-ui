@@ -4,7 +4,7 @@
 
 Releases of **dsh-zcode-ui**. This package is a fork of [dsh-codex-ui](https://github.com/MichengAI/dsh-codex-ui)@1.1.34; the full upstream history up to that version lives in [docs/UPSTREAM-CHANGELOG.md](docs/UPSTREAM-CHANGELOG.md).
 
-## Unreleased
+## 2.3.9 - 2026-11-10
 
 **`virtual-skip` defaulted back to off, because it turned out never to activate.**
 
