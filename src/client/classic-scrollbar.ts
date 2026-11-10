@@ -71,12 +71,19 @@ function sync(): void {
   else root.removeAttribute(CLASSIC_SCROLLBAR_ATTR)
 }
 
+/** 已安装的卸载函数。重复安装只返回同一个，避免 resize 监听叠成多层。 */
+let activeTeardown: (() => void) | undefined
+
 /**
  * 安装：立即测一次，之后窗口尺寸变化重测（跨屏拖动 / 系统缩放 / overlay 开关）。
  * 返回卸载函数；幂等（重复调用不会叠监听）。
+ *
+ * 幂等靠模块级 activeTeardown 而非「装过就跳过」：宿主可能先给一个临时
+ * document（首帧前 body 还没挂），那种情况必须先装后卸、再装到真 body 上。
  */
 export function observeClassicScrollbar(): () => void {
   if (typeof document === 'undefined' || !document.body) return () => {}
+  if (activeTeardown) return activeTeardown
   sync()
   let frame = 0
   const onResize = (): void => {
@@ -88,9 +95,12 @@ export function observeClassicScrollbar(): () => void {
     })
   }
   window.addEventListener('resize', onResize)
-  return () => {
+  const teardown = (): void => {
     window.removeEventListener('resize', onResize)
     if (frame) cancelAnimationFrame(frame)
     document.documentElement.removeAttribute(CLASSIC_SCROLLBAR_ATTR)
+    if (activeTeardown === teardown) activeTeardown = undefined
   }
+  activeTeardown = teardown
+  return teardown
 }

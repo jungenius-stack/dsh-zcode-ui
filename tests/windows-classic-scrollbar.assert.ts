@@ -104,4 +104,31 @@ assert.match(
   '观察器必须挂进 ctx.effect，否则插件卸载时属性残留、重装后不重测',
 )
 
-console.log('windows-classic-scrollbar: 11 条断言通过')
+// ── 5. hero（新建会话）态同样降级 ───────────────────────────────────────
+// 2026-11-10 首版只改了会话态，漏了这条：用户在新建页停留时仍吃双边 28px。
+// 特异性必须够压住原规则 (0,2,1)：本规则为 (0,3,2)。
+const hero = read('new-conversation-style.ts')
+assert.match(
+  hero,
+  /\[data-phase=hero\] \[data-conversation-scroll\]\[class\]\{[^}]*scrollbar-gutter:stable both-edges\}/,
+  'hero 态保留 both-edges 为默认（勿改成只留单边，会改变 macOS 已校准布局）',
+)
+assert.match(
+  hero,
+  /html\[data-dcu-classic-scrollbar\] \[data-phase=hero\] \[data-conversation-scroll\]\[class\]\{scrollbar-gutter:stable\}/,
+  'hero 态必须同样挂降级规则——首版漏过这一处，用户停在新建页时仍白吃双边 28px',
+)
+
+// ── 6. 幂等安装（2026-11-10 自查发现：首版无守卫，ctx.effect 重跑会叠监听）──
+assert.match(
+  scrollbar,
+  /if \(activeTeardown\) return activeTeardown/,
+  '重复安装必须返回同一个卸载函数——没有守卫时 ctx.effect 重跑会把 resize 监听叠成多层',
+)
+assert.match(
+  scrollbar,
+  /if \(activeTeardown === teardown\) activeTeardown = undefined/,
+  '卸载必须清掉模块级登记，否则重装时守卫会拦下真正需要的新安装',
+)
+
+console.log('windows-classic-scrollbar: 15 条断言通过')

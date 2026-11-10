@@ -17,6 +17,8 @@
 
 - `scrollbar-gutter:stable both-edges` 当初是照「滚动条是覆盖式、宽 0」的假设立的。**那个假设是错的**：宿主带一条全局 `::-webkit-scrollbar{width:var(--dsh-scrollbar-width)}`，值 **14px**，所以滚动条在**所有平台**都真占布局宽度。both-edges 于是把 14px 留了两次——永久损失 28px，848 主列和 864 输入卡因此够不到 1280 容器断点；而侧栏与轮次刻度条按完整视口定位、内容区却缩窄了，相对关系错位就表现为「刻度漂浮」。新增 `classic-scrollbar.ts` 在运行时**实测**滚动条宽度，非零才降级为单边 `stable`——活体会话实测内容宽度 **+14px**。用实测而不是平台名，是因为 Electron 可强制 overlay、Win11 的 overlay 是系统开关、Linux 各家不同、Chrome 也可能把 overlay 推回 Windows。
 - 输入卡的 `border:.5px` 是在 Retina（DPR 2）上校准的：半像素正好落在真实设备像素上。DPR 1 / 1.25（Windows 100% / 125% 缩放）时它没有像素可落——Chromium 要么丢掉这条边（卡片失去轮廓、与背景糊在一起，观感即「发灰」），要么吸附成整 1px（比设计粗一倍）。新增 `@media (max-resolution:1.5dppx)` 补回 1px；判据用 DPR 而非平台名，所以 Windows 外接 2x 屏仍保持 0.5px 原设计。
+- **首版漏了 hero（新建会话）态**，T2 自查时补上：`new-conversation-style.ts` 里还有一条同等效力的 both-edges，带 `[class]` 属性选择器、特异性 (0,2,1)，压得住只挂 `html[attr]` 的降级规则。不补的话，用户停在新建页时照样白吃双边 28px——会话态修好、新建页没修，是最容易漏的那种「半套生效」。活体实测 hero 态 `scrollbar-gutter` 已为 `stable`。
+- **幂等守卫缺失也修了**：`observeClassicScrollbar` 首版没有模块级登记，`ctx.effect` 重跑会把 `resize` 监听叠成多层。现补 `activeTeardown` 登记 + 卸载时清空；活体连发 10 次 resize 实测只写 1 次属性（rAF 合并 + 单监听双生效）。
 - 通过 `scripts/probe-classic-scrollbar.mjs` 活体验证（CDP 注入 17px 滚动条 + 强制 `deviceScaleFactor:1`）：gutter 降为 `stable`、内容宽度 +14px、卡片边框在 DPR 1 变 1px、DPR 2 复原为 0.5px。`tests/windows-classic-scrollbar.assert.ts` 新增 11 条断言。
 - **未**在真实 Windows 机器上验证。Windows 11 ARM 虚拟机已完整装好（含用 `ms-cxh:localonly` 绕过微软账户强制登录），但 QEMU 的 ARM 虚拟机没有 `virtio-win` 网卡驱动——官方 `virtio-win.iso` 只发布 `amd64` 和 `i386` 两种架构——因此在其中装不上 DSH。两处修复的依据是确定性事实（实测滚动条宽度、DPR 算术），不依赖那台虚拟机。
 

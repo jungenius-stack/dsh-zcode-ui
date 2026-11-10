@@ -2,6 +2,11 @@
 export const NEW_CONVERSATION_STYLE = `
 [data-phase=hero]:has([data-conversation-scroll]){container:dcu-new-conversation / inline-size}
 [data-phase=hero] [data-conversation-scroll][class]{--dsh-composer-side-clearance:16px;justify-content:flex-start;scrollbar-gutter:stable both-edges}
+/* 经典滚动条平台收回单边：与 conversation-layout.ts 的 X2b 同源，那条管会话态、这条管新建页（hero）态。
+   特异性：原规则 (0,2,1)＝[data-phase]+[data-conversation-scroll]+[class]；本规则加 html[data-dcu-classic-scrollbar]
+   后为 (0,3,2)，压得住。
+   ⚠ 这条曾漏过一轮（2026-11-10 首版只改会话态）——用户停在新建页时仍吃双边 28px。 */
+html[data-dcu-classic-scrollbar] [data-phase=hero] [data-conversation-scroll][class]{scrollbar-gutter:stable}
 [data-phase=hero] [data-composer-seat]{flex:1 0 auto;min-height:100%}
 [data-phase=hero] [data-composer-seat]>:has([class*="_composerHero"]){display:flex;flex:1;flex-direction:column}
 [data-phase=hero] [class*="_composerHero"]{box-sizing:border-box;flex:1;width:100%;max-width:none;min-width:0;margin-inline:auto;gap:0;padding-bottom:32px}
